@@ -1,6 +1,5 @@
-package dev.banger.hootkey.ui.theme
+package dev.banger.hootkey.presentation.ui.theme
 
-import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme

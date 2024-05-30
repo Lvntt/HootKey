@@ -1,4 +1,4 @@
-package dev.banger.hootkey.ui.theme
+package dev.banger.hootkey.presentation.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
