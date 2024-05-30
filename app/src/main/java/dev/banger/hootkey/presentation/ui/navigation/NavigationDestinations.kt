@@ -10,4 +10,7 @@ sealed interface NavigationDestinations {
     @Serializable
     data object Registration : NavigationDestinations
 
+    @Serializable
+    data object Dashboard : NavigationDestinations
+
 }
