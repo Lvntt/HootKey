@@ -4,6 +4,7 @@ import dev.banger.hootkey.Constants
 import org.koin.dsl.module
 import dev.banger.hootkey.presentation.viewmodel.AccountAuthViewModel
 import dev.banger.hootkey.presentation.viewmodel.AuthViewModel
+import dev.banger.hootkey.presentation.viewmodel.LaunchViewModel
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.androidx.viewmodel.dsl.viewModelOf
 import org.koin.core.qualifier.named
@@ -18,4 +19,6 @@ fun providePresentationModule() = module {
     }
 
     viewModelOf(::AuthViewModel)
+
+    viewModelOf(::LaunchViewModel)
 }

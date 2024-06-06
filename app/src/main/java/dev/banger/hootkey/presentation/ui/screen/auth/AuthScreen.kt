@@ -25,8 +25,7 @@ import dev.banger.hootkey.presentation.viewmodel.AuthViewModel
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
-fun AuthScreen(onSuccess: () -> Unit) {
-    val viewModel: AuthViewModel = koinViewModel()
+fun AuthScreen(onSuccess: () -> Unit, viewModel: AuthViewModel = koinViewModel()) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     ObserveAsEvents(viewModel.successEventFlow) {

@@ -16,4 +16,7 @@ sealed interface NavigationDestinations {
     @Serializable
     data object Login : NavigationDestinations
 
+    @Serializable
+    data object Launch : NavigationDestinations
+
 }

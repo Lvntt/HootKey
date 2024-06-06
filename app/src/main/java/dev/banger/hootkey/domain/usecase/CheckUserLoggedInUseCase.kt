@@ -4,7 +4,7 @@ import dev.banger.hootkey.domain.repository.AuthRepository
 
 class CheckUserLoggedInUseCase(private val authRepository: AuthRepository) {
 
-    suspend operator fun invoke(): Boolean {
+    operator fun invoke(): Boolean {
         return authRepository.checkUserLoggedIn()
     }
 }

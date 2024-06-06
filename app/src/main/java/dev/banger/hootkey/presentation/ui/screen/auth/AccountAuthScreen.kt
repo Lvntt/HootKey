@@ -37,10 +37,11 @@ private const val AUTH_TAG = "AUTH_TAG"
 
 @Composable
 fun AccountAuthScreen(
-    isLogin: Boolean, onNavigateFromBottomHint: () -> Unit, onSuccess: () -> Unit
+    isLogin: Boolean,
+    onNavigateFromBottomHint: () -> Unit,
+    onSuccess: () -> Unit,
+    viewModel: AccountAuthViewModel = koinViewModel(named(if (isLogin) Constants.LOGIN else Constants.REGISTER))
 ) {
-    val viewModel: AccountAuthViewModel =
-        koinViewModel(named(if (isLogin) Constants.LOGIN else Constants.REGISTER))
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     ObserveAsEvents(viewModel.successEventFlow) {

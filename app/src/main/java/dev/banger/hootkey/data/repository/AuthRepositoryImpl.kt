@@ -22,6 +22,7 @@ class AuthRepositoryImpl(
         cryptoManager.setMasterPassword(password)
         passwordValidator.savePassword(password)
     }, onFailure = { throwable ->
+        auth.signOut()
         if (throwable is FirebaseAuthInvalidCredentialsException) throw InvalidCredentialsException()
         throw throwable
     })
@@ -32,11 +33,12 @@ class AuthRepositoryImpl(
         cryptoManager.setMasterPassword(password)
         passwordValidator.savePassword(password)
     }, onFailure = { throwable ->
+        auth.signOut()
         if (throwable is FirebaseAuthUserCollisionException) throw RegistrationCollisionException()
         throw throwable
     })
 
-    override suspend fun checkUserLoggedIn() = auth.currentUser != null
+    override fun checkUserLoggedIn() = auth.currentUser != null
 
     override suspend fun checkPassword(password: String): Boolean {
         return passwordValidator.validatePassword(password)

@@ -6,10 +6,18 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import dev.banger.hootkey.presentation.ui.screen.auth.AccountAuthScreen
 import dev.banger.hootkey.presentation.ui.screen.auth.AuthScreen
+import dev.banger.hootkey.presentation.ui.screen.launch.LaunchScreen
 
 @Composable
 fun AppNavigation(navHostController: NavHostController) {
-    NavHost(navHostController, NavigationDestinations.Login) {
+    NavHost(navHostController, NavigationDestinations.Launch) {
+        composable<NavigationDestinations.Launch> {
+            LaunchScreen(onNavigateToAccountLogin = {
+                navHostController.navigate(NavigationDestinations.AccountLogin)
+            }, onNavigateToLogin = {
+                navHostController.navigate(NavigationDestinations.Login)
+            })
+        }
         composable<NavigationDestinations.AccountLogin> {
             AccountAuthScreen(isLogin = true, onNavigateFromBottomHint = {
                 navHostController.navigate(NavigationDestinations.AccountRegistration)
