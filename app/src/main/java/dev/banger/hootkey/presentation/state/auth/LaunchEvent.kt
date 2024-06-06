@@ -1,4 +1,4 @@
-package dev.banger.hootkey.presentation.state
+package dev.banger.hootkey.presentation.state.auth
 
 sealed interface LaunchEvent {
 

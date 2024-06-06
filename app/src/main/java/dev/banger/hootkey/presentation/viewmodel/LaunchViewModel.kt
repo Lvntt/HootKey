@@ -3,7 +3,7 @@ package dev.banger.hootkey.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.banger.hootkey.domain.usecase.CheckUserLoggedInUseCase
-import dev.banger.hootkey.presentation.state.LaunchEvent
+import dev.banger.hootkey.presentation.state.auth.LaunchEvent
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch

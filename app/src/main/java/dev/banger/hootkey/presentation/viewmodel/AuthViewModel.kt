@@ -1,11 +1,16 @@
 package dev.banger.hootkey.presentation.viewmodel
 
+import androidx.biometric.BiometricManager
+import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_STRONG
+import androidx.biometric.BiometricPrompt
+import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.banger.hootkey.R
 import dev.banger.hootkey.domain.usecase.CheckPasswordUseCase
 import dev.banger.hootkey.domain.usecase.ValidatePasswordUseCase
-import dev.banger.hootkey.presentation.state.AuthState
+import dev.banger.hootkey.presentation.state.auth.AuthState
+import dev.banger.hootkey.presentation.state.auth.BiometricError
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,8 +26,11 @@ class AuthViewModel(
     private val _state = MutableStateFlow(AuthState())
     val state = _state.asStateFlow()
 
-    private val _successEventFlow = MutableSharedFlow<Unit>()
+    private val _successEventFlow = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
     val successEventFlow = _successEventFlow.asSharedFlow()
+
+    private val _biometricErrorFlow = MutableSharedFlow<BiometricError>(extraBufferCapacity = 1)
+    val biometricErrorFlow = _biometricErrorFlow.asSharedFlow()
 
     fun onPasswordChanged(password: String) {
         _state.update {
@@ -44,6 +52,7 @@ class AuthViewModel(
             runCatching {
                 if (checkPasswordUseCase(state.value.password)) {
                     _successEventFlow.emit(Unit)
+                    _state.update { it.copy(isLoading = false) }
                 } else {
                     _state.update {
                         it.copy(
@@ -59,6 +68,43 @@ class AuthViewModel(
                 }
             })
         }
+    }
+
+    fun showBiometricPrompt(
+        activity: FragmentActivity, title: String, description: String, cancelText: String
+    ) {
+        val manager = BiometricManager.from(activity)
+        val authenticators = BIOMETRIC_STRONG
+
+        val promptInfo =
+            BiometricPrompt.PromptInfo.Builder().setTitle(title).setDescription(description)
+                .setAllowedAuthenticators(authenticators)
+
+        promptInfo.setNegativeButtonText(
+            cancelText
+        )
+
+        when (manager.canAuthenticate(authenticators)) {
+            BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE, BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE -> {
+                _biometricErrorFlow.tryEmit(BiometricError.BiometricNotAvailable)
+                return
+            }
+
+            BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED -> {
+                _biometricErrorFlow.tryEmit(BiometricError.BiometricNotEnrolled)
+                return
+            }
+
+            else -> Unit
+        }
+
+        val prompt = BiometricPrompt(activity, object : BiometricPrompt.AuthenticationCallback() {
+            override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                super.onAuthenticationSucceeded(result)
+                _successEventFlow.tryEmit(Unit)
+            }
+        })
+        prompt.authenticate(promptInfo.build())
     }
 
 }

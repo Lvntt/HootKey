@@ -8,7 +8,7 @@ import dev.banger.hootkey.domain.entity.auth.exception.RegistrationCollisionExce
 import dev.banger.hootkey.domain.usecase.AuthUseCase
 import dev.banger.hootkey.domain.usecase.ValidateEmailUseCase
 import dev.banger.hootkey.domain.usecase.ValidatePasswordUseCase
-import dev.banger.hootkey.presentation.state.AccountAuthState
+import dev.banger.hootkey.presentation.state.auth.AccountAuthState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -60,6 +60,7 @@ class AccountAuthViewModel(
             }.fold(
                 onSuccess = {
                     _successEventFlow.emit(Unit)
+                    _state.update { it.copy(isLoading = false) }
                 },
                 onFailure = { throwable ->
                     _state.update {

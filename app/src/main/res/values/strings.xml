@@ -13,4 +13,9 @@
     <string name="unknown_error">Something went wrong…</string>
     <string name="ok">OK</string>
     <string name="error">Error</string>
+    <string name="biometric_title">Biometric Auth</string>
+    <string name="biometric_description">Use biometric auth to unlock your vault</string>
+    <string name="biometric_cancel_text">Use password</string>
+    <string name="biometric_error_not_available">Biometric auth is not available</string>
+    <string name="biometric_error_not_enrolled">Biometric auth is not enrolled</string>
 </resources>

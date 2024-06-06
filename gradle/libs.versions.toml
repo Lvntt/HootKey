@@ -1,5 +1,6 @@
 [versions]
 agp = "8.4.1"
+biometric = "1.1.0"
 firebaseBom = "33.0.0"
 kotlin = "1.9.0"
 coreKtx = "1.13.1"
@@ -12,6 +13,7 @@ serialization = "1.6.3"
 koin = "3.5.3"
 
 [libraries]
+androidx-biometric = { module = "androidx.biometric:biometric", version.ref = "biometric" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-security-crypto = { module = "androidx.security:security-crypto", version.ref = "securityCrypto" }
 firebase-auth = { module = "com.google.firebase:firebase-auth" }

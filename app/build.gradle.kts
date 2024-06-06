@@ -73,4 +73,6 @@ dependencies {
     implementation(libs.koin.androidx.compose)
 
     implementation(libs.androidx.security.crypto)
+
+    implementation(libs.androidx.biometric)
 }
