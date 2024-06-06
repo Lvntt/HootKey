@@ -16,7 +16,7 @@ class PasswordValidator(context: Context) {
         const val PASSWORD_HASH_ALIAS = "password_hash"
         const val KEY_DERIVATION_ALGORITHM = "PBKDF2WithHmacSHA512"
         const val PBKDF2_ITERATION_COUNT: Int = 300000
-        const val DERIVED_KEY_LENGTH = 512
+        const val DERIVED_KEY_LENGTH = 256
     }
 
     private val prefsMasterKeyAlias =

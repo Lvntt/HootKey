@@ -22,7 +22,7 @@ class CryptoManager {
         const val BLOCK_MODE = KeyProperties.BLOCK_MODE_CBC
         const val PADDING = KeyProperties.ENCRYPTION_PADDING_PKCS7
         const val TRANSFORMATION = "$ALGORITHM/$BLOCK_MODE/$PADDING"
-        const val KEY_LENGTH = 512
+        const val KEY_LENGTH = 256
         const val KEY_ALIAS = "hootkey_master"
         const val KEYSTORE_TYPE = "AndroidKeyStore"
 
