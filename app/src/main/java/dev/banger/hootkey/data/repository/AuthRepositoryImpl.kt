@@ -18,30 +18,27 @@ class AuthRepositoryImpl(
 
     override suspend fun login(email: String, password: String) = runCatching {
         auth.signInWithEmailAndPassword(email, password).await()
-    }.fold(
-        onSuccess = {
-            cryptoManager.setMasterPassword(password)
-            passwordValidator.savePassword(password)
-        },
-        onFailure = { throwable ->
-            if (throwable is FirebaseAuthInvalidCredentialsException) throw InvalidCredentialsException()
-            throw throwable
-        }
-    )
+    }.fold(onSuccess = {
+        cryptoManager.setMasterPassword(password)
+        passwordValidator.savePassword(password)
+    }, onFailure = { throwable ->
+        if (throwable is FirebaseAuthInvalidCredentialsException) throw InvalidCredentialsException()
+        throw throwable
+    })
 
     override suspend fun register(email: String, password: String) = runCatching {
         auth.createUserWithEmailAndPassword(email, password).await()
-    }.fold(
-        onSuccess = {
-            cryptoManager.setMasterPassword(password)
-            passwordValidator.savePassword(password)
-        },
-        onFailure = { throwable ->
-            if (throwable is FirebaseAuthUserCollisionException) throw RegistrationCollisionException()
-            throw throwable
-        }
-    )
+    }.fold(onSuccess = {
+        cryptoManager.setMasterPassword(password)
+        passwordValidator.savePassword(password)
+    }, onFailure = { throwable ->
+        if (throwable is FirebaseAuthUserCollisionException) throw RegistrationCollisionException()
+        throw throwable
+    })
 
     override suspend fun checkUserLoggedIn() = auth.currentUser != null
 
+    override suspend fun checkPassword(password: String): Boolean {
+        return passwordValidator.validatePassword(password)
+    }
 }

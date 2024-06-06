@@ -2,11 +2,13 @@
     <string name="app_name">HootKey</string>
     <string name="email_hint">Email</string>
     <string name="password_hint">Password</string>
+    <string name="master_password_hint">Master Password</string>
     <string name="login">Login</string>
     <string name="register">Register</string>
     <string name="already_have_account">Already have an account?</string>
     <string name="dont_have_account">Don\'t have an account?</string>
     <string name="invalid_credentials">Invalid email or password</string>
+    <string name="invalid_password">Invalid password</string>
     <string name="collision_error">Email already in use</string>
     <string name="unknown_error">Something went wrong…</string>
     <string name="ok">OK</string>

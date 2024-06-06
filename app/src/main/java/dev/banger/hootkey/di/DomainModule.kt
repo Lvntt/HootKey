@@ -10,6 +10,7 @@ import dev.banger.hootkey.domain.usecase.CheckUserLoggedInUseCase
 import dev.banger.hootkey.domain.usecase.ValidateEmailUseCase
 import dev.banger.hootkey.domain.usecase.ValidatePasswordUseCase
 import dev.banger.hootkey.Constants
+import dev.banger.hootkey.domain.usecase.CheckPasswordUseCase
 import org.koin.core.module.dsl.bind
 import org.koin.core.module.dsl.factoryOf
 import org.koin.core.module.dsl.named
@@ -32,7 +33,6 @@ fun provideDomainModule() = module {
 
     factoryOf(::CheckUserLoggedInUseCase)
 
-
     factoryOf(::ValidatePasswordUseCase)
 
     factory {
@@ -42,5 +42,7 @@ fun provideDomainModule() = module {
             ).matches()
         }
     }
+
+    factoryOf(::CheckPasswordUseCase)
 
 }

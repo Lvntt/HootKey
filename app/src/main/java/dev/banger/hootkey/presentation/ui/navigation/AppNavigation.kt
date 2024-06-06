@@ -4,22 +4,28 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import dev.banger.hootkey.presentation.ui.screen.auth.AccountAuthScreen
 import dev.banger.hootkey.presentation.ui.screen.auth.AuthScreen
 
 @Composable
 fun AppNavigation(navHostController: NavHostController) {
     NavHost(navHostController, NavigationDestinations.Login) {
-        composable<NavigationDestinations.Login> {
-            AuthScreen(isLogin = true, onNavigateFromBottomHint = {
-                navHostController.navigate(NavigationDestinations.Registration)
+        composable<NavigationDestinations.AccountLogin> {
+            AccountAuthScreen(isLogin = true, onNavigateFromBottomHint = {
+                navHostController.navigate(NavigationDestinations.AccountRegistration)
             }, onSuccess = {
                 navHostController.navigate(NavigationDestinations.Dashboard)
             })
         }
-        composable<NavigationDestinations.Registration> {
-            AuthScreen(isLogin = false, onNavigateFromBottomHint = {
-                navHostController.navigate(NavigationDestinations.Login)
+        composable<NavigationDestinations.AccountRegistration> {
+            AccountAuthScreen(isLogin = false, onNavigateFromBottomHint = {
+                navHostController.navigate(NavigationDestinations.AccountLogin)
             }, onSuccess = {
+                navHostController.navigate(NavigationDestinations.Dashboard)
+            })
+        }
+        composable<NavigationDestinations.Login> {
+            AuthScreen(onSuccess = {
                 navHostController.navigate(NavigationDestinations.Dashboard)
             })
         }

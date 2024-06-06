@@ -5,12 +5,15 @@ import kotlinx.serialization.Serializable
 sealed interface NavigationDestinations {
 
     @Serializable
-    data object Login : NavigationDestinations
+    data object AccountLogin : NavigationDestinations
 
     @Serializable
-    data object Registration : NavigationDestinations
+    data object AccountRegistration : NavigationDestinations
 
     @Serializable
     data object Dashboard : NavigationDestinations
+
+    @Serializable
+    data object Login : NavigationDestinations
 
 }
