@@ -5,6 +5,8 @@ import dev.banger.hootkey.domain.entity.template.Template
 
 interface TemplateRepository {
 
+    suspend fun getById(id: String): Template?
+
     suspend fun getAll(): List<Template>
 
     suspend fun create(template: CreateTemplateRequest): Template

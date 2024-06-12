@@ -2,6 +2,7 @@ package dev.banger.hootkey.data.repository
 
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.CollectionReference
+import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.toObject
 import dev.banger.hootkey.data.Constants.EMPTY_STRING
@@ -41,19 +42,43 @@ class TemplateRepositoryImpl(
     private suspend inline fun CollectionReference.getTemplates(
         customCollection: Boolean, getTemplateFieldsById: (String) -> CollectionReference
     ): List<Template> = this.get().await().map { template ->
-        Template(
-            id = template.id,
-            name = template.toObject<TemplateModel>().name,
-            fields = getTemplateFieldsById(template.id).get().await().map { field ->
-                val fieldObject = field.toObject<FieldModel>()
-                TemplateField(
-                    index = field.id.toInt(),
-                    name = fieldObject.name,
-                    type = FieldType.entries[fieldObject.type]
-                )
-            },
-            isCustom = customCollection
-        )
+        template.toTemplate(isCustom = customCollection, getTemplateFields = {
+            getTemplateFieldsById(template.id)
+        })
+    }
+
+    private suspend inline fun DocumentSnapshot.toTemplate(
+        isCustom: Boolean, getTemplateFields: () -> CollectionReference
+    ): Template = Template(
+        id = id,
+        name = toObject<TemplateModel>()?.name ?: EMPTY_STRING,
+        fields = getTemplateFields().get().await().map { field ->
+            val fieldObject = field.toObject<FieldModel>()
+            TemplateField(
+                index = field.id.toInt(),
+                name = fieldObject.name,
+                type = FieldType.entries[fieldObject.type]
+            )
+        },
+        isCustom = isCustom
+    )
+
+    override suspend fun getById(id: String): Template? {
+        val userId = auth.currentUser?.uid ?: throw UnauthorizedException()
+
+        val customTemplate = templateCollection(userId).document(id).get().await()
+        if (customTemplate.exists()) return customTemplate.toTemplate(
+            isCustom = true,
+            getTemplateFields = {
+                templateFieldCollection(userId, id)
+            })
+        val commonTemplate = commonTemplateCollection().document(id).get().await()
+        if (commonTemplate.exists()) return commonTemplate.toTemplate(
+            isCustom = false,
+            getTemplateFields = {
+                commonTemplateFieldCollection(id)
+            })
+        return null
     }
 
     override suspend fun getAll(): List<Template> {
