@@ -29,4 +29,5 @@ val Secondary60 = Color(0xFF757784)
 
 val White = Color(0xFFFFFFFF)
 val Gray = Color(0xFFF0F4F7)
+val LightGray = Color(0xFFCCCFD4)
 val DarkGray = Color(0xFFD9D9D9)
