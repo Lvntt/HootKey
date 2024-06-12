@@ -17,6 +17,7 @@ fun PrimaryButtonRegular(
     text: String,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
+    isLoading: Boolean = false,
     contentPadding: PaddingValues = PaddingValues(PaddingNone),
     shape: RoundedCornerShape = ButtonShapeRegular
 ) {
@@ -26,7 +27,8 @@ fun PrimaryButtonRegular(
         text = text,
         enabled = enabled,
         contentPadding = contentPadding,
-        shape = shape
+        shape = shape,
+        isLoading = isLoading
     )
 }
 
@@ -36,7 +38,8 @@ private fun EnabledPrimaryButtonRegularPreview() {
     PrimaryButtonRegular(
         modifier = Modifier.fillMaxWidth(),
         onClick = { },
-        text = "Login"
+        text = "Login",
+        isLoading = true
     )
 }
 

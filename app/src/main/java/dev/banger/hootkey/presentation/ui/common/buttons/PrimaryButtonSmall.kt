@@ -14,6 +14,7 @@ fun PrimaryButtonSmall(
     text: String,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
+    isLoading: Boolean = false,
     contentPadding: PaddingValues = PaddingValues(PaddingSmall),
     shape: RoundedCornerShape = ButtonShapeSmall
 ) {
@@ -23,7 +24,8 @@ fun PrimaryButtonSmall(
         text = text,
         enabled = enabled,
         contentPadding = contentPadding,
-        shape = shape
+        shape = shape,
+        isLoading = isLoading
     )
 }
 
