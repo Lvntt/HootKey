@@ -79,7 +79,6 @@ fun BaseTextField(
             style = TypeM14,
             color = Secondary60
         )
-        // TODO visual transformation
         BasicTextField(
             modifier = decorationBoxModifier
                 .background(
