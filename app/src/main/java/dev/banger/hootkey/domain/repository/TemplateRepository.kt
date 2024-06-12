@@ -5,10 +5,10 @@ import dev.banger.hootkey.domain.entity.template.Template
 
 interface TemplateRepository {
 
-    fun getAll(): List<Template>
+    suspend fun getAll(): List<Template>
 
-    fun create(template: CreateTemplateRequest): Template
+    suspend fun create(template: CreateTemplateRequest): Template
 
-    fun delete(id: String)
+    suspend fun delete(id: String)
 
 }
