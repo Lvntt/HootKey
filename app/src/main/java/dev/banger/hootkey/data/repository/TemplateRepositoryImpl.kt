@@ -7,6 +7,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.toObject
 import dev.banger.hootkey.data.Constants.COMMON
 import dev.banger.hootkey.data.Constants.EMPTY_STRING
+import dev.banger.hootkey.data.crypto.CryptoManager
 import dev.banger.hootkey.data.model.FieldModel
 import dev.banger.hootkey.data.model.TemplateModel
 import dev.banger.hootkey.domain.entity.auth.exception.UnauthorizedException
@@ -19,7 +20,9 @@ import dev.banger.hootkey.domain.repository.TemplateRepository
 import kotlinx.coroutines.tasks.await
 
 class TemplateRepositoryImpl(
-    private val fireStore: FirebaseFirestore, private val auth: FirebaseAuth
+    private val fireStore: FirebaseFirestore,
+    private val auth: FirebaseAuth,
+    private val crypto: CryptoManager
 ) : TemplateRepository {
 
     private companion object {
@@ -57,12 +60,12 @@ class TemplateRepositoryImpl(
         isCustom: Boolean, getTemplateFields: () -> CollectionReference
     ): Template = Template(
         id = id,
-        name = toObject<TemplateModel>()?.name ?: EMPTY_STRING,
+        name = toObject<TemplateModel>()?.name?.decryptIfCustom(isCustom) ?: EMPTY_STRING,
         fields = getTemplateFields().get().await().map { field ->
             val fieldObject = field.toObject<FieldModel>()
             TemplateField(
                 index = field.id.toInt(),
-                name = fieldObject.name,
+                name = fieldObject.name.decryptIfCustom(isCustom),
                 type = FieldType.entries[fieldObject.type]
             )
         },
@@ -73,12 +76,14 @@ class TemplateRepositoryImpl(
         val userId = auth.currentUser?.uid ?: throw UnauthorizedException()
 
         val customTemplate = templateCollection(userId).document(id).get().await()
-        if (customTemplate.exists()) return customTemplate.toTemplate(isCustom = true,
+        if (customTemplate.exists()) return customTemplate.toTemplate(
+            isCustom = true,
             getTemplateFields = {
                 templateFieldCollection(userId, id)
             })
         val commonTemplate = commonTemplateCollection().document(id).get().await()
-        if (commonTemplate.exists()) return commonTemplate.toTemplate(isCustom = false,
+        if (commonTemplate.exists()) return commonTemplate.toTemplate(
+            isCustom = false,
             getTemplateFields = {
                 commonTemplateFieldCollection(id)
             })
@@ -101,14 +106,16 @@ class TemplateRepositoryImpl(
 
         var templateId = EMPTY_STRING
         return runCatching {
-            val templateModel = TemplateModel(template.name)
+            val templateModel = TemplateModel(
+                crypto.encryptBase64(template.name)
+            )
             templateId = templateCollection(userId).add(templateModel).await().id
 
             val fieldCollection = templateFieldCollection(userId, templateId)
             template.fields.forEach { field ->
                 fieldCollection.document("${field.index}").set(
                     FieldModel(
-                        name = field.name, type = field.type.ordinal
+                        name = crypto.encryptBase64(field.name), type = field.type.ordinal
                     )
                 ).await()
             }
@@ -128,5 +135,8 @@ class TemplateRepositoryImpl(
         val userId = auth.currentUser?.uid ?: throw UnauthorizedException()
         templateCollection(userId).document(id).delete().await()
     }
+
+    private fun String.decryptIfCustom(isCustom: Boolean) =
+        if (isCustom) crypto.decryptBase64(this) else this
 
 }

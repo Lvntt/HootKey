@@ -1,3 +1,3 @@
 package dev.banger.hootkey.domain.entity.auth.exception
 
-class UnauthorizedException : Exception()
+class UnauthorizedException(message: String? = null) : Exception(message)

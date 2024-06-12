@@ -38,7 +38,6 @@ fun AppNavigation(navHostController: NavHostController) {
             })
         }
         composable<NavigationDestinations.Dashboard> {
-
         }
     }
 }
