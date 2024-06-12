@@ -5,6 +5,7 @@ import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.toObject
+import dev.banger.hootkey.data.Constants.COMMON
 import dev.banger.hootkey.data.Constants.EMPTY_STRING
 import dev.banger.hootkey.data.model.FieldModel
 import dev.banger.hootkey.data.model.TemplateModel
@@ -22,7 +23,6 @@ class TemplateRepositoryImpl(
 ) : TemplateRepository {
 
     private companion object {
-        const val COMMON = "common"
         const val TEMPLATES = "templates"
         const val FIELDS = "fields"
     }
@@ -47,6 +47,12 @@ class TemplateRepositoryImpl(
         })
     }
 
+    override suspend fun templateExists(id: String): Boolean {
+        val userId = auth.currentUser?.uid ?: throw UnauthorizedException()
+        return templateCollection(userId).document(id).get().await()
+            .exists() || commonTemplateCollection().document(id).get().await().exists()
+    }
+
     private suspend inline fun DocumentSnapshot.toTemplate(
         isCustom: Boolean, getTemplateFields: () -> CollectionReference
     ): Template = Template(
@@ -67,14 +73,12 @@ class TemplateRepositoryImpl(
         val userId = auth.currentUser?.uid ?: throw UnauthorizedException()
 
         val customTemplate = templateCollection(userId).document(id).get().await()
-        if (customTemplate.exists()) return customTemplate.toTemplate(
-            isCustom = true,
+        if (customTemplate.exists()) return customTemplate.toTemplate(isCustom = true,
             getTemplateFields = {
                 templateFieldCollection(userId, id)
             })
         val commonTemplate = commonTemplateCollection().document(id).get().await()
-        if (commonTemplate.exists()) return commonTemplate.toTemplate(
-            isCustom = false,
+        if (commonTemplate.exists()) return commonTemplate.toTemplate(isCustom = false,
             getTemplateFields = {
                 commonTemplateFieldCollection(id)
             })

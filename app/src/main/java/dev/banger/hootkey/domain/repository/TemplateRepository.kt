@@ -7,6 +7,8 @@ interface TemplateRepository {
 
     suspend fun getById(id: String): Template?
 
+    suspend fun templateExists(id: String): Boolean
+
     suspend fun getAll(): List<Template>
 
     suspend fun create(template: CreateTemplateRequest): Template

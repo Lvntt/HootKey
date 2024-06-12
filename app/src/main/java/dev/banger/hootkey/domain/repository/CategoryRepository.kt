@@ -6,12 +6,12 @@ import dev.banger.hootkey.domain.entity.category.EditCategoryRequest
 
 interface CategoryRepository {
 
-    fun getAll(): List<Category>
+    suspend fun getAll(): List<Category>
 
-    fun create(category: CreateCategoryRequest): Category
+    suspend fun create(category: CreateCategoryRequest): Category
 
-    fun edit(category: EditCategoryRequest): Category
+    suspend fun edit(category: EditCategoryRequest): Category
 
-    fun delete(id: String)
+    suspend fun delete(id: String)
 
 }

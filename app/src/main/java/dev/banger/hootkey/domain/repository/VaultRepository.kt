@@ -12,6 +12,8 @@ interface VaultRepository {
 
     fun getAllByCategory(categoryId: String, filter: FilterType, query: String?): List<VaultShort>
 
+    fun getCountInCategory(categoryId: String): Int
+
     fun getById(id: String): Vault
 
     fun create(vault: CreateVaultRequest): Vault
