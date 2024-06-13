@@ -19,4 +19,8 @@ sealed interface NavigationDestinations {
     @Serializable
     data object Launch : NavigationDestinations
 
+    //TODO FOR TESTING PURPOSES ONLY
+    @Serializable
+    data object PasswordGenerator : NavigationDestinations
+
 }

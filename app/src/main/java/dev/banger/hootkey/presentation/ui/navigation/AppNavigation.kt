@@ -24,6 +24,7 @@ import dev.banger.hootkey.domain.entity.vault.CreateVaultRequest
 import dev.banger.hootkey.domain.repository.CategoryRepository
 import dev.banger.hootkey.domain.repository.TemplateRepository
 import dev.banger.hootkey.domain.repository.VaultRepository
+import dev.banger.hootkey.presentation.ui.screen.TestScreen
 import dev.banger.hootkey.presentation.ui.screen.auth.AccountAuthScreen
 import dev.banger.hootkey.presentation.ui.screen.auth.AuthScreen
 import dev.banger.hootkey.presentation.ui.screen.launch.LaunchScreen
@@ -69,7 +70,14 @@ fun AppNavigation(navHostController: NavHostController) {
             var templateText by remember { mutableStateOf("") }
             var categoryText by remember { mutableStateOf("") }
             var vaultText by remember { mutableStateOf("") }
-            Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
+            Column(modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())) {
+                Button(onClick = {
+                    navHostController.navigate(NavigationDestinations.PasswordGenerator)
+                }) {
+                    Text("Password generator")
+                }
                 Button(onClick = {
                     CoroutineScope(Dispatchers.IO).launch {
                         templateRepo.create(
@@ -140,5 +148,10 @@ fun AppNavigation(navHostController: NavHostController) {
             }
             //-------------------------
         }
+        //TODO FOR TESTING PURPOSES ONLY
+        composable<NavigationDestinations.PasswordGenerator> {
+            TestScreen()
+        }
+        //-------------------------
     }
 }
