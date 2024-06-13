@@ -1,11 +1,13 @@
 package dev.banger.hootkey.data.repository
 
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.AggregateSource
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.toObject
 import dev.banger.hootkey.data.Constants.COMMON
+import dev.banger.hootkey.data.Constants.VAULTS
 import dev.banger.hootkey.data.crypto.CryptoManager
 import dev.banger.hootkey.data.model.CategoryModel
 import dev.banger.hootkey.domain.entity.auth.exception.UnauthorizedException
@@ -18,14 +20,12 @@ import dev.banger.hootkey.domain.entity.category.EditCategoryRequest
 import dev.banger.hootkey.domain.entity.template.TemplateDoesNotExistException
 import dev.banger.hootkey.domain.repository.CategoryRepository
 import dev.banger.hootkey.domain.repository.TemplateRepository
-import dev.banger.hootkey.domain.repository.VaultRepository
 import kotlinx.coroutines.tasks.await
 
 class CategoryRepositoryImpl(
     private val auth: FirebaseAuth,
     private val firestore: FirebaseFirestore,
     private val templateRepository: TemplateRepository,
-    private val vaultRepository: VaultRepository,
     private val crypto: CryptoManager
 ) : CategoryRepository {
 
@@ -39,6 +39,15 @@ class CategoryRepositoryImpl(
     private fun commonCategoryCollection() =
         firestore.collection(COMMON).document(CATEGORIES).collection(CATEGORIES)
 
+    private suspend fun getVaultCountInCategory(categoryId: String): Int {
+        val userId = auth.currentUser?.uid ?: throw UnauthorizedException()
+
+        return firestore.collection(userId).document(VAULTS).collection(VAULTS)
+            .whereEqualTo("categoryId", categoryId).count().get(
+                AggregateSource.SERVER
+            ).await().count.toInt()
+    }
+
     private suspend inline fun DocumentSnapshot.toCategory(isCustom: Boolean): Category {
         val categoryModel = toObject<CategoryModel>()
             ?: throw CategoryDoesNotExistException("Category with id $id does not exist")
@@ -47,7 +56,7 @@ class CategoryRepositoryImpl(
             name = categoryModel.name.decryptIfCustom(isCustom),
             icon = CategoryIcon.entries[categoryModel.icon],
             template = templateRepository.getById(categoryModel.templateId)!!,
-            vaultsAmount = vaultRepository.getCountInCategory(id),
+            vaultsAmount = getVaultCountInCategory(id),
             isCustom = isCustom
         )
     }
@@ -68,7 +77,7 @@ class CategoryRepositoryImpl(
             name = categoryModel.name.decryptIfCustom(customCollection),
             icon = CategoryIcon.entries[categoryModel.icon],
             templateId = categoryModel.templateId,
-            vaultsAmount = vaultRepository.getCountInCategory(id),
+            vaultsAmount = getVaultCountInCategory(id),
             isCustom = customCollection
         )
     }
@@ -106,7 +115,9 @@ class CategoryRepositoryImpl(
         )
 
         val categoryModel = CategoryModel(
-            name = crypto.encryptBase64(category.name), icon = category.icon.ordinal, templateId = category.templateId
+            name = crypto.encryptBase64(category.name),
+            icon = category.icon.ordinal,
+            templateId = category.templateId
         )
         val categoryId = categoryCollection(userId).add(categoryModel).await().id
 
@@ -138,7 +149,7 @@ class CategoryRepositoryImpl(
             name = category.name,
             icon = category.icon,
             template = templateRepository.getById(templateId)!!,
-            vaultsAmount = vaultRepository.getCountInCategory(category.id),
+            vaultsAmount = getVaultCountInCategory(category.id),
             isCustom = true
         )
     }

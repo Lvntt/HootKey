@@ -8,24 +8,24 @@ import dev.banger.hootkey.domain.entity.vault.VaultShort
 
 interface VaultRepository {
 
-    fun getAll(filter: FilterType, query: String?): List<VaultShort>
+    suspend fun getAll(filter: FilterType, query: String?): List<VaultShort>
 
-    fun getAllByCategory(categoryId: String, filter: FilterType, query: String?): List<VaultShort>
+    suspend fun getAllByCategory(categoryId: String, filter: FilterType, query: String?): List<VaultShort>
 
-    fun getCountInCategory(categoryId: String): Int
+    suspend fun getCountInCategory(categoryId: String): Int
 
-    fun getById(id: String): Vault
+    suspend fun getById(id: String): Vault
 
-    fun create(vault: CreateVaultRequest): Vault
+    suspend fun create(vault: CreateVaultRequest): Vault
 
-    fun edit(vault: EditVaultRequest): Vault
+    suspend fun edit(vault: EditVaultRequest): Vault
 
-    fun delete(id: String)
+    suspend fun delete(id: String)
 
-    fun notifyViewed(id: String)
+    suspend fun notifyViewed(id: String)
 
-    fun addToFavourites(id: String)
+    suspend fun addToFavourites(id: String)
 
-    fun removeFromFavourites(id: String)
+    suspend fun removeFromFavourites(id: String)
 
 }
