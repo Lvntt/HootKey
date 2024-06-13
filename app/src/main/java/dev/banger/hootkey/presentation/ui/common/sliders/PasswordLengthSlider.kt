@@ -22,6 +22,7 @@ import dev.banger.hootkey.presentation.ui.theme.Secondary80
 fun PasswordLengthSlider(
     value: Float,
     onValueChange: (Float) -> Unit,
+    onValueChangeFinished: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val interactionSource = remember { MutableInteractionSource() }
@@ -32,6 +33,9 @@ fun PasswordLengthSlider(
         onValueChange = onValueChange,
         valueRange = 1f..30f,
         interactionSource = interactionSource,
+        onValueChangeFinished = {
+            onValueChangeFinished(value.toInt())
+        },
         thumb = {
             SliderDefaults.Thumb(
                 interactionSource = interactionSource,

@@ -1,5 +1,6 @@
 package dev.banger.hootkey.presentation.ui.dialog
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,22 +15,21 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.banger.hootkey.R
 import dev.banger.hootkey.presentation.entity.UiGeneratedPassword
-import dev.banger.hootkey.presentation.entity.UiPasswordStrength
+import dev.banger.hootkey.presentation.intent.PasswordGeneratorIntent
+import dev.banger.hootkey.presentation.state.password_generator.PasswordGeneratorEffect
+import dev.banger.hootkey.presentation.ui.common.ObserveAsEvents
 import dev.banger.hootkey.presentation.ui.common.checkbox.RegularCheckbox
 import dev.banger.hootkey.presentation.ui.common.progress.PasswordStrengthIndicator
 import dev.banger.hootkey.presentation.ui.common.sliders.PasswordLengthSlider
@@ -46,25 +46,30 @@ import dev.banger.hootkey.presentation.ui.theme.TypeB16
 import dev.banger.hootkey.presentation.ui.theme.TypeM14
 import dev.banger.hootkey.presentation.ui.theme.White
 import dev.banger.hootkey.presentation.ui.utils.noRippleClickable
+import dev.banger.hootkey.presentation.viewmodel.PasswordGeneratorViewModel
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
-fun GeneratePasswordDialog(
-    password: UiGeneratedPassword,
-    passwordLengthSliderValue: Float,
-    containsNumbers: Boolean,
-    onContainsNumbersChange: (Boolean) -> Unit,
-    containsSymbols: Boolean,
-    onContainsSymbolsChange: (Boolean) -> Unit,
-    containsUppercase: Boolean,
-    onContainsUppercaseChange: (Boolean) -> Unit,
-    containsLowercase: Boolean,
-    onContainsLowercaseChange: (Boolean) -> Unit,
-    onPasswordLengthChange: (Float) -> Unit,
-    onRegenerate: () -> Unit,
+fun PasswordGeneratorDialog(
+    viewModel: PasswordGeneratorViewModel = koinViewModel(),
     onDismissRequest: () -> Unit,
     onContinue: (UiGeneratedPassword) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
+
+    ObserveAsEvents(viewModel.effects) {
+        when (it) {
+            PasswordGeneratorEffect.ShowEmptyCharPoolError -> Toast.makeText(
+                context,
+                R.string.empty_char_pool_error,
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+    }
+
+    val state by viewModel.state.collectAsStateWithLifecycle()
+
     Dialog(
         onDismissRequest = onDismissRequest,
         properties = DialogProperties(usePlatformDefaultWidth = false)
@@ -89,13 +94,15 @@ fun GeneratePasswordDialog(
                 Spacer(modifier = Modifier.height(PaddingMedium))
 
                 PasswordGeneratorTextField(
-                    value = password.password,
-                    onRegenerate = onRegenerate
+                    value = state.password.password,
+                    onRegenerate = {
+                        viewModel.dispatch(PasswordGeneratorIntent.RegeneratePassword)
+                    }
                 )
 
                 Spacer(modifier = Modifier.height(PaddingSmall))
 
-                PasswordStrengthIndicator(strength = password.strength)
+                PasswordStrengthIndicator(strength = state.password.strength)
 
                 Spacer(modifier = Modifier.height(PaddingMedium))
 
@@ -110,12 +117,17 @@ fun GeneratePasswordDialog(
                     )
                     PasswordLengthSlider(
                         modifier = Modifier.weight(1f),
-                        value = passwordLengthSliderValue,
-                        onValueChange = onPasswordLengthChange
+                        value = state.lengthSliderValue,
+                        onValueChange = {
+                            viewModel.dispatch(PasswordGeneratorIntent.ChangeLengthSliderValue(it))
+                        },
+                        onValueChangeFinished = {
+                            viewModel.dispatch(PasswordGeneratorIntent.ChangeLength(it))
+                        }
                     )
                     Text(
                         modifier = Modifier.width(20.dp),
-                        text = "${passwordLengthSliderValue.toInt()}",
+                        text = "${state.lengthSliderValue.toInt()}",
                         style = TypeM14,
                         color = Secondary80
                     )
@@ -126,14 +138,18 @@ fun GeneratePasswordDialog(
                 Row {
                     Column(verticalArrangement = Arrangement.spacedBy(PaddingSmall)) {
                         RegularCheckbox(
-                            checked = containsNumbers,
-                            onCheckedChange = onContainsNumbersChange,
+                            checked = state.options.hasNumbers,
+                            onCheckedChange = {
+                                viewModel.dispatch(PasswordGeneratorIntent.ChangeHasNumbers(it))
+                            },
                             text = stringResource(id = R.string.numbers)
                         )
                         RegularCheckbox(
-                            checked = containsUppercase,
-                            onCheckedChange = onContainsUppercaseChange,
-                            text = stringResource(id = R.string.uppercase)
+                            checked = state.options.hasSymbols,
+                            onCheckedChange = {
+                                viewModel.dispatch(PasswordGeneratorIntent.ChangeHasSymbols(it))
+                            },
+                            text = stringResource(id = R.string.symbols)
                         )
                     }
 
@@ -141,13 +157,17 @@ fun GeneratePasswordDialog(
 
                     Column(verticalArrangement = Arrangement.spacedBy(PaddingSmall)) {
                         RegularCheckbox(
-                            checked = containsSymbols,
-                            onCheckedChange = onContainsSymbolsChange,
-                            text = stringResource(id = R.string.symbols)
+                            checked = state.options.hasUppercase,
+                            onCheckedChange = {
+                                viewModel.dispatch(PasswordGeneratorIntent.ChangeHasUppercase(it))
+                            },
+                            text = stringResource(id = R.string.uppercase)
                         )
                         RegularCheckbox(
-                            checked = containsLowercase,
-                            onCheckedChange = onContainsLowercaseChange,
+                            checked = state.options.hasLowercase,
+                            onCheckedChange = {
+                                viewModel.dispatch(PasswordGeneratorIntent.ChangeHasLowercase(it))
+                            },
                             text = stringResource(id = R.string.lowercase)
                         )
                     }
@@ -174,7 +194,7 @@ fun GeneratePasswordDialog(
                     Row(
                         modifier = Modifier
                             .noRippleClickable {
-                                onContinue(password)
+                                onContinue(state.password)
                             },
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -195,47 +215,5 @@ fun GeneratePasswordDialog(
                 }
             }
         }
-    }
-}
-
-@Preview
-@Composable
-private fun GeneratePasswordDialogPreview() {
-    var isShown by remember { mutableStateOf(true) }
-    val password by remember {
-        mutableStateOf(
-            UiGeneratedPassword(
-                password = "-kY\$pDNT70V5hp0%9tWW",
-                strength = UiPasswordStrength.VERY_STRONG
-            )
-        )
-    }
-    var length by remember { mutableFloatStateOf(20f) }
-    var containsNumbers by remember { mutableStateOf(true) }
-    var containsSymbols by remember { mutableStateOf(true) }
-    var containsUppercase by remember { mutableStateOf(true) }
-    var containsLowercase by remember { mutableStateOf(true) }
-
-    if (isShown) {
-        GeneratePasswordDialog(
-            onDismissRequest = {
-                isShown = !isShown
-            },
-            password = password,
-            onRegenerate = {},
-            passwordLengthSliderValue = length,
-            onPasswordLengthChange = { length = it },
-            containsNumbers = containsNumbers,
-            onContainsNumbersChange = { containsNumbers = it },
-            containsSymbols = containsSymbols,
-            onContainsSymbolsChange = { containsSymbols = it },
-            containsUppercase = containsUppercase,
-            onContainsUppercaseChange = { containsUppercase = it },
-            containsLowercase = containsLowercase,
-            onContainsLowercaseChange = { containsLowercase = it },
-            onContinue = {
-
-            }
-        )
     }
 }

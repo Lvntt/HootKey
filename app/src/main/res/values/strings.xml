@@ -27,4 +27,5 @@
     <string name="lowercase">Lowercase</string>
     <string name="cancel">Cancel</string>
     <string name="continue_text">Continue</string>
+    <string name="empty_char_pool_error">At least 1 character type is required</string>
 </resources>

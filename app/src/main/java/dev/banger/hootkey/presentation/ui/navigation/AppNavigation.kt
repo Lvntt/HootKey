@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import dev.banger.hootkey.presentation.ui.screen.TestScreen
 import dev.banger.hootkey.presentation.ui.screen.auth.AccountAuthScreen
 import dev.banger.hootkey.presentation.ui.screen.auth.AuthScreen
 import dev.banger.hootkey.presentation.ui.screen.launch.LaunchScreen
@@ -12,11 +13,12 @@ import dev.banger.hootkey.presentation.ui.screen.launch.LaunchScreen
 fun AppNavigation(navHostController: NavHostController) {
     NavHost(navHostController, NavigationDestinations.Launch) {
         composable<NavigationDestinations.Launch> {
-            LaunchScreen(onNavigateToAccountLogin = {
-                navHostController.navigate(NavigationDestinations.AccountLogin)
-            }, onNavigateToLogin = {
-                navHostController.navigate(NavigationDestinations.Login)
-            })
+            TestScreen()
+//            LaunchScreen(onNavigateToAccountLogin = {
+//                navHostController.navigate(NavigationDestinations.AccountLogin)
+//            }, onNavigateToLogin = {
+//                navHostController.navigate(NavigationDestinations.Login)
+//            })
         }
         composable<NavigationDestinations.AccountLogin> {
             AccountAuthScreen(isLogin = true, onNavigateFromBottomHint = {
