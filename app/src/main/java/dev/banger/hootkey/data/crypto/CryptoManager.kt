@@ -2,9 +2,13 @@ package dev.banger.hootkey.data.crypto
 
 import android.security.keystore.KeyProperties
 import android.security.keystore.KeyProtection
+import dev.banger.hootkey.domain.entity.auth.exception.UnauthorizedException
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
+import java.io.DataInputStream
+import java.io.DataOutputStream
 import java.security.KeyStore
+import java.security.SecureRandom
 import javax.crypto.Cipher
 import javax.crypto.SecretKey
 import javax.crypto.SecretKeyFactory
@@ -15,7 +19,7 @@ import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
 
 @OptIn(ExperimentalEncodingApi::class)
-class CryptoManager {
+class CryptoManager(private val sharedPrefsManager: SharedPrefsManager) {
 
     private companion object {
         const val ALGORITHM = KeyProperties.KEY_ALGORITHM_AES
@@ -27,7 +31,14 @@ class CryptoManager {
         const val KEYSTORE_TYPE = "AndroidKeyStore"
 
         const val KEY_DERIVATION_ALGORITHM = "PBKDF2WithHmacSHA512"
-        const val PBKDF2_ITERATION_COUNT: Int = 300000
+        const val PBKDF2_ITERATION_COUNT = 300000
+        const val SALT_LENGTH = 16
+
+        const val SECURE_RANDOM_ALGORITHM = "SHA1PRNG"
+    }
+
+    private val salt by lazy {
+        sharedPrefsManager.getSalt() ?: throw UnauthorizedException("Salt is null")
     }
 
     private val keyStore = KeyStore.getInstance(KEYSTORE_TYPE).apply {
@@ -45,10 +56,14 @@ class CryptoManager {
         }
     }
 
+    private fun createSalt(): ByteArray {
+        val salt = ByteArray(SALT_LENGTH)
+        SecureRandom.getInstance(SECURE_RANDOM_ALGORITHM).nextBytes(salt)
+        return salt
+    }
+
     private fun createKey(password: String): SecretKey {
         val secretKeyFactory = SecretKeyFactory.getInstance(KEY_DERIVATION_ALGORITHM)
-        //TODO replace salt with value from firebase db
-        val salt = byteArrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
         val keySpec = PBEKeySpec(password.toCharArray(), salt, PBKDF2_ITERATION_COUNT, KEY_LENGTH)
         val secret = secretKeyFactory.generateSecret(keySpec).encoded
         return SecretKeySpec(secret, ALGORITHM)
@@ -73,22 +88,26 @@ class CryptoManager {
     }
 
     fun encrypt(data: ByteArray): ByteArray {
-        val encryptedData = encryptCipher.doFinal(data)
-        return ByteArrayOutputStream().apply {
-            write(encryptCipher.iv.size)
-            write(encryptCipher.iv)
-            write(encryptedData.size)
+        val encryptCipherInstance = encryptCipher
+        val encryptedData = encryptCipherInstance.doFinal(data)
+        val byteStream = ByteArrayOutputStream()
+        DataOutputStream(byteStream).apply {
+            writeInt(encryptCipherInstance.iv.size)
+            write(encryptCipherInstance.iv)
+
+            writeInt(encryptedData.size)
             write(encryptedData)
-        }.toByteArray()
+        }
+        return byteStream.toByteArray()
     }
 
     fun decrypt(data: ByteArray): ByteArray {
-        ByteArrayInputStream(data).use {
-            val ivSize = it.read()
+        DataInputStream(ByteArrayInputStream(data)).use {
+            val ivSize = it.readInt()
             val iv = ByteArray(ivSize)
             it.read(iv)
 
-            val encryptedDataSize = it.read()
+            val encryptedDataSize = it.readInt()
             val encryptedData = ByteArray(encryptedDataSize)
             it.read(encryptedData)
 
@@ -102,6 +121,10 @@ class CryptoManager {
 
     fun decryptBase64(data: String): String {
         return decrypt(Base64.decode(data)).toString(Charsets.UTF_8)
+    }
+
+    fun createSaltBase64(): String {
+        return Base64.encode(createSalt())
     }
 
 }

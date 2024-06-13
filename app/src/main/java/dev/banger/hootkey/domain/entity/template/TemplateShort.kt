@@ -1,8 +1,7 @@
 package dev.banger.hootkey.domain.entity.template
 
-data class Template(
+data class TemplateShort(
     val id: String,
     val name: String,
-    val isCustom: Boolean,
-    val fields: List<TemplateField>,
+    val isCustom: Boolean
 )

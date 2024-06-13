@@ -7,4 +7,6 @@ data class Category(
     val icon: CategoryIcon,
     val name: String,
     val template: Template,
+    val vaultsAmount: Int,
+    val isCustom: Boolean
 )
