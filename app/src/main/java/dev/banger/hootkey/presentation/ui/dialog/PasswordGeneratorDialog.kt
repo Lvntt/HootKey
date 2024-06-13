@@ -3,6 +3,7 @@ package dev.banger.hootkey.presentation.ui.dialog
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -51,10 +52,10 @@ import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun PasswordGeneratorDialog(
-    viewModel: PasswordGeneratorViewModel = koinViewModel(),
     onDismissRequest: () -> Unit,
     onContinue: (UiGeneratedPassword) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    viewModel: PasswordGeneratorViewModel = koinViewModel()
 ) {
     val context = LocalContext.current
 
@@ -106,114 +107,167 @@ fun PasswordGeneratorDialog(
 
                 Spacer(modifier = Modifier.height(PaddingMedium))
 
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(PaddingSmall)
-                ) {
-                    Text(
-                        text = stringResource(id = R.string.length),
-                        style = TypeM14,
-                        color = Secondary80
-                    )
-                    PasswordLengthSlider(
-                        modifier = Modifier.weight(1f),
-                        value = state.lengthSliderValue,
-                        onValueChange = {
-                            viewModel.dispatch(PasswordGeneratorIntent.ChangeLengthSliderValue(it))
-                        },
-                        onValueChangeFinished = {
-                            viewModel.dispatch(PasswordGeneratorIntent.ChangeLength(it))
-                        }
-                    )
-                    Text(
-                        modifier = Modifier.width(20.dp),
-                        text = "${state.lengthSliderValue.toInt()}",
-                        style = TypeM14,
-                        color = Secondary80
-                    )
-                }
+                PasswordGeneratorSlider(
+                    lengthSliderValue = state.lengthSliderValue,
+                    onChangeLengthSliderValue = {
+                        viewModel.dispatch(PasswordGeneratorIntent.ChangeLengthSliderValue(it))
+                    },
+                    onChangeLength = {
+                        viewModel.dispatch(PasswordGeneratorIntent.ChangeLength(it))
+                    }
+                )
 
                 Spacer(modifier = Modifier.height(PaddingSmall))
 
-                Row {
-                    Column(verticalArrangement = Arrangement.spacedBy(PaddingSmall)) {
-                        RegularCheckbox(
-                            checked = state.options.hasNumbers,
-                            onCheckedChange = {
-                                viewModel.dispatch(PasswordGeneratorIntent.ChangeHasNumbers(it))
-                            },
-                            text = stringResource(id = R.string.numbers)
-                        )
-                        RegularCheckbox(
-                            checked = state.options.hasSymbols,
-                            onCheckedChange = {
-                                viewModel.dispatch(PasswordGeneratorIntent.ChangeHasSymbols(it))
-                            },
-                            text = stringResource(id = R.string.symbols)
-                        )
+                PasswordGeneratorCategories(
+                    hasNumbers = state.options.hasNumbers,
+                    hasSymbols = state.options.hasSymbols,
+                    hasUppercase = state.options.hasUppercase,
+                    hasLowercase = state.options.hasLowercase,
+                    onChangeHasNumbers = {
+                        viewModel.dispatch(PasswordGeneratorIntent.ChangeHasNumbers(it))
+                    },
+                    onChangeHasSymbols = {
+                        viewModel.dispatch(PasswordGeneratorIntent.ChangeHasSymbols(it))
+                    },
+                    onChangeHasUppercase = {
+                        viewModel.dispatch(PasswordGeneratorIntent.ChangeHasUppercase(it))
+                    },
+                    onChangeHasLowercase = {
+                        viewModel.dispatch(PasswordGeneratorIntent.ChangeHasLowercase(it))
                     }
-
-                    Spacer(modifier = Modifier.width(PaddingXLarge))
-
-                    Column(verticalArrangement = Arrangement.spacedBy(PaddingSmall)) {
-                        RegularCheckbox(
-                            checked = state.options.hasUppercase,
-                            onCheckedChange = {
-                                viewModel.dispatch(PasswordGeneratorIntent.ChangeHasUppercase(it))
-                            },
-                            text = stringResource(id = R.string.uppercase)
-                        )
-                        RegularCheckbox(
-                            checked = state.options.hasLowercase,
-                            onCheckedChange = {
-                                viewModel.dispatch(PasswordGeneratorIntent.ChangeHasLowercase(it))
-                            },
-                            text = stringResource(id = R.string.lowercase)
-                        )
-                    }
-                }
+                )
 
                 Spacer(modifier = Modifier.height(PaddingLarge))
 
-                Row(
-                    modifier = Modifier
-                        .noRippleClickable {
-                            onDismissRequest()
-                        }
-                        .align(Alignment.End),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = stringResource(id = R.string.cancel),
-                        style = TypeM14,
-                        color = Secondary60
-                    )
-
-                    Spacer(modifier = Modifier.width(PaddingMedium))
-
-                    Row(
-                        modifier = Modifier
-                            .noRippleClickable {
-                                onContinue(state.password)
-                            },
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = stringResource(id = R.string.continue_text),
-                            style = TypeM14,
-                            color = Secondary80
-                        )
-
-                        Spacer(modifier = Modifier.width(10.dp))
-
-                        Icon(
-                            imageVector = ImageVector.vectorResource(id = R.drawable.ic_arrow_forward),
-                            tint = Secondary80,
-                            contentDescription = null
-                        )
-                    }
-                }
+                PasswordGeneratorButtons(
+                    password = state.password,
+                    onDismissRequest = onDismissRequest,
+                    onContinue = onContinue
+                )
             }
+        }
+    }
+}
+
+@Composable
+private fun PasswordGeneratorSlider(
+    lengthSliderValue: Float,
+    onChangeLengthSliderValue: (Float) -> Unit,
+    onChangeLength: (Int) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(PaddingSmall)
+    ) {
+        Text(
+            text = stringResource(id = R.string.length),
+            style = TypeM14,
+            color = Secondary80
+        )
+        PasswordLengthSlider(
+            modifier = Modifier.weight(1f),
+            value = lengthSliderValue,
+            onValueChange = onChangeLengthSliderValue,
+            onValueChangeFinished = onChangeLength
+        )
+        Text(
+            modifier = Modifier.width(20.dp),
+            text = "${lengthSliderValue.toInt()}",
+            style = TypeM14,
+            color = Secondary80
+        )
+    }
+}
+
+@Composable
+private fun PasswordGeneratorCategories(
+    hasNumbers: Boolean,
+    hasSymbols: Boolean,
+    hasUppercase: Boolean,
+    hasLowercase: Boolean,
+    onChangeHasNumbers: (Boolean) -> Unit,
+    onChangeHasSymbols: (Boolean) -> Unit,
+    onChangeHasUppercase: (Boolean) -> Unit,
+    onChangeHasLowercase: (Boolean) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(modifier = modifier) {
+        Column(verticalArrangement = Arrangement.spacedBy(PaddingSmall)) {
+            RegularCheckbox(
+                checked = hasNumbers,
+                onCheckedChange = onChangeHasNumbers,
+                text = stringResource(id = R.string.numbers)
+            )
+            RegularCheckbox(
+                checked = hasSymbols,
+                onCheckedChange = onChangeHasSymbols,
+                text = stringResource(id = R.string.symbols)
+            )
+        }
+
+        Spacer(modifier = Modifier.width(PaddingXLarge))
+
+        Column(verticalArrangement = Arrangement.spacedBy(PaddingSmall)) {
+            RegularCheckbox(
+                checked = hasUppercase,
+                onCheckedChange = onChangeHasUppercase,
+                text = stringResource(id = R.string.uppercase)
+            )
+            RegularCheckbox(
+                checked = hasLowercase,
+                onCheckedChange = onChangeHasLowercase,
+                text = stringResource(id = R.string.lowercase)
+            )
+        }
+    }
+}
+
+@Composable
+private fun ColumnScope.PasswordGeneratorButtons(
+    password: UiGeneratedPassword,
+    onDismissRequest: () -> Unit,
+    onContinue: (UiGeneratedPassword) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier
+            .noRippleClickable {
+                onDismissRequest()
+            }
+            .align(Alignment.End),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = stringResource(id = R.string.cancel),
+            style = TypeM14,
+            color = Secondary60
+        )
+
+        Spacer(modifier = Modifier.width(PaddingMedium))
+
+        Row(
+            modifier = Modifier
+                .noRippleClickable {
+                    onContinue(password)
+                },
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = stringResource(id = R.string.continue_text),
+                style = TypeM14,
+                color = Secondary80
+            )
+
+            Spacer(modifier = Modifier.width(10.dp))
+
+            Icon(
+                imageVector = ImageVector.vectorResource(id = R.drawable.ic_arrow_forward),
+                tint = Secondary80,
+                contentDescription = null
+            )
         }
     }
 }
