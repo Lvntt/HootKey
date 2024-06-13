@@ -16,6 +16,7 @@ import dev.banger.hootkey.domain.entity.template.FieldType
 import dev.banger.hootkey.domain.entity.template.Template
 import dev.banger.hootkey.domain.entity.template.TemplateCreationException
 import dev.banger.hootkey.domain.entity.template.TemplateField
+import dev.banger.hootkey.domain.entity.template.TemplateShort
 import dev.banger.hootkey.domain.repository.TemplateRepository
 import kotlinx.coroutines.tasks.await
 
@@ -50,12 +51,6 @@ class TemplateRepositoryImpl(
         })
     }
 
-    override suspend fun templateExists(id: String): Boolean {
-        val userId = auth.currentUser?.uid ?: throw UnauthorizedException()
-        return templateCollection(userId).document(id).get().await()
-            .exists() || commonTemplateCollection().document(id).get().await().exists()
-    }
-
     private suspend inline fun DocumentSnapshot.toTemplate(
         isCustom: Boolean, getTemplateFields: () -> CollectionReference
     ): Template = Template(
@@ -72,25 +67,42 @@ class TemplateRepositoryImpl(
         isCustom = isCustom
     )
 
+    private suspend inline fun CollectionReference.getShortTemplates(
+        customCollection: Boolean
+    ): List<TemplateShort> = this.get().await().map { template ->
+        template.toTemplateShort(isCustom = customCollection)
+    }
+
+    private fun DocumentSnapshot.toTemplateShort(isCustom: Boolean): TemplateShort =
+        TemplateShort(
+            id = id,
+            name = toObject<TemplateModel>()?.name?.decryptIfCustom(isCustom) ?: EMPTY_STRING,
+            isCustom = isCustom
+        )
+
+    override suspend fun templateExists(id: String): Boolean {
+        val userId = auth.currentUser?.uid ?: throw UnauthorizedException()
+        return templateCollection(userId).document(id).get().await()
+            .exists() || commonTemplateCollection().document(id).get().await().exists()
+    }
+
     override suspend fun getById(id: String): Template? {
         val userId = auth.currentUser?.uid ?: throw UnauthorizedException()
 
         val customTemplate = templateCollection(userId).document(id).get().await()
-        if (customTemplate.exists()) return customTemplate.toTemplate(
-            isCustom = true,
+        if (customTemplate.exists()) return customTemplate.toTemplate(isCustom = true,
             getTemplateFields = {
                 templateFieldCollection(userId, id)
             })
         val commonTemplate = commonTemplateCollection().document(id).get().await()
-        if (commonTemplate.exists()) return commonTemplate.toTemplate(
-            isCustom = false,
+        if (commonTemplate.exists()) return commonTemplate.toTemplate(isCustom = false,
             getTemplateFields = {
                 commonTemplateFieldCollection(id)
             })
         return null
     }
 
-    override suspend fun getAll(): List<Template> {
+    override suspend fun getAllFull(): List<Template> {
         val userId = auth.currentUser?.uid ?: throw UnauthorizedException()
 
         val userTemplates = templateCollection(userId).getTemplates(customCollection = true,
@@ -99,6 +111,13 @@ class TemplateRepositoryImpl(
             getTemplateFieldsById = { templateId -> commonTemplateFieldCollection(templateId) })
 
         return userTemplates + commonTemplates
+    }
+
+    override suspend fun getAllShort(): List<TemplateShort> {
+        val userId = auth.currentUser?.uid ?: throw UnauthorizedException()
+
+        return templateCollection(userId).getShortTemplates(customCollection = true) +
+                commonTemplateCollection().getShortTemplates(customCollection = false)
     }
 
     override suspend fun create(template: CreateTemplateRequest): Template {
