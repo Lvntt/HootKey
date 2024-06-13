@@ -31,3 +31,24 @@ val White = Color(0xFFFFFFFF)
 val Gray = Color(0xFFF0F4F7)
 val LightGray = Color(0xFFCCCFD4)
 val DarkGray = Color(0xFFD9D9D9)
+
+val MainDark = Color(0xFF011821)
+
+val StrengthCompromisedBrush = Brush.linearGradient(
+    listOf(Color(0xFFBD0E11), Color(0xFFFF2D2D))
+)
+val StrengthVeryWeakBrush = Brush.linearGradient(
+    listOf(Color(0xFFBD0E11), Color(0xFFFF2D2D))
+)
+val StrengthWeakBrush = Brush.linearGradient(
+    listOf(Color(0xFFCC4014), Color(0xFFFF792D))
+)
+val StrengthMediumBrush = Brush.linearGradient(
+    listOf(Color(0xFFF2B416), Color(0xFFF8E966))
+)
+val StrengthStrongBrush = Brush.linearGradient(
+    listOf(Color(0xFF2CC929), Color(0xFF7ADA4D))
+)
+val StrengthVeryStrongBrush = Brush.linearGradient(
+    listOf(Color(0xFF399A29), Color(0xFF65D123))
+)
