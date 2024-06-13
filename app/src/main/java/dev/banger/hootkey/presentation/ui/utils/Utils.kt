@@ -1,6 +1,10 @@
 package dev.banger.hootkey.presentation.ui.utils
 
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
@@ -15,3 +19,10 @@ fun Modifier.gradientTint(brush: Brush) = this
             drawRect(brush, blendMode = BlendMode.SrcAtop)
         }
     }
+
+fun Modifier.noRippleClickable(onClick: () -> Unit): Modifier = this.composed {
+    clickable(indication = null,
+        interactionSource = remember { MutableInteractionSource() }) {
+        onClick()
+    }
+}
