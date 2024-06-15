@@ -39,16 +39,13 @@ class VaultRepositoryImpl(
         vaultCollection(userId).document(vaultId).collection(FIELDS)
 
     override suspend fun getAll(filter: FilterType, query: String?): List<VaultShort> {
-        TODO("Not yet implemented")
+        val userId = auth.currentUser?.uid ?: throw UnauthorizedException()
+        TODO()
     }
 
     override suspend fun getAllByCategory(
         categoryId: String, filter: FilterType, query: String?
     ): List<VaultShort> {
-        TODO("Not yet implemented")
-    }
-
-    override suspend fun getCountInCategory(categoryId: String): Int {
         TODO("Not yet implemented")
     }
 
@@ -159,14 +156,32 @@ class VaultRepositoryImpl(
     }
 
     override suspend fun notifyViewed(id: String) {
-        TODO("Not yet implemented")
+        val userId = auth.currentUser?.uid ?: throw UnauthorizedException()
+
+        vaultCollection(userId).document(id).update(
+            mapOf(
+                "lastViewedTime" to com.google.firebase.firestore.FieldValue.serverTimestamp()
+            )
+        ).await()
     }
 
     override suspend fun addToFavourites(id: String) {
-        TODO("Not yet implemented")
+        val userId = auth.currentUser?.uid ?: throw UnauthorizedException()
+
+        vaultCollection(userId).document(id).update(
+            mapOf(
+                "isFavourite" to true
+            )
+        ).await()
     }
 
     override suspend fun removeFromFavourites(id: String) {
-        TODO("Not yet implemented")
+        val userId = auth.currentUser?.uid ?: throw UnauthorizedException()
+
+        vaultCollection(userId).document(id).update(
+            mapOf(
+                "isFavourite" to false
+            )
+        ).await()
     }
 }

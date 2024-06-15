@@ -12,8 +12,6 @@ interface VaultRepository {
 
     suspend fun getAllByCategory(categoryId: String, filter: FilterType, query: String?): List<VaultShort>
 
-    suspend fun getCountInCategory(categoryId: String): Int
-
     suspend fun getById(id: String): Vault
 
     suspend fun create(vault: CreateVaultRequest): Vault

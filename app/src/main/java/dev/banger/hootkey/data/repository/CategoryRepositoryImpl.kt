@@ -18,6 +18,7 @@ import dev.banger.hootkey.domain.entity.category.CategoryIcon
 import dev.banger.hootkey.domain.entity.category.CategoryShort
 import dev.banger.hootkey.domain.entity.category.CreateCategoryRequest
 import dev.banger.hootkey.domain.entity.category.EditCategoryRequest
+import dev.banger.hootkey.domain.entity.template.FieldType
 import dev.banger.hootkey.domain.entity.template.TemplateDoesNotExistException
 import dev.banger.hootkey.domain.repository.CategoryRepository
 import dev.banger.hootkey.domain.repository.TemplateRepository
@@ -82,17 +83,17 @@ class CategoryRepositoryImpl(
     override suspend fun getAllFull(): List<Category> {
         val userId = auth.currentUser?.uid ?: throw UnauthorizedException()
 
-        return categoryCollection(userId).getCategories(customCollection = true) + commonCategoryCollection().getCategories(
+        return (categoryCollection(userId).getCategories(customCollection = true) + commonCategoryCollection().getCategories(
             customCollection = false
-        )
+        )).sortedByDescending { category -> category.vaultsAmount }
     }
 
     override suspend fun getAllShort(): List<CategoryShort> {
         val userId = auth.currentUser?.uid ?: throw UnauthorizedException()
 
-        return categoryCollection(userId).getCategoriesShort(customCollection = true) + commonCategoryCollection().getCategoriesShort(
+        return (categoryCollection(userId).getCategoriesShort(customCollection = true) + commonCategoryCollection().getCategoriesShort(
             customCollection = false
-        )
+        )).sortedByDescending { category -> category.vaultsAmount }
     }
 
     override suspend fun getById(id: String): Category? {
@@ -110,11 +111,18 @@ class CategoryRepositoryImpl(
         if (!templateRepository.templateExists(category.templateId)) throw TemplateDoesNotExistException(
             "Template with id ${category.templateId} does not exist"
         )
+        val template = templateRepository.getById(category.templateId)!!
+        val loginIndex =
+            template.fields.firstOrNull { field -> field.type == FieldType.LOGIN }?.index ?: -1
+        val linkIndex =
+            template.fields.firstOrNull { field -> field.type == FieldType.LINK }?.index ?: -1
 
         val categoryModel = CategoryModel(
             name = crypto.encryptBase64(category.name),
             icon = category.icon.ordinal,
-            templateId = category.templateId
+            templateId = category.templateId,
+            loginIndex = loginIndex,
+            linkIndex = linkIndex
         )
         val categoryId = categoryCollection(userId).add(categoryModel).await().id
 
