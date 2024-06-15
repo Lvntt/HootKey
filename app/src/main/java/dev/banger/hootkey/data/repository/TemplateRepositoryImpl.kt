@@ -73,12 +73,11 @@ class TemplateRepositoryImpl(
         template.toTemplateShort(isCustom = customCollection)
     }
 
-    private fun DocumentSnapshot.toTemplateShort(isCustom: Boolean): TemplateShort =
-        TemplateShort(
-            id = id,
-            name = toObject<TemplateModel>()?.name?.decryptIfCustom(isCustom) ?: EMPTY_STRING,
-            isCustom = isCustom
-        )
+    private fun DocumentSnapshot.toTemplateShort(isCustom: Boolean): TemplateShort = TemplateShort(
+        id = id,
+        name = toObject<TemplateModel>()?.name?.decryptIfCustom(isCustom) ?: EMPTY_STRING,
+        isCustom = isCustom
+    )
 
     override suspend fun templateExists(id: String): Boolean {
         val userId = auth.currentUser?.uid ?: throw UnauthorizedException()
@@ -90,12 +89,14 @@ class TemplateRepositoryImpl(
         val userId = auth.currentUser?.uid ?: throw UnauthorizedException()
 
         val customTemplate = templateCollection(userId).document(id).get().await()
-        if (customTemplate.exists()) return customTemplate.toTemplate(isCustom = true,
+        if (customTemplate.exists()) return customTemplate.toTemplate(
+            isCustom = true,
             getTemplateFields = {
                 templateFieldCollection(userId, id)
             })
         val commonTemplate = commonTemplateCollection().document(id).get().await()
-        if (commonTemplate.exists()) return commonTemplate.toTemplate(isCustom = false,
+        if (commonTemplate.exists()) return commonTemplate.toTemplate(
+            isCustom = false,
             getTemplateFields = {
                 commonTemplateFieldCollection(id)
             })
@@ -116,8 +117,9 @@ class TemplateRepositoryImpl(
     override suspend fun getAllShort(): List<TemplateShort> {
         val userId = auth.currentUser?.uid ?: throw UnauthorizedException()
 
-        return templateCollection(userId).getShortTemplates(customCollection = true) +
-                commonTemplateCollection().getShortTemplates(customCollection = false)
+        return templateCollection(userId).getShortTemplates(customCollection = true) + commonTemplateCollection().getShortTemplates(
+            customCollection = false
+        )
     }
 
     override suspend fun create(template: CreateTemplateRequest): Template {
@@ -152,7 +154,25 @@ class TemplateRepositoryImpl(
 
     override suspend fun delete(id: String) {
         val userId = auth.currentUser?.uid ?: throw UnauthorizedException()
-        templateCollection(userId).document(id).delete().await()
+
+        val categoryRefs = getCategoryRefs(fireStore, id, userId)
+        val vaultRefs =
+            categoryRefs.flatMap { categoryRef -> getVaultRefs(fireStore, categoryRef.id, userId) }
+        val fieldRefs = getFieldRefs(vaultRefs)
+
+        //TODO add specific exception when internet is unavailable
+        fireStore.runTransaction { transaction ->
+            transaction.delete(templateCollection(userId).document(id))
+            categoryRefs.forEach { categoryRef ->
+                transaction.delete(categoryRef)
+            }
+            vaultRefs.forEach { vaultRef ->
+                transaction.delete(vaultRef)
+            }
+            fieldRefs.forEach { fieldRef ->
+                transaction.delete(fieldRef)
+            }
+        }.await()
     }
 
     private fun String.decryptIfCustom(isCustom: Boolean) =

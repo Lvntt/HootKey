@@ -6,6 +6,7 @@ import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.toObject
+import dev.banger.hootkey.data.Constants.CATEGORIES
 import dev.banger.hootkey.data.Constants.COMMON
 import dev.banger.hootkey.data.Constants.VAULTS
 import dev.banger.hootkey.data.crypto.CryptoManager
@@ -28,10 +29,6 @@ class CategoryRepositoryImpl(
     private val templateRepository: TemplateRepository,
     private val crypto: CryptoManager
 ) : CategoryRepository {
-
-    private companion object {
-        const val CATEGORIES = "categories"
-    }
 
     private fun categoryCollection(userId: String) =
         firestore.collection(userId).document(CATEGORIES).collection(CATEGORIES)
@@ -156,7 +153,20 @@ class CategoryRepositoryImpl(
 
     override suspend fun delete(id: String) {
         val userId = auth.currentUser?.uid ?: throw UnauthorizedException()
-        categoryCollection(userId).document(id).delete().await()
+
+        val vaultRefs = getVaultRefs(firestore, id, userId)
+        val fieldRefs = getFieldRefs(vaultRefs)
+
+        //TODO add specific exception when internet is unavailable
+        firestore.runTransaction { transaction ->
+            transaction.delete(categoryCollection(userId).document(id))
+            vaultRefs.forEach { vaultRef ->
+                transaction.delete(vaultRef)
+            }
+            fieldRefs.forEach { fieldRef ->
+                transaction.delete(fieldRef)
+            }
+        }.await()
     }
 
     private fun String.decryptIfCustom(isCustom: Boolean) =

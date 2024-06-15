@@ -3,6 +3,8 @@ package dev.banger.hootkey.data.repository
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import dev.banger.hootkey.data.Constants.EMPTY_STRING
+import dev.banger.hootkey.data.Constants.FIELDS
+import dev.banger.hootkey.data.Constants.VAULTS
 import dev.banger.hootkey.data.crypto.CryptoManager
 import dev.banger.hootkey.data.model.VaultFieldModel
 import dev.banger.hootkey.domain.entity.auth.exception.UnauthorizedException
@@ -27,11 +29,6 @@ class VaultRepositoryImpl(
     private val crypto: CryptoManager,
     private val categoryRepository: CategoryRepository
 ) : VaultRepository {
-
-    private companion object {
-        const val VAULTS = "vaults"
-        const val FIELDS = "fields"
-    }
 
     private fun vaultCollection(userId: String) =
         fireStore.collection(userId).document(VAULTS).collection(
@@ -154,7 +151,11 @@ class VaultRepositoryImpl(
                 .exists()
         ) throw VaultNotFoundException("Vault with id $id does not exist")
 
-        vaultCollection(userId).document(id).delete().await()
+        val vault = vaultCollection(userId).document(id)
+        vault.delete().await()
+        getFieldRefs(vault).forEach { fieldRef ->
+            fieldRef.delete().await()
+        }
     }
 
     override suspend fun notifyViewed(id: String) {
