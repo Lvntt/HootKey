@@ -1,14 +1,43 @@
 package dev.banger.hootkey.data.repository
 
+import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import dev.banger.hootkey.data.Constants.CATEGORIES
+import dev.banger.hootkey.data.Constants.COMMON
 import dev.banger.hootkey.data.Constants.FIELDS
+import dev.banger.hootkey.data.Constants.TEMPLATES
 import dev.banger.hootkey.data.Constants.VAULTS
+import dev.banger.hootkey.data.crypto.CryptoManager
 import kotlinx.coroutines.tasks.await
+
+
+fun FirebaseFirestore.vaultCollection(userId: String) =
+    collection(userId).document(VAULTS).collection(VAULTS)
+
+fun FirebaseFirestore.fieldCollection(userId: String, vaultId: String) =
+    vaultCollection(userId).document(vaultId).collection(FIELDS)
+
+fun FirebaseFirestore.templateCollection(userId: String) =
+    collection(userId).document(TEMPLATES).collection(TEMPLATES)
+
+fun FirebaseFirestore.commonTemplateCollection() =
+    collection(COMMON).document(TEMPLATES).collection(TEMPLATES)
+
+fun FirebaseFirestore.templateFieldCollection(userId: String, templateId: String) =
+    templateCollection(userId).document(templateId).collection(FIELDS)
+
+fun FirebaseFirestore.commonTemplateFieldCollection(templateId: String): CollectionReference =
+    commonTemplateCollection().document(templateId).collection(FIELDS)
+
+fun FirebaseFirestore.categoryCollection(userId: String) =
+    collection(userId).document(CATEGORIES).collection(CATEGORIES)
+
+fun FirebaseFirestore.commonCategoryCollection() =
+    collection(COMMON).document(CATEGORIES).collection(CATEGORIES)
 
 suspend fun getCategoryRefs(
     fireStore: FirebaseFirestore, templateId: String, userId: String, batchSize: Long = 100
@@ -18,8 +47,7 @@ suspend fun getCategoryRefs(
     var lastRef: DocumentSnapshot? = null
     while (read >= batchSize) {
         read = 0
-        fireStore.collection(userId).document(CATEGORIES).collection(CATEGORIES)
-            .whereEqualTo("templateId", templateId).orderBy(
+        fireStore.categoryCollection(userId).whereEqualTo("templateId", templateId).orderBy(
                 FieldPath.documentId()
             ).startAfterIfNotNull(lastRef).limit(batchSize).get().await().forEach { category ->
                 result.add(category.reference)
@@ -38,10 +66,9 @@ suspend fun getVaultRefs(
     var lastRef: DocumentSnapshot? = null
     while (read >= batchSize) {
         read = 0
-        fireStore.collection(userId).document(VAULTS).collection(
-            VAULTS
-        ).whereEqualTo("categoryId", categoryId).orderBy(FieldPath.documentId())
-            .startAfterIfNotNull(lastRef).limit(batchSize).get().await().forEach { vault ->
+        fireStore.vaultCollection(userId).whereEqualTo("categoryId", categoryId)
+            .orderBy(FieldPath.documentId()).startAfterIfNotNull(lastRef).limit(batchSize).get()
+            .await().forEach { vault ->
                 result.add(vault.reference)
                 lastRef = vault
                 read++
@@ -90,3 +117,6 @@ fun Query.startAfterIfNotNull(ref: DocumentSnapshot?): Query {
     val nonNullRef: DocumentSnapshot = ref ?: return this
     return startAfter(nonNullRef)
 }
+
+inline fun String.decryptWhen(cryptoManager: CryptoManager, predicate: (String) -> Boolean) =
+    if (predicate(this)) cryptoManager.decryptBase64(this) else this

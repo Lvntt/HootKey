@@ -1,12 +1,16 @@
 package dev.banger.hootkey.data.repository
 
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
+import com.google.firebase.firestore.QuerySnapshot
+import com.google.firebase.firestore.toObject
 import dev.banger.hootkey.data.Constants.EMPTY_STRING
-import dev.banger.hootkey.data.Constants.FIELDS
-import dev.banger.hootkey.data.Constants.VAULTS
 import dev.banger.hootkey.data.crypto.CryptoManager
+import dev.banger.hootkey.data.model.CategoryModel
 import dev.banger.hootkey.data.model.VaultFieldModel
+import dev.banger.hootkey.data.model.VaultModel
 import dev.banger.hootkey.domain.entity.auth.exception.UnauthorizedException
 import dev.banger.hootkey.domain.entity.category.Category
 import dev.banger.hootkey.domain.entity.category.CategoryDoesNotExistException
@@ -19,6 +23,7 @@ import dev.banger.hootkey.domain.entity.vault.Vault
 import dev.banger.hootkey.domain.entity.vault.VaultCreationException
 import dev.banger.hootkey.domain.entity.vault.VaultNotFoundException
 import dev.banger.hootkey.domain.entity.vault.VaultShort
+import dev.banger.hootkey.domain.entity.vault.VaultsPage
 import dev.banger.hootkey.domain.repository.CategoryRepository
 import dev.banger.hootkey.domain.repository.VaultRepository
 import kotlinx.coroutines.tasks.await
@@ -30,23 +35,135 @@ class VaultRepositoryImpl(
     private val categoryRepository: CategoryRepository
 ) : VaultRepository {
 
-    private fun vaultCollection(userId: String) =
-        fireStore.collection(userId).document(VAULTS).collection(
-            VAULTS
-        )
+    private companion object {
+        const val PAGE_SIZE = 25L
+        const val PAGE_SIZE_WITH_ONE_NARROW = 50L
+        const val PAGE_SIZE_WITH_TWO_NARROWS = 75L
+    }
 
-    private fun fieldCollection(userId: String, vaultId: String) =
-        vaultCollection(userId).document(vaultId).collection(FIELDS)
+    private fun determinePageSize(filter: FilterType, query: String?) = when {
+        query.isNullOrBlank() && filter != FilterType.FAVOURITE -> PAGE_SIZE
+        filter == FilterType.FAVOURITE && query.isNullOrBlank()
+                || filter != FilterType.FAVOURITE && !query.isNullOrBlank() -> PAGE_SIZE_WITH_ONE_NARROW
+        else -> PAGE_SIZE_WITH_TWO_NARROWS
+    }
 
-    override suspend fun getAll(filter: FilterType, query: String?): List<VaultShort> {
+    private suspend inline fun queryVaults(
+        userId: String,
+        filter: FilterType,
+        query: String?,
+        pageStartVault: DocumentSnapshot?,
+        additionalFilter: (Query.() -> Query) = { this }
+    ): QuerySnapshot = fireStore.vaultCollection(userId).orderBy(
+        if (filter == FilterType.RECENT) "lastViewedTime" else if (filter == FilterType.LAST_EDIT) "lastEditTime" else "name",
+        if (filter == FilterType.RECENT || filter == FilterType.LAST_EDIT) Query.Direction.DESCENDING else Query.Direction.ASCENDING
+    ).additionalFilter().startAfterIfNotNull(pageStartVault).limit(determinePageSize(filter, query)).get().await()
+
+    private fun QuerySnapshot.toVaultModels(
+        query: String?, filter: FilterType
+    ) = this.map { vaultSnapshot -> vaultSnapshot.id to vaultSnapshot.toObject<VaultModel>() }
+        .filter { (_, vault) ->
+            if (!query.isNullOrBlank() && filter == FilterType.FAVOURITE) vault.name.contains(
+                query, ignoreCase = true
+            ) && vault.isFavourite
+            else if (filter == FilterType.FAVOURITE) vault.isFavourite
+            else if (!query.isNullOrBlank()) vault.name.contains(query, ignoreCase = true)
+            else true
+        }
+
+    private suspend inline fun fieldValue(
+        userId: String,
+        id: String,
+        valueIndex: Int,
+        decryptCondition: (String) -> Boolean = { false }
+    ) = if (valueIndex < 0) null else fireStore.fieldCollection(userId, id).document("$valueIndex")
+        .get().await().toObject<VaultFieldModel>()?.value?.decryptWhen(crypto, decryptCondition)
+
+    override suspend fun getAll(filter: FilterType, query: String?, pageKey: String?): VaultsPage {
         val userId = auth.currentUser?.uid ?: throw UnauthorizedException()
-        TODO()
+
+        val pageStartVault =
+            if (pageKey != null) fireStore.vaultCollection(userId).document(pageKey).get().await()
+            else null
+        val vaults = queryVaults(userId, filter, query, pageStartVault)
+
+        val endReached = vaults.size() < PAGE_SIZE
+        val nextPageKey = if (endReached) null else vaults.documents.last().id
+
+        val vaultModels = vaults.toVaultModels(query, filter)
+        val categories = vaultModels.map { (_, vault) -> vault.categoryId }.distinct()
+            .associateWith { categoryId ->
+                val customCategory =
+                    fireStore.categoryCollection(userId).document(categoryId).get().await()
+                if (customCategory.exists()) customCategory.toObject<CategoryModel>()
+                else fireStore.commonCategoryCollection().document(categoryId).get().await()
+                    .toObject<CategoryModel>()
+            }
+
+        val convertedVaults = vaultModels.map { (id, vault) ->
+            val category = categories[vault.categoryId]
+            val linkIndex = category?.linkIndex ?: -1
+            val loginIndex = category?.loginIndex ?: -1
+            val login = fieldValue(userId, id, linkIndex) { it.isNotEmpty() }
+            val link = fieldValue(userId, id, loginIndex) { it.isNotEmpty() }
+
+            VaultShort(
+                id = id,
+                name = vault.name,
+                isFavourite = vault.isFavourite,
+                login = login,
+                link = link
+            )
+        }
+
+        return VaultsPage(
+            vaults = convertedVaults,
+            nextPageKey = nextPageKey ?: EMPTY_STRING,
+            endReached = endReached
+        )
     }
 
     override suspend fun getAllByCategory(
-        categoryId: String, filter: FilterType, query: String?
-    ): List<VaultShort> {
-        TODO("Not yet implemented")
+        categoryId: String, filter: FilterType, query: String?, pageKey: String?
+    ): VaultsPage {
+        val userId = auth.currentUser?.uid ?: throw UnauthorizedException()
+
+        val pageStartVault =
+            if (pageKey != null) fireStore.vaultCollection(userId).document(pageKey).get().await()
+            else null
+        val vaults = queryVaults(userId, filter, query, pageStartVault) {
+            whereEqualTo("categoryId", categoryId)
+        }
+
+        val endReached = vaults.size() < PAGE_SIZE
+        val nextPageKey = if (endReached) null else vaults.documents.last().id
+
+        val vaultModels = vaults.toVaultModels(query, filter)
+        val customCategory = fireStore.categoryCollection(userId).document(categoryId).get().await()
+        val category = if (customCategory.exists()) customCategory.toObject<CategoryModel>()
+        else fireStore.commonCategoryCollection().document(categoryId).get().await()
+            .toObject<CategoryModel>()
+        val linkIndex = category?.linkIndex ?: -1
+        val loginIndex = category?.loginIndex ?: -1
+
+        val convertedVaults = vaultModels.map { (id, vault) ->
+            val login = fieldValue(userId, id, linkIndex) { it.isNotEmpty() }
+            val link = fieldValue(userId, id, loginIndex) { it.isNotEmpty() }
+
+            VaultShort(
+                id = id,
+                name = vault.name,
+                isFavourite = vault.isFavourite,
+                login = login,
+                link = link
+            )
+        }
+
+        return VaultsPage(
+            vaults = convertedVaults,
+            nextPageKey = nextPageKey ?: EMPTY_STRING,
+            endReached = endReached
+        )
     }
 
     override suspend fun getById(id: String): Vault {
@@ -69,7 +186,7 @@ class VaultRepositoryImpl(
 
         var vaultId = EMPTY_STRING
         return runCatching {
-            val createdVault = vaultCollection(userId).add(
+            val createdVault = fireStore.vaultCollection(userId).add(
                 mapOf(
                     "name" to vault.name,
                     "categoryId" to vault.categoryId,
@@ -81,7 +198,7 @@ class VaultRepositoryImpl(
             vaultId = createdVault.id
 
             vault.fieldValues.forEach { (index, value) ->
-                fieldCollection(userId, vaultId).document("$index").set(
+                fireStore.fieldCollection(userId, vaultId).document("$index").set(
                     VaultFieldModel(
                         value = if (value.isNotEmpty()) crypto.encryptBase64(value) else value
                     )
@@ -100,7 +217,8 @@ class VaultRepositoryImpl(
                 fieldValues = mergeVaultFields(vault.fieldValues, category)
             )
         }.onFailure { throwable ->
-            if (vaultId.isNotBlank()) vaultCollection(userId).document(vaultId).delete().await()
+            if (vaultId.isNotBlank()) fireStore.vaultCollection(userId).document(vaultId).delete()
+                .await()
             throw VaultCreationException("Failed to create vault: ${throwable.stackTraceToString()}")
         }.getOrThrow()
     }
@@ -111,18 +229,16 @@ class VaultRepositoryImpl(
             ?: throw CategoryDoesNotExistException("Category with id ${vault.categoryId} does not exist")
         if (category.template.fields.size != vault.fieldValues.size) throw VaultCreationException("Invalid number of fields")
 
-        if (!vaultCollection(userId).document(vault.vaultId).get().await()
+        if (!fireStore.vaultCollection(userId).document(vault.vaultId).get().await()
                 .exists()
         ) throw VaultNotFoundException("Vault with id ${vault.vaultId} does not exist")
 
-        vaultCollection(userId).document(vault.vaultId).update(
-            mapOf(
-                "name" to vault.name, "categoryId" to vault.categoryId
-            )
+        fireStore.vaultCollection(userId).document(vault.vaultId).update(
+            mapOf("name" to vault.name, "categoryId" to vault.categoryId)
         ).await()
 
         vault.fieldValues.forEach { (index, value) ->
-            fieldCollection(userId, vault.vaultId).document("$index").set(
+            fireStore.fieldCollection(userId, vault.vaultId).document("$index").set(
                 VaultFieldModel(
                     value = if (value.isNotEmpty()) crypto.encryptBase64(value) else value
                 )
@@ -144,11 +260,11 @@ class VaultRepositoryImpl(
 
     override suspend fun delete(id: String) {
         val userId = auth.currentUser?.uid ?: throw UnauthorizedException()
-        if (!vaultCollection(userId).document(id).get().await()
+        if (!fireStore.vaultCollection(userId).document(id).get().await()
                 .exists()
         ) throw VaultNotFoundException("Vault with id $id does not exist")
 
-        val vault = vaultCollection(userId).document(id)
+        val vault = fireStore.vaultCollection(userId).document(id)
         vault.delete().await()
         getFieldRefs(vault).forEach { fieldRef ->
             fieldRef.delete().await()
@@ -158,30 +274,24 @@ class VaultRepositoryImpl(
     override suspend fun notifyViewed(id: String) {
         val userId = auth.currentUser?.uid ?: throw UnauthorizedException()
 
-        vaultCollection(userId).document(id).update(
-            mapOf(
-                "lastViewedTime" to com.google.firebase.firestore.FieldValue.serverTimestamp()
-            )
+        fireStore.vaultCollection(userId).document(id).update(
+            mapOf("lastViewedTime" to com.google.firebase.firestore.FieldValue.serverTimestamp())
         ).await()
     }
 
     override suspend fun addToFavourites(id: String) {
         val userId = auth.currentUser?.uid ?: throw UnauthorizedException()
 
-        vaultCollection(userId).document(id).update(
-            mapOf(
-                "isFavourite" to true
-            )
+        fireStore.vaultCollection(userId).document(id).update(
+            mapOf("isFavourite" to true)
         ).await()
     }
 
     override suspend fun removeFromFavourites(id: String) {
         val userId = auth.currentUser?.uid ?: throw UnauthorizedException()
 
-        vaultCollection(userId).document(id).update(
-            mapOf(
-                "isFavourite" to false
-            )
+        fireStore.vaultCollection(userId).document(id).update(
+            mapOf("isFavourite" to false)
         ).await()
     }
 }
