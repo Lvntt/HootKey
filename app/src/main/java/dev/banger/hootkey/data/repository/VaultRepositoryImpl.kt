@@ -79,6 +79,14 @@ class VaultRepositoryImpl(
     ) = if (valueIndex < 0) null else fireStore.fieldCollection(userId, id).document("$valueIndex")
         .get().await().toObject<VaultFieldModel>()?.value?.decryptWhen(crypto, decryptCondition)
 
+    private fun mergeVaultFields(fieldValues: Map<Int, String>, category: Category) =
+        category.template.fields.associateBy { it.index }.mapValues { (_, field) ->
+            val value = fieldValues[field.index] ?: EMPTY_STRING
+            FieldValue(
+                name = field.name, type = field.type, value = value
+            )
+        }
+
     override suspend fun getAll(filter: FilterType, query: String?, pageKey: String?): VaultsPage {
         val userId = auth.currentUser?.uid ?: throw UnauthorizedException()
 
@@ -167,16 +175,25 @@ class VaultRepositoryImpl(
     }
 
     override suspend fun getById(id: String): Vault {
-        TODO("Not yet implemented")
-    }
-
-    private fun mergeVaultFields(fieldValues: Map<Int, String>, category: Category) =
-        category.template.fields.associateBy { it.index }.mapValues { (_, field) ->
-            val value = fieldValues[field.index] ?: EMPTY_STRING
-            FieldValue(
-                name = field.name, type = field.type, value = value
-            )
+        val userId = auth.currentUser?.uid ?: throw UnauthorizedException()
+        val vault = fireStore.vaultCollection(userId).document(id).get().await().toObject<VaultModel>() ?: throw VaultNotFoundException("Vault with id $id does not exist")
+        val category = categoryRepository.getById(vault.categoryId) ?: throw CategoryDoesNotExistException("Category with id ${vault.categoryId} does not exist")
+        val vaultFields = fireStore.fieldCollection(userId, id).get().await().associate { fieldSnapshot ->
+            fieldSnapshot.id.toInt() to fieldSnapshot.toObject<VaultFieldModel>().value
         }
+
+        return Vault(
+            id = id,
+            name = vault.name,
+            category = VaultCategoryInfo(
+                id = category.id, name = category.name, icon = category.icon
+            ),
+            isFavourite = vault.isFavourite,
+            lastEditTimeMillis = vault.lastEditTime.toInstant().toEpochMilli(),
+            lastViewedTimeMillis = vault.lastViewedTime.toInstant().toEpochMilli(),
+            fieldValues = mergeVaultFields(vaultFields, category)
+        )
+    }
 
     override suspend fun create(vault: CreateVaultRequest): Vault {
         val userId = auth.currentUser?.uid ?: throw UnauthorizedException()
