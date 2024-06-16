@@ -6,7 +6,6 @@ import androidx.compose.ui.unit.sp
 
 val BaseType = TextStyle(
     fontFamily = Ubuntu,
-    letterSpacing = 0.5.sp,
 )
 
 val TypeB24 = BaseType.copy(
