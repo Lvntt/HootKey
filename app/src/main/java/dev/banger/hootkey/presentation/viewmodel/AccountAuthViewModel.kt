@@ -1,5 +1,6 @@
 package dev.banger.hootkey.presentation.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.banger.hootkey.R
@@ -46,6 +47,12 @@ class AccountAuthViewModel(
         }
     }
 
+    fun togglePasswordVisibility() {
+        _state.update {
+            it.copy(isPasswordVisible = !it.isPasswordVisible)
+        }
+    }
+
     fun resetErrorMessage() {
         _state.update {
             it.copy(errorMessageResId = null)
@@ -63,6 +70,7 @@ class AccountAuthViewModel(
                     _state.update { it.copy(isLoading = false) }
                 },
                 onFailure = { throwable ->
+                    Log.e("AccountAuthViewModel", throwable.stackTraceToString())
                     _state.update {
                         it.copy(
                             isLoading = false,

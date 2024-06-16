@@ -8,7 +8,8 @@ data class AccountAuthState(
     val emailIsValid: Boolean = true,
     val passwordIsValid: Boolean = true,
     val isLoading: Boolean = false,
-    @StringRes val errorMessageResId: Int? = null
+    @StringRes val errorMessageResId: Int? = null,
+    val isPasswordVisible: Boolean = false
 ) {
     val isAuthAllowed: Boolean
         get() = emailIsValid && passwordIsValid && email.isNotBlank() && password.isNotBlank()
