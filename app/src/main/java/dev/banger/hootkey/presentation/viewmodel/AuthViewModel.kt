@@ -40,6 +40,12 @@ class AuthViewModel(
         }
     }
 
+    fun togglePasswordVisibility() {
+        _state.update {
+            it.copy(isPasswordVisible = !it.isPasswordVisible)
+        }
+    }
+
     fun resetErrorMessage() {
         _state.update {
             it.copy(errorMessageResId = null)

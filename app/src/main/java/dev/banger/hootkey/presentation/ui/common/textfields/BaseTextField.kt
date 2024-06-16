@@ -27,6 +27,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -53,6 +54,7 @@ fun BaseTextField(
     onValueChange: (String) -> Unit,
     hint: String,
     modifier: Modifier = Modifier,
+    hintColor: Color = Secondary60,
     decorationBoxModifier: Modifier = Modifier,
     singleLine: Boolean = true,
     isError: Boolean = false,
@@ -77,7 +79,7 @@ fun BaseTextField(
         Text(
             text = hint,
             style = TypeM14,
-            color = Secondary60
+            color = hintColor
         )
         BasicTextField(
             modifier = decorationBoxModifier

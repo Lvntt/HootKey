@@ -28,4 +28,9 @@
     <string name="cancel">Cancel</string>
     <string name="continue_text">Continue</string>
     <string name="empty_char_pool_error">At least 1 character type is required</string>
+    <string name="invalid_email">Valid email is required</string>
+    <string name="password_length_error">Password must be at least 6 characters long</string>
+    <string name="view">View</string>
+    <string name="hide">Hide</string>
+    <string name="welcome_to">Welcome to</string>
 </resources>

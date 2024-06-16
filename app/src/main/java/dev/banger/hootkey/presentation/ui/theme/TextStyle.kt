@@ -6,7 +6,6 @@ import androidx.compose.ui.unit.sp
 
 val BaseType = TextStyle(
     fontFamily = Ubuntu,
-    letterSpacing = 0.5.sp,
 )
 
 val TypeB24 = BaseType.copy(
@@ -15,10 +14,22 @@ val TypeB24 = BaseType.copy(
     lineHeight = 31.2.sp,
 )
 
+val TypeB32 = BaseType.copy(
+    fontWeight = FontWeight.Bold,
+    fontSize = 32.sp,
+    lineHeight = 41.6.sp,
+)
+
 val TypeM20 = BaseType.copy(
     fontWeight = FontWeight.Medium,
     fontSize = 20.sp,
     lineHeight = 26.sp,
+)
+
+val TypeM24 = BaseType.copy(
+    fontWeight = FontWeight.Medium,
+    fontSize = 24.sp,
+    lineHeight = 31.2.sp,
 )
 
 val TypeB16 = BaseType.copy(
@@ -50,6 +61,7 @@ val TypeR14_150 = BaseType.copy(
 )
 
 val TypeB14 = BaseType.copy(
+    fontFamily = Outfit,
     fontWeight = FontWeight.Bold,
     fontSize = 14.sp,
     lineHeight = 21.sp,

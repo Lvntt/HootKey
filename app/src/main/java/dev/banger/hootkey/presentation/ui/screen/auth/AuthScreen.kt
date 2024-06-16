@@ -3,7 +3,7 @@ package dev.banger.hootkey.presentation.ui.screen.auth
 import android.content.Context
 import android.content.ContextWrapper
 import android.widget.Toast
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -13,22 +13,31 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LocalContentColor
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.paint
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -36,6 +45,14 @@ import dev.banger.hootkey.R
 import dev.banger.hootkey.presentation.state.auth.BiometricError
 import dev.banger.hootkey.presentation.ui.common.ObserveAsEvents
 import dev.banger.hootkey.presentation.ui.common.TextAlertDialog
+import dev.banger.hootkey.presentation.ui.common.buttons.PrimaryButton
+import dev.banger.hootkey.presentation.ui.common.buttons.PrimaryButtonTiny
+import dev.banger.hootkey.presentation.ui.common.textfields.RegularTextField
+import dev.banger.hootkey.presentation.ui.theme.Gray
+import dev.banger.hootkey.presentation.ui.theme.Primary
+import dev.banger.hootkey.presentation.ui.theme.Secondary
+import dev.banger.hootkey.presentation.ui.theme.TypeB32
+import dev.banger.hootkey.presentation.ui.theme.TypeM24
 import dev.banger.hootkey.presentation.viewmodel.AuthViewModel
 import org.koin.androidx.compose.koinViewModel
 
@@ -86,47 +103,73 @@ fun AuthScreen(onSuccess: () -> Unit, viewModel: AuthViewModel = koinViewModel()
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+            .paint(painterResource(R.drawable.auth_bg), contentScale = ContentScale.FillBounds)
+            .padding(horizontal = 20.dp)
+            .systemBarsPadding()
+            .verticalScroll(rememberScrollState())
     ) {
         Spacer(modifier = Modifier.weight(1f))
-        OutlinedTextField(
-            modifier = Modifier.fillMaxWidth(),
+        Image(
+            modifier = Modifier.size(250.dp).align(Alignment.CenterHorizontally),
+            imageVector = ImageVector.vectorResource(R.drawable.auth_logo),
+            contentDescription = null
+        )
+        Spacer(modifier = Modifier.weight(1f))
+        Text(
+            modifier = Modifier.align(Alignment.CenterHorizontally),
+            text = stringResource(R.string.welcome_to),
+            color = Color.White,
+            style = TypeM24,
+            textAlign = TextAlign.Center
+        )
+        Text(
+            modifier = Modifier.align(Alignment.CenterHorizontally),
+            text = stringResource(R.string.app_name),
+            style = TypeB32.copy(brush = Primary),
+            textAlign = TextAlign.Center
+        )
+        Spacer(modifier = Modifier.weight(1f))
+        RegularTextField(modifier = Modifier.fillMaxWidth(),
             value = state.password,
             onValueChange = viewModel::onPasswordChanged,
             isError = !state.passwordIsValid,
-            enabled = !state.isLoading,
-            label = { Text(stringResource(R.string.master_password_hint)) },
-            visualTransformation = PasswordVisualTransformation()
-        )
-        Spacer(modifier = Modifier.weight(1f))
+            hint = stringResource(R.string.master_password_hint),
+            hintColor = Gray,
+            visualTransformation = if (state.isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+            errorText = if (!state.passwordIsValid) stringResource(R.string.password_length_error) else null,
+            trailingContent = {
+                PrimaryButtonTiny(
+                    onClick = { viewModel.togglePasswordVisibility() },
+                    text = stringResource(if (state.isPasswordVisible) R.string.hide else R.string.view)
+                )
+            })
+        Spacer(modifier = Modifier.weight(2f))
         Row(
             modifier = Modifier.fillMaxWidth()
         ) {
-            Button(
+            PrimaryButton(
                 modifier = Modifier
-                    .weight(1f)
-                    .height(60.dp),
+                    .height(52.dp)
+                    .weight(1f),
                 onClick = viewModel::authorize,
-                enabled = state.isAuthAllowed
-            ) {
-                if (state.isLoading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(20.dp), color = LocalContentColor.current
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                }
-                Text(stringResource(R.string.login))
-            }
+                enabled = state.isAuthAllowed,
+                text = stringResource(R.string.login),
+                isLoading = state.isLoading
+            )
             Spacer(modifier = Modifier.width(8.dp))
             Button(
                 modifier = Modifier
-                    .width(60.dp)
-                    .height(60.dp),
+                    .size(52.dp),
                 onClick = biometricLauncher,
-                contentPadding = PaddingValues(0.dp)
+                contentPadding = PaddingValues(0.dp),
+                shape = RoundedCornerShape(16.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Gray,
+                    contentColor = Secondary
+                )
             ) {
                 Icon(
+                    modifier = Modifier.size(24.dp),
                     imageVector = ImageVector.vectorResource(R.drawable.fingerprint_icon),
                     contentDescription = null
                 )

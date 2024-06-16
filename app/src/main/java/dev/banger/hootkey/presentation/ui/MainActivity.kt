@@ -5,7 +5,6 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.ui.Modifier
 import androidx.fragment.app.FragmentActivity
 import androidx.navigation.compose.rememberNavController
@@ -20,8 +19,7 @@ class MainActivity : FragmentActivity() {
             val navController = rememberNavController()
             HootKeyTheme {
                 Box(modifier = Modifier
-                    .fillMaxSize()
-                    .systemBarsPadding()) {
+                    .fillMaxSize()) {
                     AppNavigation(navController)
                 }
             }

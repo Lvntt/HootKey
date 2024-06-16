@@ -11,6 +11,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.input.KeyboardType
@@ -20,6 +21,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import dev.banger.hootkey.R
 import dev.banger.hootkey.presentation.ui.common.buttons.AlternativeButtonTiny
 import dev.banger.hootkey.presentation.ui.theme.Primary
+import dev.banger.hootkey.presentation.ui.theme.Secondary60
 import dev.banger.hootkey.presentation.ui.theme.Secondary80
 import dev.banger.hootkey.presentation.ui.theme.TextFieldHeightRegular
 import dev.banger.hootkey.presentation.ui.utils.gradientTint
@@ -30,13 +32,14 @@ fun RegularTextField(
     onValueChange: (String) -> Unit,
     hint: String,
     modifier: Modifier = Modifier,
+    hintColor: Color = Secondary60,
     singleLine: Boolean = true,
     isError: Boolean = false,
     errorText: String? = null,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     visualTransformation: VisualTransformation = VisualTransformation.None,
-    leadingContent: @Composable() (() -> Unit)? = null,
-    trailingContent: @Composable() (() -> Unit)? = null,
+    leadingContent: @Composable (() -> Unit)? = null,
+    trailingContent: @Composable (() -> Unit)? = null,
     onFocusChange: (Boolean) -> Unit = {},
     decorationBoxModifier: Modifier = Modifier
         .fillMaxWidth()
@@ -48,6 +51,7 @@ fun RegularTextField(
         value = value,
         onValueChange = onValueChange,
         hint = hint,
+        hintColor = hintColor,
         singleLine = singleLine,
         isError = isError,
         errorText = errorText,
