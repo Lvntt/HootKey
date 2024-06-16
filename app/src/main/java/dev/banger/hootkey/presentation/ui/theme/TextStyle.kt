@@ -62,6 +62,7 @@ val TypeR14_150 = BaseType.copy(
 )
 
 val TypeB14 = BaseType.copy(
+    fontFamily = Outfit,
     fontWeight = FontWeight.Bold,
     fontSize = 14.sp,
     lineHeight = 21.sp,
