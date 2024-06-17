@@ -55,7 +55,7 @@ class NewTemplateViewModel(
     }
 
     private fun showCreateFieldDialog() {
-        stateFlow.update { it.copy(isCreateFieldDialogShown = true) }
+        stateFlow.update { it.copy(isNewFieldDialogShown = true) }
     }
 
     private fun showEditFieldDialog(field: UiTemplateField) {
@@ -70,7 +70,7 @@ class NewTemplateViewModel(
     private fun dismissDialog() {
         stateFlow.update {
             it.copy(
-                isCreateFieldDialogShown = false,
+                isNewFieldDialogShown = false,
                 isEditFieldDialogShown = false,
                 fieldToEdit = null
             )

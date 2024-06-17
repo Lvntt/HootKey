@@ -5,7 +5,7 @@ import dev.banger.hootkey.presentation.entity.UiTemplateField
 data class NewTemplateState(
     val name: String = "",
     val fields: List<UiTemplateField> = emptyList(),
-    val isCreateFieldDialogShown: Boolean = false,
+    val isNewFieldDialogShown: Boolean = false,
     val isEditFieldDialogShown: Boolean = false,
     val fieldToEdit: UiTemplateField? = null,
     val isLoading: Boolean = false

@@ -8,10 +8,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListItemInfo
 import androidx.compose.foundation.lazy.items
@@ -31,9 +29,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.banger.hootkey.R
 import dev.banger.hootkey.presentation.entity.UiTemplateField
+import dev.banger.hootkey.presentation.ui.common.buttons.TextFieldButton
 import dev.banger.hootkey.presentation.ui.theme.PaddingMedium
 import dev.banger.hootkey.presentation.ui.theme.PaddingRegular
-import dev.banger.hootkey.presentation.ui.theme.PaddingSmall
 import dev.banger.hootkey.presentation.ui.theme.PaddingTiny
 import dev.banger.hootkey.presentation.ui.theme.Secondary
 import dev.banger.hootkey.presentation.ui.theme.Secondary60
@@ -49,15 +47,18 @@ fun TemplateFieldsReorderableList(
     fields: List<UiTemplateField>,
     onMoveField: (LazyListItemInfo, LazyListItemInfo) -> Unit,
     onEditClick: (UiTemplateField) -> Unit,
+    onCreateFieldClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val lazyListState = rememberLazyListState()
-    val reorderableLazyListState = rememberReorderableLazyListState(lazyListState) { from, to ->
+    val reorderableLazyListState = rememberReorderableLazyListState(
+        lazyListState = lazyListState
+    ) { from, to ->
         onMoveField(from, to)
     }
 
     LazyColumn(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxWidth(),
         state = lazyListState,
     ) {
         items(fields, key = { it.uuid }) { field ->
@@ -69,7 +70,6 @@ fun TemplateFieldsReorderableList(
                     verticalArrangement = Arrangement.spacedBy(PaddingTiny)
                 ) {
                     Text(
-                        modifier = Modifier.padding(start = PaddingSmall),
                         text = stringResource(id = R.string.field),
                         style = TypeM14,
                         color = Secondary60
@@ -77,7 +77,6 @@ fun TemplateFieldsReorderableList(
 
                     Row(
                         modifier = Modifier
-                            .padding(horizontal = PaddingSmall)
                             .fillMaxWidth()
                             .draggableHandle(),
                         verticalAlignment = Alignment.CenterVertically,
@@ -89,13 +88,15 @@ fun TemplateFieldsReorderableList(
                                 .height(TextFieldHeightRegular)
                                 .shadow(elevation.value),
                             value = field.name,
-                            leadingContent = {
-                                Icon(
-                                    imageVector = ImageVector.vectorResource(id = R.drawable.ic_profile),
-                                    contentDescription = null,
-                                    tint = Secondary80
-                                )
-                            },
+                            leadingContent = if (field.type.icon != null) {
+                                {
+                                    Icon(
+                                        imageVector = ImageVector.vectorResource(id = field.type.icon),
+                                        contentDescription = null,
+                                        tint = Secondary80
+                                    )
+                                }
+                            } else null,
                             trailingContent = {
                                 Icon(
                                     modifier = Modifier.clickable(
@@ -125,6 +126,21 @@ fun TemplateFieldsReorderableList(
                 }
             }
         }
+
+        item {
+            TextFieldButton(
+                value = stringResource(id = R.string.create_new_field),
+                onClick = onCreateFieldClick,
+                leadingContent = {
+                    Icon(
+                        imageVector = ImageVector.vectorResource(id = R.drawable.ic_circle),
+                        contentDescription = null,
+                        tint = Secondary80
+                    )
+                },
+                hint = stringResource(id = R.string.new_field)
+            )
+        }
     }
 }
 
@@ -134,6 +150,7 @@ private fun TemplateFieldsReorderableListPreview() {
     TemplateFieldsReorderableList(
         fields = listOf(),
         onMoveField = {_,_ ->},
-        onEditClick = {}
+        onEditClick = {},
+        onCreateFieldClick = {}
     )
 }
