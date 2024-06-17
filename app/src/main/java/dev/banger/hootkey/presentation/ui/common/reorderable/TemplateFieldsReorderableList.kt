@@ -5,6 +5,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -18,11 +19,19 @@ import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -56,79 +65,98 @@ fun TemplateFieldsReorderableList(
     ) { from, to ->
         onMoveField(from, to)
     }
+    var lazyColumnHeight by remember { mutableIntStateOf(0) }
+    var lastButtonSize by remember { mutableIntStateOf(0) }
+    val fieldsHeight by remember { derivedStateOf { lazyColumnHeight - lastButtonSize } }
 
     LazyColumn(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .onGloballyPositioned {
+                lazyColumnHeight = it.size.height
+            },
         state = lazyListState,
     ) {
         items(fields, key = { it.uuid }) { field ->
             ReorderableItem(state = reorderableLazyListState, key = field.uuid) { isDragging ->
                 val elevation = animateDpAsState(if (isDragging) 16.dp else 0.dp, label = "elevation_anim")
+                var itemHeight by remember { mutableIntStateOf(0) }
+                var itemPosY by remember { mutableFloatStateOf(0f) }
 
-                Column(
-                    modifier = modifier,
-                    verticalArrangement = Arrangement.spacedBy(PaddingTiny)
-                ) {
-                    Text(
-                        text = stringResource(id = R.string.field),
-                        style = TypeM14,
-                        color = Secondary60
-                    )
-
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .draggableHandle(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(PaddingRegular)
+                Box(modifier = Modifier.onGloballyPositioned {
+                    itemHeight = it.size.height
+                    itemPosY = it.parentLayoutCoordinates?.positionInParent()?.y ?: 0f
+                }) {
+                    Column(
+                        modifier = modifier.graphicsLayer {
+                                translationY =
+                                    if (itemPosY < 0f) -itemPosY else if (itemPosY > fieldsHeight - itemHeight) -(itemPosY - (fieldsHeight - itemHeight)) else 0f
+                            }, verticalArrangement = Arrangement.spacedBy(PaddingTiny)
                     ) {
-                        BaseReorderableTextField(
+                        Text(
+                            text = stringResource(id = R.string.field),
+                            style = TypeM14,
+                            color = Secondary60
+                        )
+
+                        Row(
                             modifier = Modifier
-                                .weight(1f)
-                                .height(TextFieldHeightRegular)
-                                .shadow(elevation.value),
-                            value = field.name,
-                            leadingContent = if (field.type.icon != null) {
-                                {
+                                .fillMaxWidth()
+                                .draggableHandle(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(PaddingRegular)
+                        ) {
+                            BaseReorderableTextField(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(TextFieldHeightRegular)
+                                    .shadow(elevation.value),
+                                value = field.name,
+                                leadingContent = if (field.type.icon != null) {
+                                    {
+                                        Icon(
+                                            imageVector = ImageVector.vectorResource(id = field.type.icon),
+                                            contentDescription = null,
+                                            tint = Secondary80
+                                        )
+                                    }
+                                } else null,
+                                trailingContent = {
                                     Icon(
-                                        imageVector = ImageVector.vectorResource(id = field.type.icon),
+                                        modifier = Modifier.clickable(
+                                            interactionSource = remember { MutableInteractionSource() },
+                                            indication = rememberRipple(
+                                                bounded = false,
+                                                radius = 16.dp
+                                            ),
+                                            onClick = {
+                                                onEditClick(field)
+                                            }
+                                        ),
+                                        imageVector = ImageVector.vectorResource(id = R.drawable.ic_edit),
                                         contentDescription = null,
                                         tint = Secondary80
                                     )
                                 }
-                            } else null,
-                            trailingContent = {
-                                Icon(
-                                    modifier = Modifier.clickable(
-                                        interactionSource = remember { MutableInteractionSource() },
-                                        indication = rememberRipple(
-                                            bounded = false,
-                                            radius = 16.dp
-                                        ),
-                                        onClick = {
-                                            onEditClick(field)
-                                        }
-                                    ),
-                                    imageVector = ImageVector.vectorResource(id = R.drawable.ic_edit),
-                                    contentDescription = null,
-                                    tint = Secondary80
-                                )
-                            }
-                        )
+                            )
 
-                        Icon(
-                            imageVector = ImageVector.vectorResource(id = R.drawable.ic_drag_indicator),
-                            contentDescription = null,
-                            tint = Secondary
-                        )
+                            Icon(
+                                imageVector = ImageVector.vectorResource(id = R.drawable.ic_drag_indicator),
+                                contentDescription = null,
+                                tint = Secondary
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(PaddingMedium))
                     }
-                    Spacer(modifier = Modifier.height(PaddingMedium))
                 }
             }
         }
 
         item {
             TextFieldButton(
+                modifier = Modifier.onGloballyPositioned {
+                    lastButtonSize = it.size.height
+                },
                 value = stringResource(id = R.string.create_new_field),
                 onClick = onCreateFieldClick,
                 leadingContent = {
@@ -149,7 +177,7 @@ fun TemplateFieldsReorderableList(
 private fun TemplateFieldsReorderableListPreview() {
     TemplateFieldsReorderableList(
         fields = listOf(),
-        onMoveField = {_,_ ->},
+        onMoveField = { _, _ -> },
         onEditClick = {},
         onCreateFieldClick = {}
     )
