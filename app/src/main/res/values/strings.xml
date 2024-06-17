@@ -35,4 +35,13 @@
     <string name="name">Name</string>
     <string name="create_new_field">Create new field</string>
     <string name="create_template">Create template</string>
+    <string name="new_field">New field</string>
+    <string name="enter_field_name">Enter field name</string>
+    <string name="type">Type</string>
+    <string name="choose_field_type">Choose field type</string>
+    <string name="text">Text</string>
+    <string name="password">Password</string>
+    <string name="secret">Secret</string>
+    <string name="link">Link</string>
+    <string name="date">Date</string>
 </resources>
