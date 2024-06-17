@@ -12,3 +12,5 @@ val TextFieldShapeRegular = RoundedCornerShape(16.dp)
 
 val DialogShapeRegular = RoundedCornerShape(16.dp)
 val LinearProgressIndicatorRegular = RoundedCornerShape(6.dp)
+
+val RoundedCornerShapeRegular = RoundedCornerShape(16.dp)
