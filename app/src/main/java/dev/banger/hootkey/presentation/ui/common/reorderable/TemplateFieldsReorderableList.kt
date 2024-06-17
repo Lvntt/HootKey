@@ -66,8 +66,8 @@ fun TemplateFieldsReorderableList(
         onMoveField(from, to)
     }
     var lazyColumnHeight by remember { mutableIntStateOf(0) }
-    var lastButtonSize by remember { mutableIntStateOf(0) }
-    val fieldsHeight by remember { derivedStateOf { lazyColumnHeight - lastButtonSize } }
+    var lastButtonHeight by remember { mutableIntStateOf(0) }
+    val fieldsHeight by remember { derivedStateOf { lazyColumnHeight - lastButtonHeight } }
 
     LazyColumn(
         modifier = Modifier
@@ -155,7 +155,7 @@ fun TemplateFieldsReorderableList(
         item {
             TextFieldButton(
                 modifier = Modifier.onGloballyPositioned {
-                    lastButtonSize = it.size.height
+                    lastButtonHeight = it.size.height
                 },
                 value = stringResource(id = R.string.create_new_field),
                 onClick = onCreateFieldClick,
