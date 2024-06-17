@@ -73,6 +73,8 @@ dependencies {
     implementation(libs.koin.android)
     implementation(libs.koin.androidx.compose)
 
+    implementation(libs.sh.reorderable)
+
     implementation(libs.androidx.security.crypto)
 
     implementation(libs.androidx.biometric)

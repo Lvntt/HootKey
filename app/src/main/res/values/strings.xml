@@ -28,4 +28,11 @@
     <string name="cancel">Cancel</string>
     <string name="continue_text">Continue</string>
     <string name="empty_char_pool_error">At least 1 character type is required</string>
+    <string name="create_new_template">Create New Template</string>
+    <string name="navigate_back">Navigate back</string>
+    <string name="template">Template</string>
+    <string name="field">Field</string>
+    <string name="name">Name</string>
+    <string name="create_new_field">Create new field</string>
+    <string name="create_template">Create template</string>
 </resources>
