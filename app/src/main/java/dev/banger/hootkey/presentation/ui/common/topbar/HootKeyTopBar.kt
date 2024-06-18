@@ -32,13 +32,12 @@ import dev.banger.hootkey.presentation.ui.theme.White
 @Composable
 fun HootKeyTopBar(
     onNavigateBack: () -> Unit,
-    title: String,
-    modifier: Modifier = Modifier
+    title: String
 ) {
     CenterAlignedTopAppBar(
         modifier = Modifier.padding(
             start = 20.dp,
-            top = 55.dp
+            top = 20.dp
         ),
         title = {
             Text(

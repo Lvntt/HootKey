@@ -23,6 +23,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
@@ -67,10 +68,13 @@ fun NewTemplateFieldDialog(
         onDismissRequest = onDismissRequest,
         properties = DialogProperties(usePlatformDefaultWidth = false)
     ) {
+        val focusManager = LocalFocusManager.current
+
         Card(
             modifier = modifier
                 .fillMaxWidth()
-                .padding(horizontal = 20.dp),
+                .padding(horizontal = 20.dp)
+                .noRippleClickable { focusManager.clearFocus() },
             colors = CardDefaults.cardColors(containerColor = White),
             shape = DialogShapeRegular
         ) {
@@ -86,7 +90,6 @@ fun NewTemplateFieldDialog(
 
                 Spacer(modifier = Modifier.height(PaddingMedium))
 
-                // TODO remove focus
                 RegularTextField(
                     value = state.field.name,
                     onValueChange = {
@@ -100,6 +103,7 @@ fun NewTemplateFieldDialog(
                 RegularTextField(
                     modifier = Modifier.noRippleClickable {
                         viewModel.dispatch(NewTemplateFieldIntent.OpenDropdownMenu)
+                        focusManager.clearFocus()
                     },
                     value = stringResource(id = state.field.type.text),
                     onValueChange = {},

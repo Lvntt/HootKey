@@ -79,19 +79,24 @@ fun TemplateFieldsReorderableList(
     ) {
         items(fields, key = { it.uuid }) { field ->
             ReorderableItem(state = reorderableLazyListState, key = field.uuid) { isDragging ->
-                val elevation = animateDpAsState(if (isDragging) 16.dp else 0.dp, label = "elevation_anim")
+                val elevation =
+                    animateDpAsState(if (isDragging) 16.dp else 0.dp, label = "elevation_anim")
                 var itemHeight by remember { mutableIntStateOf(0) }
                 var itemPosY by remember { mutableFloatStateOf(0f) }
 
-                Box(modifier = Modifier.onGloballyPositioned {
-                    itemHeight = it.size.height
-                    itemPosY = it.parentLayoutCoordinates?.positionInParent()?.y ?: 0f
-                }) {
+                Box(
+                    modifier = Modifier.onGloballyPositioned {
+                        itemHeight = it.size.height
+                        itemPosY = it.parentLayoutCoordinates?.positionInParent()?.y ?: 0f
+                    }
+                ) {
                     Column(
                         modifier = modifier.graphicsLayer {
-                                translationY =
-                                    if (itemPosY < 0f) -itemPosY else if (itemPosY > fieldsHeight - itemHeight) -(itemPosY - (fieldsHeight - itemHeight)) else 0f
-                            }, verticalArrangement = Arrangement.spacedBy(PaddingTiny)
+                            translationY = if (itemPosY < 0f) -itemPosY
+                            else if (itemPosY > fieldsHeight - itemHeight) -(itemPosY - (fieldsHeight - itemHeight))
+                            else 0f
+                        },
+                        verticalArrangement = Arrangement.spacedBy(PaddingTiny)
                     ) {
                         Text(
                             text = stringResource(id = R.string.field),

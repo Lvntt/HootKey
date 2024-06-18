@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -33,6 +34,7 @@ import dev.banger.hootkey.presentation.ui.theme.PaddingSmall
 import dev.banger.hootkey.presentation.ui.theme.RoundedCornerShapeRegular
 import dev.banger.hootkey.presentation.ui.theme.TypeB16
 import dev.banger.hootkey.presentation.ui.theme.White
+import dev.banger.hootkey.presentation.ui.utils.noRippleClickable
 import dev.banger.hootkey.presentation.viewmodel.NewTemplateViewModel
 import org.koin.androidx.compose.koinViewModel
 
@@ -50,6 +52,8 @@ fun NewTemplateScreen(
         }
     }
 
+    val focusManager = LocalFocusManager.current
+
     if (state.isNewFieldDialogShown) {
         NewTemplateFieldDialog(
             onDismissRequest = {
@@ -66,9 +70,10 @@ fun NewTemplateScreen(
         // TODO
     }
 
-    // TODO clear focus
     Scaffold(
-        modifier = modifier,
+        modifier = modifier.noRippleClickable {
+            focusManager.clearFocus()
+        },
         topBar = {
             HootKeyTopBar(
                 onNavigateBack = onNavigateBack,
@@ -127,6 +132,7 @@ fun NewTemplateScreen(
                         },
                         onCreateFieldClick = {
                             viewModel.dispatch(NewTemplateIntent.ShowCreateFieldDialog)
+                            focusManager.clearFocus()
                         }
                     )
                 }
