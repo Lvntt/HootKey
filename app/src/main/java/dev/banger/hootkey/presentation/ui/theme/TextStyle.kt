@@ -72,6 +72,11 @@ val TypeM12 = BaseType.copy(
     fontSize = 12.sp,
 )
 
+val TypeR12 = BaseType.copy(
+    fontWeight = FontWeight.Normal,
+    fontSize = 12.sp,
+)
+
 val TypeR10 = BaseType.copy(
     fontWeight = FontWeight.Normal,
     fontSize = 10.sp,

@@ -4,6 +4,7 @@ biometric = "1.1.0"
 firebaseBom = "33.0.0"
 kotlin = "1.9.0"
 coreKtx = "1.13.1"
+landscapistGlide = "2.3.4"
 lifecycleRuntimeKtx = "2.8.1"
 activityCompose = "1.9.0"
 composeBom = "2024.05.00"
@@ -27,6 +28,7 @@ androidx-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
 androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
 androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
 firebase-firestore = { module = "com.google.firebase:firebase-firestore" }
+landscapist-glide = { module = "com.github.skydoves:landscapist-glide", version.ref = "landscapistGlide" }
 navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "composeNavigation" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serialization"}
 koin-android = { module = "io.insert-koin:koin-android", version.ref = "koin" }

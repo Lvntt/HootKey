@@ -25,6 +25,7 @@ val PrimaryDisabled = Brush.linearGradient(listOf(PrimaryPinkDisabled, PrimaryOr
 
 val Secondary = Color(0xFF171F46)
 val Secondary80 = Color(0xFF47495B)
+val Secondary70 = Color(0xFF5D637E)
 val Secondary60 = Color(0xFF757784)
 
 val White = Color(0xFFFFFFFF)

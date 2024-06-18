@@ -63,6 +63,7 @@ fun SearchTextField(
         singleLine = true,
         textStyle = TypeR14,
         cursorBrush = SolidColor(Secondary80),
+        enabled = enabled,
         decorationBox = { innerTextField ->
             OutlinedTextFieldDefaults.DecorationBox(
                 value = value,
@@ -70,7 +71,8 @@ fun SearchTextField(
                     focusedContainerColor = White,
                     unfocusedContainerColor = White,
                     focusedBorderColor = Color.Transparent,
-                    unfocusedBorderColor = Color.Transparent
+                    unfocusedBorderColor = Color.Transparent,
+                    disabledBorderColor = Color.Transparent
                 ),
                 contentPadding = PaddingValues(PaddingNone),
                 innerTextField = {

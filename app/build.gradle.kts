@@ -78,4 +78,6 @@ dependencies {
     implementation(libs.androidx.biometric)
 
     debugImplementation(libs.androidx.ui.tooling)
+
+    implementation(libs.landscapist.glide)
 }
