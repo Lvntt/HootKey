@@ -10,6 +10,6 @@ sealed interface NewTemplateIntent {
     data class AddField(val field: UiTemplateField) : NewTemplateIntent
     data class EditField(val field: UiTemplateField) : NewTemplateIntent
     data class MoveField(val fromIndex: Int, val toIndex: Int) : NewTemplateIntent
-    // TODO DeleteField?
+    data class DeleteField(val field: UiTemplateField) : NewTemplateIntent
     data object CreateTemplate : NewTemplateIntent
 }

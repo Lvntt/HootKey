@@ -33,9 +33,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.banger.hootkey.R
 import dev.banger.hootkey.presentation.entity.UiFieldType
 import dev.banger.hootkey.presentation.entity.UiTemplateField
+import dev.banger.hootkey.presentation.intent.EditTemplateFieldIntent
 import dev.banger.hootkey.presentation.intent.NewTemplateFieldIntent
+import dev.banger.hootkey.presentation.state.edit_template_field.EditTemplateFieldEffect
 import dev.banger.hootkey.presentation.state.new_template_field.NewTemplateFieldEffect
 import dev.banger.hootkey.presentation.ui.common.ObserveAsEvents
+import dev.banger.hootkey.presentation.ui.common.buttons.AlternativeButton
 import dev.banger.hootkey.presentation.ui.common.textfields.RegularTextField
 import dev.banger.hootkey.presentation.ui.theme.DialogShapeRegular
 import dev.banger.hootkey.presentation.ui.theme.MainDark
@@ -47,20 +50,28 @@ import dev.banger.hootkey.presentation.ui.theme.TypeB16
 import dev.banger.hootkey.presentation.ui.theme.TypeM14
 import dev.banger.hootkey.presentation.ui.theme.White
 import dev.banger.hootkey.presentation.ui.utils.noRippleClickable
+import dev.banger.hootkey.presentation.viewmodel.EditTemplateFieldViewModel
 import dev.banger.hootkey.presentation.viewmodel.NewTemplateFieldViewModel
 import org.koin.androidx.compose.koinViewModel
+import org.koin.core.parameter.parametersOf
 
 @Composable
-fun NewTemplateFieldDialog(
+fun EditTemplateFieldDialog(
+    fieldKey: String,
+    field: UiTemplateField,
     onDismissRequest: () -> Unit,
     onContinue: (UiTemplateField) -> Unit,
+    onDeleteField: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: NewTemplateFieldViewModel = koinViewModel()
+    viewModel: EditTemplateFieldViewModel = koinViewModel(
+        parameters = { parametersOf(field) },
+        key = fieldKey
+    )
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     ObserveAsEvents(viewModel.effects) {
         when (it) {
-            is NewTemplateFieldEffect.AddField -> onContinue(it.field)
+            is EditTemplateFieldEffect.EditField -> onContinue(it.field)
         }
     }
 
@@ -93,7 +104,7 @@ fun NewTemplateFieldDialog(
                 RegularTextField(
                     value = state.field.name,
                     onValueChange = {
-                        viewModel.dispatch(NewTemplateFieldIntent.NameChanged(it))
+                        viewModel.dispatch(EditTemplateFieldIntent.NameChanged(it))
                     },
                     hint = stringResource(id = R.string.enter_field_name),
                 )
@@ -102,7 +113,7 @@ fun NewTemplateFieldDialog(
 
                 RegularTextField(
                     modifier = Modifier.noRippleClickable {
-                        viewModel.dispatch(NewTemplateFieldIntent.OpenDropdownMenu)
+                        viewModel.dispatch(EditTemplateFieldIntent.OpenDropdownMenu)
                         focusManager.clearFocus()
                     },
                     value = stringResource(id = state.field.type.text),
@@ -118,7 +129,7 @@ fun NewTemplateFieldDialog(
                                     radius = 16.dp
                                 ),
                                 onClick = {
-                                    viewModel.dispatch(NewTemplateFieldIntent.OpenDropdownMenu)
+                                    viewModel.dispatch(EditTemplateFieldIntent.OpenDropdownMenu)
                                     focusManager.clearFocus()
                                 }
                             ),
@@ -135,7 +146,7 @@ fun NewTemplateFieldDialog(
                             modifier = Modifier.background(White),
                             expanded = state.isDropdownMenuShown,
                             onDismissRequest = {
-                                viewModel.dispatch(NewTemplateFieldIntent.DismissDropdownMenu)
+                                viewModel.dispatch(EditTemplateFieldIntent.DismissDropdownMenu)
                             }
                         ) {
                             UiFieldType.entries.forEach {
@@ -150,12 +161,20 @@ fun NewTemplateFieldDialog(
                                         )
                                     },
                                     onClick = {
-                                        viewModel.dispatch(NewTemplateFieldIntent.TypeChanged(it))
+                                        viewModel.dispatch(EditTemplateFieldIntent.TypeChanged(it))
                                     }
                                 )
                             }
                         }
                     }
+                )
+
+                Spacer(modifier = Modifier.height(PaddingMedium))
+
+                AlternativeButton(
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = onDeleteField,
+                    text = stringResource(id = R.string.delete_field)
                 )
 
                 Spacer(modifier = Modifier.height(PaddingMedium))
@@ -179,8 +198,8 @@ fun NewTemplateFieldDialog(
                     Row(
                         modifier = Modifier
                             .noRippleClickable {
-                                if (state.isCreationAllowed) {
-                                    viewModel.dispatch(NewTemplateFieldIntent.AddField)
+                                if (state.isEditAllowed) {
+                                    viewModel.dispatch(EditTemplateFieldIntent.EditField)
                                 }
                             },
                         verticalAlignment = Alignment.CenterVertically

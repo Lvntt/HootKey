@@ -33,10 +33,6 @@ class NewTemplateViewModel(
     private val effectsFlow = MutableSharedFlow<NewTemplateEffect>(extraBufferCapacity = 1)
     val effects = effectsFlow.asSharedFlow()
 
-    private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
-        Log.e(TAG, throwable.stackTraceToString())
-    }
-
     fun dispatch(intent: NewTemplateIntent) {
         when (intent) {
             is NewTemplateIntent.NameChanged -> onNameChanged(intent.name)
@@ -46,6 +42,7 @@ class NewTemplateViewModel(
             is NewTemplateIntent.AddField -> addField(intent.field)
             is NewTemplateIntent.EditField -> editField(intent.field)
             is NewTemplateIntent.MoveField -> moveField(intent.fromIndex, intent.toIndex)
+            is NewTemplateIntent.DeleteField -> deleteField(intent.field)
             NewTemplateIntent.CreateTemplate -> createTemplate()
         }
     }
@@ -92,7 +89,8 @@ class NewTemplateViewModel(
                     } else {
                         oldField
                     }
-                }
+                },
+                fieldToEdit = null
             )
         }
     }
@@ -110,8 +108,14 @@ class NewTemplateViewModel(
         }
     }
 
+    private fun deleteField(field: UiTemplateField) {
+        stateFlow.update {
+            it.copy(fields = it.fields - field)
+        }
+    }
+
     private fun createTemplate() {
-        viewModelScope.launch(defaultDispatcher + exceptionHandler) {
+        viewModelScope.launch(defaultDispatcher) {
             stateFlow.update { it.copy(isLoading = true) }
             runCatching {
                 templateRepository.create(
@@ -122,7 +126,8 @@ class NewTemplateViewModel(
                     stateFlow.update { it.copy(isLoading = false) }
                     effectsFlow.tryEmit(NewTemplateEffect.HandleSuccess)
                 },
-                onFailure = {
+                onFailure = { throwable ->
+                    Log.e(TAG, throwable.stackTraceToString())
                     stateFlow.update { it.copy(isLoading = false) }
                     effectsFlow.tryEmit(NewTemplateEffect.ShowError)
                 }

@@ -10,5 +10,5 @@ data class NewTemplateState(
     val fieldToEdit: UiTemplateField? = null,
     val isLoading: Boolean = false
 ) {
-    val isCreationAllowed = name.isNotBlank() && !isLoading
+    val isCreationAllowed = name.isNotBlank() && fields.isNotEmpty() && !isLoading
 }

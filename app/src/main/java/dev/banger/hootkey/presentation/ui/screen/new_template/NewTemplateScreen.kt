@@ -4,8 +4,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -22,14 +24,18 @@ import dev.banger.hootkey.R
 import dev.banger.hootkey.presentation.intent.NewTemplateIntent
 import dev.banger.hootkey.presentation.state.new_template.NewTemplateEffect
 import dev.banger.hootkey.presentation.ui.common.ObserveAsEvents
+import dev.banger.hootkey.presentation.ui.common.buttons.PrimaryButton
 import dev.banger.hootkey.presentation.ui.common.reorderable.TemplateFieldsReorderableList
 import dev.banger.hootkey.presentation.ui.common.textfields.RegularTextField
 import dev.banger.hootkey.presentation.ui.common.topbar.HootKeyTopBar
+import dev.banger.hootkey.presentation.ui.dialog.EditTemplateFieldDialog
 import dev.banger.hootkey.presentation.ui.dialog.NewTemplateFieldDialog
+import dev.banger.hootkey.presentation.ui.theme.ButtonHeightRegular
 import dev.banger.hootkey.presentation.ui.theme.DefaultBackgroundBrush
 import dev.banger.hootkey.presentation.ui.theme.MainDark
 import dev.banger.hootkey.presentation.ui.theme.PaddingLarge
 import dev.banger.hootkey.presentation.ui.theme.PaddingMedium
+import dev.banger.hootkey.presentation.ui.theme.PaddingRegular
 import dev.banger.hootkey.presentation.ui.theme.PaddingSmall
 import dev.banger.hootkey.presentation.ui.theme.RoundedCornerShapeRegular
 import dev.banger.hootkey.presentation.ui.theme.TypeB16
@@ -67,7 +73,25 @@ fun NewTemplateScreen(
     }
 
     if (state.isEditFieldDialogShown) {
-        // TODO
+        state.fieldToEdit?.let { field ->
+            val editFieldKey = "editField${field.name}${field.type}"
+
+            EditTemplateFieldDialog(
+                fieldKey = editFieldKey,
+                field = field,
+                onDismissRequest = {
+                    viewModel.dispatch(NewTemplateIntent.DismissDialog)
+                },
+                onContinue = {
+                    viewModel.dispatch(NewTemplateIntent.EditField(it))
+                    viewModel.dispatch(NewTemplateIntent.DismissDialog)
+                },
+                onDeleteField = {
+                    viewModel.dispatch(NewTemplateIntent.DeleteField(field))
+                    viewModel.dispatch(NewTemplateIntent.DismissDialog)
+                }
+            )
+        }
     }
 
     Scaffold(
@@ -86,13 +110,12 @@ fun NewTemplateScreen(
                 .fillMaxSize()
                 .background(DefaultBackgroundBrush)
                 .padding(contentPadding)
+                .padding(horizontal = 20.dp)
 //                .verticalScroll(rememberScrollState())
         ) {
             Box(
                 modifier = Modifier
                     .padding(
-                        start = 20.dp,
-                        end = 20.dp,
                         top = 20.dp,
                         bottom = PaddingLarge
                     )
@@ -137,6 +160,17 @@ fun NewTemplateScreen(
                     )
                 }
             }
+
+            PrimaryButton(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(ButtonHeightRegular),
+                onClick = {
+                    viewModel.dispatch(NewTemplateIntent.CreateTemplate)
+                },
+                text = stringResource(id = R.string.create_template),
+                enabled = state.isCreationAllowed
+            )
         }
     }
 }
