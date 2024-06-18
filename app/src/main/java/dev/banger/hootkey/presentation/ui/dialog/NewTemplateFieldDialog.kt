@@ -125,33 +125,33 @@ fun NewTemplateFieldDialog(
                             contentDescription = null,
                             tint = Secondary
                         )
+
+                        DropdownMenu(
+                            modifier = Modifier.background(White),
+                            expanded = state.isDropdownMenuShown,
+                            onDismissRequest = {
+                                viewModel.dispatch(NewTemplateFieldIntent.DismissDropdownMenu)
+                            }
+                        ) {
+                            UiFieldType.entries.forEach {
+                                val name = stringResource(id = it.text)
+
+                                DropdownMenuItem(
+                                    text = {
+                                        Text(
+                                            text = name,
+                                            style = TypeM14,
+                                            color = Secondary80
+                                        )
+                                    },
+                                    onClick = {
+                                        viewModel.dispatch(NewTemplateFieldIntent.TypeChanged(it))
+                                    }
+                                )
+                            }
+                        }
                     }
                 )
-
-                DropdownMenu(
-                    modifier = Modifier.background(White),
-                    expanded = state.isDropdownMenuShown,
-                    onDismissRequest = {
-                        viewModel.dispatch(NewTemplateFieldIntent.DismissDropdownMenu)
-                    }
-                ) {
-                    UiFieldType.entries.forEach {
-                        val name = stringResource(id = it.text)
-
-                        DropdownMenuItem(
-                            text = {
-                                Text(
-                                    text = name,
-                                    style = TypeM14,
-                                    color = Secondary80
-                                )
-                            },
-                            onClick = {
-                                viewModel.dispatch(NewTemplateFieldIntent.TypeChanged(it))
-                            }
-                        )
-                    }
-                }
 
                 Spacer(modifier = Modifier.height(PaddingMedium))
 
