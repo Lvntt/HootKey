@@ -26,6 +26,7 @@ import dev.banger.hootkey.presentation.ui.theme.Secondary80
 import dev.banger.hootkey.presentation.ui.theme.TextFieldHeightRegular
 import dev.banger.hootkey.presentation.ui.utils.gradientTint
 
+// TODO text color secondary when text field is focused
 @Composable
 fun RegularTextField(
     value: String,
@@ -35,6 +36,7 @@ fun RegularTextField(
     hintColor: Color = Secondary60,
     singleLine: Boolean = true,
     isError: Boolean = false,
+    enabled: Boolean = true,
     errorText: String? = null,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     visualTransformation: VisualTransformation = VisualTransformation.None,
@@ -54,6 +56,7 @@ fun RegularTextField(
         hintColor = hintColor,
         singleLine = singleLine,
         isError = isError,
+        enabled = enabled,
         errorText = errorText,
         keyboardOptions = keyboardOptions,
         visualTransformation = visualTransformation,

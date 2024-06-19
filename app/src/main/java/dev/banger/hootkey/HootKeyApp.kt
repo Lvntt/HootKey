@@ -4,6 +4,7 @@ import android.app.Application
 import dev.banger.hootkey.di.provideDataModule
 import dev.banger.hootkey.di.provideDomainModule
 import dev.banger.hootkey.di.providePresentationModule
+import org.koin.android.ext.android.getKoin
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin
 

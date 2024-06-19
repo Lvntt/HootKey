@@ -1,9 +1,9 @@
-package dev.banger.hootkey.presentation.ui.common.textfields
+package dev.banger.hootkey.presentation.ui.common.buttons
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,20 +14,20 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.graphics.BlendMode
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -35,7 +35,7 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import dev.banger.hootkey.R
-import dev.banger.hootkey.presentation.ui.common.buttons.AlternativeButtonTiny
+import dev.banger.hootkey.presentation.ui.common.textfields.BaseTextField
 import dev.banger.hootkey.presentation.ui.theme.BorderWidthSmall
 import dev.banger.hootkey.presentation.ui.theme.LightGray
 import dev.banger.hootkey.presentation.ui.theme.PaddingRegular
@@ -49,29 +49,18 @@ import dev.banger.hootkey.presentation.ui.theme.TypeM14
 import dev.banger.hootkey.presentation.ui.theme.White
 
 @Composable
-fun BaseTextField(
+fun TextFieldButton(
     value: String,
-    onValueChange: (String) -> Unit,
     hint: String,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    hintColor: Color = Secondary60,
-    decorationBoxModifier: Modifier = Modifier,
     singleLine: Boolean = true,
-    isError: Boolean = false,
-    enabled: Boolean = true,
-    errorText: String? = null,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     visualTransformation: VisualTransformation = VisualTransformation.None,
     leadingContent: @Composable (() -> Unit)? = null,
     trailingContent: @Composable (() -> Unit)? = null,
-    onFocusChange: (Boolean) -> Unit = {}
 ) {
     val interactionSource = remember { MutableInteractionSource() }
-    val isFocused by interactionSource.collectIsFocusedAsState()
-
-    LaunchedEffect(key1 = isFocused) {
-        onFocusChange(isFocused)
-    }
 
     Column(
         modifier = modifier,
@@ -80,27 +69,33 @@ fun BaseTextField(
         Text(
             text = hint,
             style = TypeM14,
-            color = hintColor
+            color = Secondary60
         )
         BasicTextField(
-            modifier = decorationBoxModifier
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(TextFieldHeightRegular)
+                .clip(TextFieldShapeVerySmall)
                 .background(
                     color = White,
                     shape = TextFieldShapeVerySmall
                 )
                 .border(
                     width = BorderWidthSmall,
-                    brush = if (isFocused) Primary else SolidColor(LightGray),
+                    color = LightGray,
                     shape = TextFieldShapeVerySmall
+                )
+                .clickable(
+                    interactionSource = interactionSource,
+                    indication = rememberRipple(),
+                    onClick = onClick
                 )
                 .padding(horizontal = PaddingRegular),
             value = value,
-            onValueChange = onValueChange,
+            onValueChange = {},
             singleLine = singleLine,
-            enabled = enabled,
-            textStyle = TypeM14.copy(
-                color = Secondary80
-            ),
+            enabled = false,
+            textStyle = TypeM14,
             cursorBrush = SolidColor(Secondary80),
             interactionSource = interactionSource,
             keyboardOptions = keyboardOptions,
@@ -129,18 +124,6 @@ fun BaseTextField(
                 }
             }
         )
-
-        if (isError) {
-            errorText?.let {
-                Text(
-                    text = it,
-                    style = TypeM14.copy(
-                        brush = Primary
-                    ),
-                    color = Secondary60
-                )
-            }
-        }
     }
 }
 

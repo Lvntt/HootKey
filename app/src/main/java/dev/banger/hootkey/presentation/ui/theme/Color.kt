@@ -28,6 +28,7 @@ val Secondary80 = Color(0xFF47495B)
 val Secondary60 = Color(0xFF757784)
 
 val White = Color(0xFFFFFFFF)
+val PeachGray = Color(0xFFF1EAF1)
 val Gray = Color(0xFFF0F4F7)
 val LightGray = Color(0xFFCCCFD4)
 val DarkGray = Color(0xFFD9D9D9)
@@ -51,4 +52,8 @@ val StrengthStrongBrush = Brush.linearGradient(
 )
 val StrengthVeryStrongBrush = Brush.linearGradient(
     listOf(Color(0xFF399A29), Color(0xFF65D123))
+)
+
+val DefaultBackgroundBrush = Brush.verticalGradient(
+    listOf(PeachGray, Gray)
 )

@@ -8,6 +8,8 @@ lifecycleRuntimeKtx = "2.8.1"
 activityCompose = "1.9.0"
 composeBom = "2024.05.00"
 composeNavigation = "2.8.0-beta02"
+reorderable = "0.9.6"
+reorderableVersion = "2.1.1"
 securityCrypto = "1.1.0-alpha06"
 serialization = "1.6.3"
 koin = "3.5.3"
@@ -32,6 +34,8 @@ kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serializa
 koin-android = { module = "io.insert-koin:koin-android", version.ref = "koin" }
 koin-androidx-compose = { module = "io.insert-koin:koin-androidx-compose", version.ref = "koin" }
 koin-core = { module = "io.insert-koin:koin-core", version.ref = "koin" }
+reorderable = { module = "org.burnoutcrew.composereorderable:reorderable", version.ref = "reorderable" }
+sh-reorderable = { module = "sh.calvin.reorderable:reorderable", version.ref = "reorderableVersion" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
