@@ -18,9 +18,6 @@ import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
@@ -36,13 +33,16 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
@@ -56,21 +56,17 @@ import dev.banger.hootkey.presentation.ui.common.ObserveAsEvents
 import dev.banger.hootkey.presentation.ui.common.buttons.PrimaryButton
 import dev.banger.hootkey.presentation.ui.common.buttons.TextFieldButton
 import dev.banger.hootkey.presentation.ui.common.reorderable.BaseReorderableTextField
-import dev.banger.hootkey.presentation.ui.common.reorderable.TemplateFieldsReorderableList
 import dev.banger.hootkey.presentation.ui.common.textfields.RegularTextField
 import dev.banger.hootkey.presentation.ui.common.topbar.HootKeyTopBar
 import dev.banger.hootkey.presentation.ui.dialog.EditTemplateFieldDialog
 import dev.banger.hootkey.presentation.ui.dialog.NewTemplateFieldDialog
 import dev.banger.hootkey.presentation.ui.theme.ButtonHeightRegular
-import dev.banger.hootkey.presentation.ui.theme.DarkGray
 import dev.banger.hootkey.presentation.ui.theme.DefaultBackgroundBrush
 import dev.banger.hootkey.presentation.ui.theme.MainDark
 import dev.banger.hootkey.presentation.ui.theme.PaddingLarge
 import dev.banger.hootkey.presentation.ui.theme.PaddingMedium
 import dev.banger.hootkey.presentation.ui.theme.PaddingRegular
-import dev.banger.hootkey.presentation.ui.theme.PaddingSmall
 import dev.banger.hootkey.presentation.ui.theme.PaddingTiny
-import dev.banger.hootkey.presentation.ui.theme.RoundedCornerShapeRegular
 import dev.banger.hootkey.presentation.ui.theme.Secondary
 import dev.banger.hootkey.presentation.ui.theme.Secondary60
 import dev.banger.hootkey.presentation.ui.theme.Secondary80
@@ -118,126 +114,116 @@ fun NewTemplateScreen(
     }
 
     if (state.isNewFieldDialogShown) {
-        NewTemplateFieldDialog(
-            onDismissRequest = {
-                viewModel.dispatch(NewTemplateIntent.DismissDialog)
-            },
-            onContinue = {
-                viewModel.dispatch(NewTemplateIntent.AddField(it))
-                viewModel.dispatch(NewTemplateIntent.DismissDialog)
-            }
-        )
+        NewTemplateFieldDialog(onDismissRequest = {
+            viewModel.dispatch(NewTemplateIntent.DismissDialog)
+        }, onContinue = {
+            viewModel.dispatch(NewTemplateIntent.AddField(it))
+            viewModel.dispatch(NewTemplateIntent.DismissDialog)
+        })
     }
 
     if (state.isEditFieldDialogShown) {
         state.fieldToEdit?.let { field ->
             val editFieldKey = "editField${field.name}${field.type}"
 
-            EditTemplateFieldDialog(
-                fieldKey = editFieldKey,
-                field = field,
-                onDismissRequest = {
-                    viewModel.dispatch(NewTemplateIntent.DismissDialog)
-                },
-                onContinue = {
-                    viewModel.dispatch(NewTemplateIntent.EditField(it))
-                    viewModel.dispatch(NewTemplateIntent.DismissDialog)
-                },
-                onDeleteField = {
-                    viewModel.dispatch(NewTemplateIntent.DeleteField(field))
-                    viewModel.dispatch(NewTemplateIntent.DismissDialog)
-                }
-            )
+            EditTemplateFieldDialog(fieldKey = editFieldKey, field = field, onDismissRequest = {
+                viewModel.dispatch(NewTemplateIntent.DismissDialog)
+            }, onContinue = {
+                viewModel.dispatch(NewTemplateIntent.EditField(it))
+                viewModel.dispatch(NewTemplateIntent.DismissDialog)
+            }, onDeleteField = {
+                viewModel.dispatch(NewTemplateIntent.DeleteField(field))
+                viewModel.dispatch(NewTemplateIntent.DismissDialog)
+            })
         }
     }
 
-    Scaffold(
-        modifier = modifier.noRippleClickable {
-            focusManager.clearFocus()
-        },
-        topBar = {
-            HootKeyTopBar(
-                onNavigateBack = onNavigateBack,
-                title = stringResource(id = R.string.create_new_template)
-            )
-        },
-        snackbarHost = {
-            SnackbarHost(
-                modifier = Modifier.systemBarsPadding(),
-                hostState = snackbarHostState
-            )
-        }
-    ) { contentPadding ->
-        Box(
+    Scaffold(modifier = modifier.noRippleClickable {
+        focusManager.clearFocus()
+    }, topBar = {
+        HootKeyTopBar(
+            onNavigateBack = onNavigateBack,
+            title = stringResource(id = R.string.create_new_template)
+        )
+    }, snackbarHost = {
+        SnackbarHost(
+            modifier = Modifier.systemBarsPadding(), hostState = snackbarHostState
+        )
+    }) { contentPadding ->
+        var templateCardHeight by remember { mutableFloatStateOf(0f) }
+        var minAllowedPosY by remember { mutableFloatStateOf(-Float.MAX_VALUE) }
+        var maxAllowedPosY by remember { mutableFloatStateOf(Float.MAX_VALUE) }
+        val px16dp = with(LocalDensity.current) { 16.dp.toPx() }
+        val px32dp = with(LocalDensity.current) { 32.dp.toPx() }
+
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .background(DefaultBackgroundBrush)
                 .padding(contentPadding)
+                .padding(horizontal = 20.dp)
+                .padding(top = 16.dp)
+                .drawBehind {
+                    drawRoundRect(
+                        color = White, topLeft = Offset(0f, 0f), size = Size(
+                            size.width,
+                            if (templateCardHeight > 0) templateCardHeight else Float.MAX_VALUE
+                        ), cornerRadius = CornerRadius(px16dp, px16dp)
+                    )
+                }, state = lazyListState
         ) {
-            LazyColumn(
-                modifier = Modifier
+            item {
+                Text(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(PaddingMedium),
+                    text = stringResource(id = R.string.template),
+                    style = TypeB16,
+                    color = MainDark
+                )
+            }
+
+            item {
+                RegularTextField(modifier = Modifier
+                    .onGloballyPositioned {
+                        minAllowedPosY = it.positionInParent().y + it.size.height - px32dp
+                    }
                     .padding(
-                        top = 16.dp,
-                        start = 20.dp,
-                        end = 20.dp
-                    )
-                    .background(White),
-                state = lazyListState
-            ) {
-                item {
-                    Text(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
-                            .background(White)
-                            .padding(PaddingMedium),
-                        text = stringResource(id = R.string.template),
-                        style = TypeB16,
-                        color = MainDark
-                    )
-                }
+                        start = PaddingMedium, end = PaddingMedium, bottom = PaddingMedium
+                    ), value = state.name, onValueChange = {
+                    viewModel.dispatch(NewTemplateIntent.NameChanged(it))
+                }, hint = stringResource(id = R.string.name)
+                )
+            }
 
-                item {
-                    RegularTextField(
-                        modifier = Modifier
-                            .background(White)
-                            .padding(
-                                start = PaddingMedium,
-                                end = PaddingMedium,
-                                bottom = PaddingMedium
-                            ),
-                        value = state.name,
-                        onValueChange = {
-                            viewModel.dispatch(NewTemplateIntent.NameChanged(it))
-                        },
-                        hint = stringResource(id = R.string.name)
-                    )
-                }
+            items(state.fields, key = { it.uuid }) { field ->
 
-                items(state.fields, key = { it.uuid }) { field ->
+                ReorderableItem(
+                    state = reorderableLazyListState, key = field.uuid
+                ) { isDragging ->
+                    val elevation = animateDpAsState(
+                        if (isDragging) 16.dp else 0.dp, label = "elevation_anim"
+                    )
                     var itemHeight by remember { mutableIntStateOf(0) }
                     var itemPosY by remember { mutableFloatStateOf(0f) }
+                    var offsetY by remember { mutableFloatStateOf(0f) }
 
-                    ReorderableItem(
-                        modifier = Modifier
-                            .background(White),
-                        state = reorderableLazyListState,
-                        key = field.uuid
-                    ) { isDragging ->
-                        val elevation =
-                            animateDpAsState(
-                                if (isDragging) 16.dp else 0.dp,
-                                label = "elevation_anim"
-                            )
+                    Box(modifier = Modifier.onGloballyPositioned {
+                        itemHeight = it.size.height
+                        itemPosY = it.parentLayoutCoordinates?.positionInParent()?.y ?: 0f
+                    }) {
 
                         Column(
-                            modifier = Modifier.padding(horizontal = PaddingMedium),
-//                            modifier = modifier.graphicsLayer {
-//                                translationY = if (itemPosY < 0f) -itemPosY
-//                                else if (itemPosY > fieldsHeight - itemHeight) -(itemPosY - (fieldsHeight - itemHeight))
-//                                else 0f
-//                            },
-                            verticalArrangement = Arrangement.spacedBy(PaddingTiny)
+                            modifier = Modifier
+                                .padding(horizontal = PaddingMedium)
+                                .graphicsLayer {
+                                    translationY = if (isDragging || offsetY != 0f) {
+                                        if (itemPosY < minAllowedPosY) minAllowedPosY - itemPosY
+                                        else if (itemPosY + itemHeight > maxAllowedPosY) maxAllowedPosY - (itemPosY + itemHeight)
+                                        else 0f
+                                    } else 0f
+                                    offsetY = translationY
+                                }, verticalArrangement = Arrangement.spacedBy(PaddingTiny)
                         ) {
                             Text(
                                 text = stringResource(id = R.string.field),
@@ -246,17 +232,14 @@ fun NewTemplateScreen(
                             )
 
                             Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .draggableHandle(),
+                                modifier = Modifier.fillMaxWidth(),
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(PaddingRegular)
                             ) {
-                                BaseReorderableTextField(
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .height(TextFieldHeightRegular)
-                                        .shadow(elevation.value),
+                                BaseReorderableTextField(modifier = Modifier
+                                    .weight(1f)
+                                    .height(TextFieldHeightRegular)
+                                    .shadow(elevation.value),
                                     value = field.name,
                                     leadingContent = if (field.type.icon != null) {
                                         {
@@ -269,11 +252,9 @@ fun NewTemplateScreen(
                                     } else null,
                                     trailingContent = {
                                         Icon(
-                                            modifier = Modifier.clickable(
-                                                interactionSource = remember { MutableInteractionSource() },
+                                            modifier = Modifier.clickable(interactionSource = remember { MutableInteractionSource() },
                                                 indication = rememberRipple(
-                                                    bounded = false,
-                                                    radius = 16.dp
+                                                    bounded = false, radius = 16.dp
                                                 ),
                                                 onClick = {
                                                     viewModel.dispatch(
@@ -281,16 +262,15 @@ fun NewTemplateScreen(
                                                             field
                                                         )
                                                     )
-                                                }
-                                            ),
+                                                }),
                                             imageVector = ImageVector.vectorResource(id = R.drawable.ic_edit),
                                             contentDescription = null,
                                             tint = Secondary80
                                         )
-                                    }
-                                )
+                                    })
 
                                 Icon(
+                                    modifier = Modifier.draggableHandle(),
                                     imageVector = ImageVector.vectorResource(id = R.drawable.ic_drag_indicator),
                                     contentDescription = null,
                                     tint = Secondary
@@ -300,114 +280,45 @@ fun NewTemplateScreen(
                         }
                     }
                 }
+            }
 
-                // TODO spacers for vertical spacing
-
-                item {
-                    TextFieldButton(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(bottomStart = 16.dp, bottomEnd = 16.dp))
-                            .background(White)
-                            .padding(
-                                start = PaddingMedium,
-                                end = PaddingMedium,
-                                bottom = PaddingMedium
-                            ),
-//                        .onGloballyPositioned {
-//                            lastButtonHeight = it.size.height
-//                        },
-                        value = stringResource(id = R.string.create_new_field),
-                        onClick = {
-                            viewModel.dispatch(NewTemplateIntent.ShowCreateFieldDialog)
-                            focusManager.clearFocus()
-                        },
-                        leadingContent = {
-                            Icon(
-                                imageVector = ImageVector.vectorResource(id = R.drawable.ic_circle),
-                                contentDescription = null,
-                                tint = Secondary80
-                            )
-                        },
-                        hint = stringResource(id = R.string.new_field)
+            item {
+                TextFieldButton(modifier = Modifier
+                    .onGloballyPositioned {
+                        templateCardHeight = it.positionInParent().y + it.size.height
+                        maxAllowedPosY = it.positionInParent().y + px32dp
+                    }
+                    .fillMaxWidth()
+                    .padding(
+                        start = PaddingMedium, end = PaddingMedium, bottom = PaddingMedium
+                    ), value = stringResource(id = R.string.create_new_field), onClick = {
+                    viewModel.dispatch(NewTemplateIntent.ShowCreateFieldDialog)
+                    focusManager.clearFocus()
+                }, leadingContent = {
+                    Icon(
+                        imageVector = ImageVector.vectorResource(id = R.drawable.ic_circle),
+                        contentDescription = null,
+                        tint = Secondary80
                     )
-                }
+                }, hint = stringResource(id = R.string.new_field)
+                )
+            }
 
-                item {
-                    Spacer(modifier = Modifier.height(PaddingLarge))
+            item {
+                Spacer(modifier = Modifier.height(PaddingLarge))
 
-                    PrimaryButton(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(Color(0xFFF0F1F5))
-                            .height(ButtonHeightRegular),
-                        onClick = {
-                            viewModel.dispatch(NewTemplateIntent.CreateTemplate)
-                        },
-                        text = stringResource(id = R.string.create_template),
-                        enabled = state.isCreationAllowed
-                    )
+                PrimaryButton(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(ButtonHeightRegular),
+                    onClick = {
+                        viewModel.dispatch(NewTemplateIntent.CreateTemplate)
+                    },
+                    text = stringResource(id = R.string.create_template),
+                    enabled = state.isCreationAllowed
+                )
 
-                    Spacer(modifier = Modifier.height(PaddingLarge))
-                }
-//            Box(
-//                modifier = Modifier
-//                    .padding(
-//                        top = 20.dp,
-//                        bottom = PaddingLarge
-//                    )
-//                    .clip(RoundedCornerShapeRegular)
-//                    .fillMaxWidth()
-//                    .background(White)
-//            ) {
-//                Column(
-//                    modifier = Modifier
-//                        .fillMaxWidth()
-//                        .background(White)
-//                        .padding(PaddingMedium),
-//                    verticalArrangement = Arrangement.spacedBy(PaddingMedium)
-//                ) {
-//                    Text(
-//                        modifier = Modifier.padding(bottom = PaddingSmall),
-//                        text = stringResource(id = R.string.template),
-//                        style = TypeB16,
-//                        color = MainDark
-//                    )
-//
-//                    RegularTextField(
-//                        value = state.name,
-//                        onValueChange = {
-//                            viewModel.dispatch(NewTemplateIntent.NameChanged(it))
-//                        },
-//                        hint = stringResource(id = R.string.name)
-//                    )
-//
-//                    TemplateFieldsReorderableList(
-//                        fields = state.fields,
-//                        onEditClick = {
-//                            viewModel.dispatch(NewTemplateIntent.ShowEditFieldDialog(it))
-//                        },
-//                        onMoveField = { from, to ->
-//                            viewModel.dispatch(NewTemplateIntent.MoveField(from.index, to.index))
-//                        },
-//                        onCreateFieldClick = {
-//                            viewModel.dispatch(NewTemplateIntent.ShowCreateFieldDialog)
-//                            focusManager.clearFocus()
-//                        }
-//                    )
-//                }
-//            }
-//
-//            PrimaryButton(
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .height(ButtonHeightRegular),
-//                onClick = {
-//                    viewModel.dispatch(NewTemplateIntent.CreateTemplate)
-//                },
-//                text = stringResource(id = R.string.create_template),
-//                enabled = state.isCreationAllowed
-//            )
+                Spacer(modifier = Modifier.height(PaddingLarge))
             }
         }
     }

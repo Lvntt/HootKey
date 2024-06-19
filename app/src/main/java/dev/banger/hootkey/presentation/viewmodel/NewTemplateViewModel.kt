@@ -10,7 +10,6 @@ import dev.banger.hootkey.presentation.state.new_template.NewTemplateEffect
 import dev.banger.hootkey.presentation.state.new_template.NewTemplateState
 import dev.banger.hootkey.presentation.ui.utils.toCreateTemplateRequest
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -96,16 +95,14 @@ class NewTemplateViewModel(
     }
 
     private fun moveField(fromIndex: Int, toIndex: Int) {
-        stateFlow.update {
-            val newList = it.fields
+            val newList = stateFlow.value.fields
                 .toMutableList()
                 .apply {
                     add(toIndex - 2, removeAt(fromIndex - 2))
                 }
-            it.copy(
+            stateFlow.value = stateFlow.value.copy(
                 fields = newList
             )
-        }
     }
 
     private fun deleteField(field: UiTemplateField) {
