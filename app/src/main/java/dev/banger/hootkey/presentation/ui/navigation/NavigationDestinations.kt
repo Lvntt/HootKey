@@ -1,26 +1,14 @@
 package dev.banger.hootkey.presentation.ui.navigation
 
-import kotlinx.serialization.Serializable
-
-sealed interface NavigationDestinations {
-
-    @Serializable
-    data object AccountLogin : NavigationDestinations
-
-    @Serializable
-    data object AccountRegistration : NavigationDestinations
-
-    @Serializable
-    data object Dashboard : NavigationDestinations
-
-    @Serializable
-    data object Login : NavigationDestinations
-
-    @Serializable
-    data object Launch : NavigationDestinations
-
+object NavigationDestinations {
+    const val ACCOUNT_LOGIN = "account_login"
+    const val ACCOUNT_REGISTRATION = "account_registration"
+    const val DASHBOARD = "dashboard"
+    const val LOGIN = "login"
+    const val LAUNCH = "launch"
+    const val NEW_CATEGORY = "new_category"
+    const val CATEGORY_ICONS = "category_icons"
+    const val TEMPLATES = "templates"
     //TODO FOR TESTING PURPOSES ONLY
-    @Serializable
-    data object PasswordGenerator : NavigationDestinations
-
+    const val PASSWORD_GENERATOR = "password_generator"
 }

@@ -78,6 +78,7 @@ dependencies {
     implementation(libs.androidx.security.crypto)
 
     implementation(libs.androidx.biometric)
+    implementation(libs.androidx.lifecycle.runtime.compose.android)
 
     debugImplementation(libs.androidx.ui.tooling)
 }
