@@ -45,4 +45,5 @@
     <string name="link">Link</string>
     <string name="date">Date</string>
     <string name="delete_field">Delete Field</string>
+    <string name="new_template_error">Error creating new template</string>
 </resources>

@@ -100,7 +100,7 @@ class NewTemplateViewModel(
             val newList = it.fields
                 .toMutableList()
                 .apply {
-                    add(toIndex, removeAt(fromIndex))
+                    add(toIndex - 2, removeAt(fromIndex - 2))
                 }
             it.copy(
                 fields = newList
