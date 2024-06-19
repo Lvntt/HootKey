@@ -95,15 +95,16 @@ fun DashboardScreen() {
             Spacer(modifier = Modifier.height(16.dp))
         }
         items(count = 5) {
-            VaultShortItem(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp),
+            VaultShortItem(modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp),
                 iconModel = { "https://www.google.com/s2/favicons?domain=netflix.com&sz=256" },
                 name = "Netflix",
                 login = "user@example.com",
-                onClick = {}
-            )
+                onClick = {},
+                onCopyClick = {},
+                onEditClick = {},
+                onDeleteClick = {})
             Spacer(modifier = Modifier.height(12.dp))
         }
     }
