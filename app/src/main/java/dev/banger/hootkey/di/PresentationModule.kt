@@ -1,19 +1,20 @@
 package dev.banger.hootkey.di
 
 import dev.banger.hootkey.Constants
-import org.koin.dsl.module
 import dev.banger.hootkey.presentation.viewmodel.AccountAuthViewModel
 import dev.banger.hootkey.presentation.viewmodel.AuthViewModel
 import dev.banger.hootkey.presentation.viewmodel.EditTemplateFieldViewModel
 import dev.banger.hootkey.presentation.viewmodel.LaunchViewModel
+import dev.banger.hootkey.presentation.viewmodel.NewCategoryViewModel
 import dev.banger.hootkey.presentation.viewmodel.NewTemplateFieldViewModel
 import dev.banger.hootkey.presentation.viewmodel.NewTemplateViewModel
 import dev.banger.hootkey.presentation.viewmodel.PasswordGeneratorViewModel
+import dev.banger.hootkey.presentation.viewmodel.TemplatesViewModel
 import kotlinx.coroutines.Dispatchers
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.androidx.viewmodel.dsl.viewModelOf
-import org.koin.core.module.dsl.scopedOf
 import org.koin.core.qualifier.named
+import org.koin.dsl.module
 
 fun providePresentationModule() = module {
     viewModel(named(Constants.REGISTER)) {
@@ -38,5 +39,13 @@ fun providePresentationModule() = module {
 
     viewModel { parameters ->
         EditTemplateFieldViewModel(field = parameters.get())
+    }
+
+    viewModel {
+        NewCategoryViewModel(get(), Dispatchers.IO)
+    }
+
+    viewModel {
+        TemplatesViewModel(get(), Dispatchers.IO)
     }
 }
