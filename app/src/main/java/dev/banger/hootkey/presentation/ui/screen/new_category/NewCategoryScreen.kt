@@ -74,6 +74,7 @@ fun NewCategoryScreen(
     onNavigateBack: () -> Unit,
     onNavigateToTemplates: () -> Unit,
     onNavigateToIcons: () -> Unit,
+    onSuccess: (String) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: NewCategoryViewModel = koinViewModel()
 ) {
@@ -88,7 +89,7 @@ fun NewCategoryScreen(
         when (it) {
             NewCategoryEffect.GoToTemplates -> onNavigateToTemplates()
             NewCategoryEffect.GoToIcons -> onNavigateToIcons()
-            NewCategoryEffect.HandleSuccess -> onNavigateBack()
+            is NewCategoryEffect.HandleSuccess -> onSuccess(it.categoryId)
             NewCategoryEffect.ShowError -> {
                 coroutineScope.launch {
                     snackbarHostState.showSnackbar(
@@ -277,6 +278,6 @@ fun NewCategoryScreen(
 @Composable
 private fun NewCategoryScreenPreview() {
     NewCategoryScreen(
-        { null }, {}, {}, {}
+        { null }, {}, {}, {}, {}
     )
 }

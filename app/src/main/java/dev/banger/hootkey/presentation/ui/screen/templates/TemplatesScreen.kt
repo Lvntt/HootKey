@@ -37,6 +37,7 @@ import dev.banger.hootkey.R
 import dev.banger.hootkey.presentation.entity.UiTemplateShort
 import dev.banger.hootkey.presentation.intent.TemplatesIntent
 import dev.banger.hootkey.presentation.state.templates.TemplatesEffect
+import dev.banger.hootkey.presentation.ui.common.LoadingContent
 import dev.banger.hootkey.presentation.ui.common.ObserveAsEvents
 import dev.banger.hootkey.presentation.ui.common.topbar.HootKeyTopBar
 import dev.banger.hootkey.presentation.ui.theme.DefaultBackgroundBrush
@@ -105,7 +106,7 @@ fun TemplatesScreen(
         }
     ) { contentPadding ->
         if (state.isLoading) {
-            TemplatesLoading()
+            LoadingContent()
         } else {
             TemplatesContent(
                 modifier = modifier
@@ -119,18 +120,6 @@ fun TemplatesScreen(
             )
         }
 
-    }
-}
-
-@Composable
-private fun TemplatesLoading() {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        CircularProgressIndicator(
-            modifier = Modifier.gradientTint(Primary)
-        )
     }
 }
 

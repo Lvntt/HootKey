@@ -16,6 +16,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import dev.banger.hootkey.Constants.CATEGORY_ICON_KEY
+import dev.banger.hootkey.Constants.CREATED_CATEGORY_ID_KEY
 import dev.banger.hootkey.Constants.CREATED_TEMPLATE_ID_KEY
 import dev.banger.hootkey.Constants.TEMPLATE_KEY
 import dev.banger.hootkey.domain.entity.category.CategoryIcon
@@ -30,10 +31,12 @@ import dev.banger.hootkey.domain.repository.VaultRepository
 import dev.banger.hootkey.presentation.ui.screen.TestScreen
 import dev.banger.hootkey.presentation.ui.screen.auth.AccountAuthScreen
 import dev.banger.hootkey.presentation.ui.screen.auth.AuthScreen
+import dev.banger.hootkey.presentation.ui.screen.categories.CategoriesScreen
 import dev.banger.hootkey.presentation.ui.screen.launch.LaunchScreen
 import dev.banger.hootkey.presentation.ui.screen.new_category.CategoryIconsScreen
 import dev.banger.hootkey.presentation.ui.screen.new_category.NewCategoryScreen
 import dev.banger.hootkey.presentation.ui.screen.new_template.NewTemplateScreen
+import dev.banger.hootkey.presentation.ui.screen.new_vault.NewVaultScreen
 import dev.banger.hootkey.presentation.ui.screen.templates.TemplatesScreen
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -158,14 +161,28 @@ fun AppNavigation(navHostController: NavHostController) {
 
                 Button(
                     onClick = {
-                        navHostController.navigate(NavigationDestinations.NEW_CATEGORY)
+                        navHostController.navigate(NavigationDestinations.NEW_VAULT)
                     }
                 ) {
-                    Text("New category")
+                    Text("New vault")
                 }
             }
             //-------------------------
         }
+        composable(NavigationDestinations.NEW_VAULT) {
+            NewVaultScreen(
+                savedStateHandleProvider = {
+                    navHostController.currentBackStackEntry?.savedStateHandle
+                },
+                onNavigateBack = {
+                    navHostController.popBackStack()
+                },
+                onNavigateToCategories = {
+                    navHostController.navigate(NavigationDestinations.CATEGORIES)
+                }
+            )
+        }
+
         composable(NavigationDestinations.NEW_TEMPLATE) {
             NewTemplateScreen(
                 onSuccess = {
@@ -193,6 +210,12 @@ fun AppNavigation(navHostController: NavHostController) {
                 },
                 onNavigateToIcons = {
                     navHostController.navigate(NavigationDestinations.CATEGORY_ICONS)
+                },
+                onSuccess = {
+                    navHostController.popBackStack()
+                    navHostController.currentBackStackEntry
+                        ?.savedStateHandle
+                        ?.set(CREATED_CATEGORY_ID_KEY, it)
                 }
             )
         }
@@ -210,6 +233,27 @@ fun AppNavigation(navHostController: NavHostController) {
                 }
             )
         }
+
+        composable(NavigationDestinations.CATEGORIES) {
+            CategoriesScreen(
+                savedStateHandleProvider = {
+                    navHostController.currentBackStackEntry?.savedStateHandle
+                },
+                onNavigateBack = {
+                    navHostController.popBackStack()
+                },
+                onCreateCategoryClick = {
+                    navHostController.navigate(NavigationDestinations.NEW_CATEGORY)
+                },
+                onChooseCategory = {
+                    navHostController.popBackStack()
+                    navHostController.currentBackStackEntry
+                        ?.savedStateHandle
+                        ?.set(CREATED_CATEGORY_ID_KEY, it.id)
+                }
+            )
+        }
+
         composable(NavigationDestinations.TEMPLATES) {
             TemplatesScreen(
                 savedStateHandleProvider = {

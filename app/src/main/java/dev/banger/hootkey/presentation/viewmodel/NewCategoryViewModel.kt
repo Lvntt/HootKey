@@ -77,9 +77,9 @@ class NewCategoryViewModel(
                     state.value.toCreateCategoryRequest()
                 )
             }.fold(
-                onSuccess = {
+                onSuccess = { category ->
                     stateFlow.update { it.copy(isLoading = false) }
-                    effectsFlow.tryEmit(NewCategoryEffect.HandleSuccess)
+                    effectsFlow.tryEmit(NewCategoryEffect.HandleSuccess(category.id))
                 },
                 onFailure = { throwable ->
                     Log.e(TAG, throwable.stackTraceToString())
