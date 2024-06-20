@@ -15,6 +15,8 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import dev.banger.hootkey.Constants.CATEGORY_ICON_KEY
+import dev.banger.hootkey.Constants.TEMPLATE_KEY
 import dev.banger.hootkey.domain.entity.category.CategoryIcon
 import dev.banger.hootkey.domain.entity.category.CreateCategoryRequest
 import dev.banger.hootkey.domain.entity.template.CreateTemplateRequest
@@ -28,6 +30,10 @@ import dev.banger.hootkey.presentation.ui.screen.TestScreen
 import dev.banger.hootkey.presentation.ui.screen.auth.AccountAuthScreen
 import dev.banger.hootkey.presentation.ui.screen.auth.AuthScreen
 import dev.banger.hootkey.presentation.ui.screen.launch.LaunchScreen
+import dev.banger.hootkey.presentation.ui.screen.new_category.CategoryIconsScreen
+import dev.banger.hootkey.presentation.ui.screen.new_category.NewCategoryScreen
+import dev.banger.hootkey.presentation.ui.screen.new_template.NewTemplateScreen
+import dev.banger.hootkey.presentation.ui.screen.templates.TemplatesScreen
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -35,34 +41,37 @@ import org.koin.compose.koinInject
 
 @Composable
 fun AppNavigation(navHostController: NavHostController) {
-    NavHost(navHostController, NavigationDestinations.Launch) {
-        composable<NavigationDestinations.Launch> {
+    NavHost(
+        navController = navHostController,
+        startDestination = NavigationDestinations.LAUNCH
+    ) {
+        composable(NavigationDestinations.LAUNCH) {
             LaunchScreen(onNavigateToAccountLogin = {
-                navHostController.navigate(NavigationDestinations.AccountLogin)
+                navHostController.navigate(NavigationDestinations.ACCOUNT_LOGIN)
             }, onNavigateToLogin = {
-                navHostController.navigate(NavigationDestinations.Login)
+                navHostController.navigate(NavigationDestinations.LOGIN)
             })
         }
-        composable<NavigationDestinations.AccountLogin> {
+        composable(NavigationDestinations.ACCOUNT_LOGIN) {
             AccountAuthScreen(isLogin = true, onNavigateFromBottomHint = {
-                navHostController.navigate(NavigationDestinations.AccountRegistration)
+                navHostController.navigate(NavigationDestinations.ACCOUNT_REGISTRATION)
             }, onSuccess = {
-                navHostController.navigate(NavigationDestinations.Dashboard)
+                navHostController.navigate(NavigationDestinations.DASHBOARD)
             })
         }
-        composable<NavigationDestinations.AccountRegistration> {
+        composable(NavigationDestinations.ACCOUNT_REGISTRATION) {
             AccountAuthScreen(isLogin = false, onNavigateFromBottomHint = {
-                navHostController.navigate(NavigationDestinations.AccountLogin)
+                navHostController.navigate(NavigationDestinations.ACCOUNT_LOGIN)
             }, onSuccess = {
-                navHostController.navigate(NavigationDestinations.Dashboard)
+                navHostController.navigate(NavigationDestinations.DASHBOARD)
             })
         }
-        composable<NavigationDestinations.Login> {
+        composable(NavigationDestinations.LOGIN) {
             AuthScreen(onSuccess = {
-                navHostController.navigate(NavigationDestinations.Dashboard)
+                navHostController.navigate(NavigationDestinations.DASHBOARD)
             })
         }
-        composable<NavigationDestinations.Dashboard> {
+        composable(NavigationDestinations.DASHBOARD) {
             //TODO FOR TESTING PURPOSES ONLY
             val templateRepo = koinInject<TemplateRepository>()
             val categoryRepo = koinInject<CategoryRepository>()
@@ -74,7 +83,7 @@ fun AppNavigation(navHostController: NavHostController) {
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())) {
                 Button(onClick = {
-                    navHostController.navigate(NavigationDestinations.PasswordGenerator)
+                    navHostController.navigate(NavigationDestinations.PASSWORD_GENERATOR)
                 }) {
                     Text("Password generator")
                 }
@@ -145,11 +154,73 @@ fun AppNavigation(navHostController: NavHostController) {
                 }
 
                 Text(vaultText)
+
+                Button(
+                    onClick = {
+                        navHostController.navigate(NavigationDestinations.NEW_CATEGORY)
+                    }
+                ) {
+                    Text("New category")
+                }
             }
             //-------------------------
         }
+        composable(NavigationDestinations.NEW_TEMPLATE) {
+            NewTemplateScreen(
+                onNavigateBack = {
+                    navHostController.popBackStack()
+                }
+            )
+        }
+
+        composable(NavigationDestinations.NEW_CATEGORY) {
+            NewCategoryScreen(
+                savedStateHandleProvider = {
+                    navHostController.currentBackStackEntry?.savedStateHandle
+                },
+                onNavigateBack = {
+                    navHostController.popBackStack()
+                },
+                onNavigateToTemplates = {
+                    navHostController.navigate(NavigationDestinations.TEMPLATES)
+                },
+                onNavigateToIcons = {
+                    navHostController.navigate(NavigationDestinations.CATEGORY_ICONS)
+                }
+            )
+        }
+
+        composable(NavigationDestinations.CATEGORY_ICONS) {
+            CategoryIconsScreen(
+                onNavigateBack = {
+                    navHostController.popBackStack()
+                },
+                onChooseIcon = {
+                    navHostController.popBackStack()
+                    navHostController.currentBackStackEntry
+                        ?.savedStateHandle
+                        ?.set(CATEGORY_ICON_KEY, it.name)
+                }
+            )
+        }
+        composable(NavigationDestinations.TEMPLATES) {
+            TemplatesScreen(
+                onNavigateBack = {
+                    navHostController.popBackStack()
+                },
+                onChooseTemplate = {
+                    navHostController.popBackStack()
+                    navHostController.currentBackStackEntry
+                        ?.savedStateHandle
+                        ?.set(TEMPLATE_KEY, it)
+                },
+                onCreateTemplateClick = {
+                    navHostController.navigate(NavigationDestinations.NEW_TEMPLATE)
+                }
+            )
+        }
         //TODO FOR TESTING PURPOSES ONLY
-        composable<NavigationDestinations.PasswordGenerator> {
+        composable(NavigationDestinations.PASSWORD_GENERATOR) {
             TestScreen()
         }
         //-------------------------

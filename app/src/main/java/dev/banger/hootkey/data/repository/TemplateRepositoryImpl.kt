@@ -5,7 +5,6 @@ import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.toObject
-import dev.banger.hootkey.data.Constants.COMMON
 import dev.banger.hootkey.data.Constants.EMPTY_STRING
 import dev.banger.hootkey.data.crypto.CryptoManager
 import dev.banger.hootkey.data.model.FieldModel
@@ -26,23 +25,6 @@ class TemplateRepositoryImpl(
     private val crypto: CryptoManager
 ) : TemplateRepository {
 
-    private companion object {
-        const val TEMPLATES = "templates"
-        const val FIELDS = "fields"
-    }
-
-    private fun templateCollection(userId: String) =
-        fireStore.collection(userId).document(TEMPLATES).collection(TEMPLATES)
-
-    private fun commonTemplateCollection() =
-        fireStore.collection(COMMON).document(TEMPLATES).collection(TEMPLATES)
-
-    private fun templateFieldCollection(userId: String, templateId: String) =
-        templateCollection(userId).document(templateId).collection(FIELDS)
-
-    private fun commonTemplateFieldCollection(templateId: String) =
-        commonTemplateCollection().document(templateId).collection(FIELDS)
-
     private suspend inline fun CollectionReference.getTemplates(
         customCollection: Boolean, getTemplateFieldsById: (String) -> CollectionReference
     ): List<Template> = this.get().await().map { template ->
@@ -53,14 +35,13 @@ class TemplateRepositoryImpl(
 
     private suspend inline fun DocumentSnapshot.toTemplate(
         isCustom: Boolean, getTemplateFields: () -> CollectionReference
-    ): Template = Template(
-        id = id,
-        name = toObject<TemplateModel>()?.name?.decryptIfCustom(isCustom) ?: EMPTY_STRING,
+    ): Template = Template(id = id,
+        name = toObject<TemplateModel>()?.name?.decryptWhen(crypto) { isCustom } ?: EMPTY_STRING,
         fields = getTemplateFields().get().await().map { field ->
             val fieldObject = field.toObject<FieldModel>()
             TemplateField(
                 index = field.id.toInt(),
-                name = fieldObject.name.decryptIfCustom(isCustom),
+                name = fieldObject.name.decryptWhen(crypto) { isCustom },
                 type = FieldType.entries[fieldObject.type]
             )
         },
@@ -73,42 +54,38 @@ class TemplateRepositoryImpl(
         template.toTemplateShort(isCustom = customCollection)
     }
 
-    private fun DocumentSnapshot.toTemplateShort(isCustom: Boolean): TemplateShort =
-        TemplateShort(
-            id = id,
-            name = toObject<TemplateModel>()?.name?.decryptIfCustom(isCustom) ?: EMPTY_STRING,
-            isCustom = isCustom
-        )
+    private fun DocumentSnapshot.toTemplateShort(isCustom: Boolean): TemplateShort = TemplateShort(
+        id = id,
+        name = toObject<TemplateModel>()?.name?.decryptWhen(crypto) { isCustom } ?: EMPTY_STRING,
+        isCustom = isCustom)
 
     override suspend fun templateExists(id: String): Boolean {
         val userId = auth.currentUser?.uid ?: throw UnauthorizedException()
-        return templateCollection(userId).document(id).get().await()
-            .exists() || commonTemplateCollection().document(id).get().await().exists()
+        return fireStore.templateCollection(userId).document(id).get().await()
+            .exists() || fireStore.commonTemplateCollection().document(id).get().await().exists()
     }
 
     override suspend fun getById(id: String): Template? {
         val userId = auth.currentUser?.uid ?: throw UnauthorizedException()
 
-        val customTemplate = templateCollection(userId).document(id).get().await()
+        val customTemplate = fireStore.templateCollection(userId).document(id).get().await()
         if (customTemplate.exists()) return customTemplate.toTemplate(isCustom = true,
-            getTemplateFields = {
-                templateFieldCollection(userId, id)
-            })
-        val commonTemplate = commonTemplateCollection().document(id).get().await()
+            getTemplateFields = { fireStore.templateFieldCollection(userId, id) })
+
+        val commonTemplate = fireStore.commonTemplateCollection().document(id).get().await()
         if (commonTemplate.exists()) return commonTemplate.toTemplate(isCustom = false,
-            getTemplateFields = {
-                commonTemplateFieldCollection(id)
-            })
+            getTemplateFields = { fireStore.commonTemplateFieldCollection(id) })
+
         return null
     }
 
     override suspend fun getAllFull(): List<Template> {
         val userId = auth.currentUser?.uid ?: throw UnauthorizedException()
 
-        val userTemplates = templateCollection(userId).getTemplates(customCollection = true,
-            getTemplateFieldsById = { templateId -> templateFieldCollection(userId, templateId) })
-        val commonTemplates = commonTemplateCollection().getTemplates(customCollection = false,
-            getTemplateFieldsById = { templateId -> commonTemplateFieldCollection(templateId) })
+        val userTemplates = fireStore.templateCollection(userId).getTemplates(customCollection = true,
+            getTemplateFieldsById = { templateId -> fireStore.templateFieldCollection(userId, templateId) })
+        val commonTemplates = fireStore.commonTemplateCollection().getTemplates(customCollection = false,
+            getTemplateFieldsById = { templateId -> fireStore.commonTemplateFieldCollection(templateId) })
 
         return userTemplates + commonTemplates
     }
@@ -116,8 +93,8 @@ class TemplateRepositoryImpl(
     override suspend fun getAllShort(): List<TemplateShort> {
         val userId = auth.currentUser?.uid ?: throw UnauthorizedException()
 
-        return templateCollection(userId).getShortTemplates(customCollection = true) +
-                commonTemplateCollection().getShortTemplates(customCollection = false)
+        return fireStore.templateCollection(userId).getShortTemplates(customCollection = true) +
+                fireStore.commonTemplateCollection().getShortTemplates(customCollection = false)
     }
 
     override suspend fun create(template: CreateTemplateRequest): Template {
@@ -128,9 +105,9 @@ class TemplateRepositoryImpl(
             val templateModel = TemplateModel(
                 crypto.encryptBase64(template.name)
             )
-            templateId = templateCollection(userId).add(templateModel).await().id
+            templateId = fireStore.templateCollection(userId).add(templateModel).await().id
 
-            val fieldCollection = templateFieldCollection(userId, templateId)
+            val fieldCollection = fireStore.templateFieldCollection(userId, templateId)
             template.fields.forEach { field ->
                 fieldCollection.document("${field.index}").set(
                     FieldModel(
@@ -144,7 +121,7 @@ class TemplateRepositoryImpl(
             )
         }.onFailure {
             //Try to roll back the changes before throwing an exception
-            if (templateId.isNotBlank()) templateCollection(userId).document(templateId).delete()
+            if (templateId.isNotBlank()) fireStore.templateCollection(userId).document(templateId).delete()
                 .await()
             throw TemplateCreationException("Failed to create template : ${it.stackTraceToString()}")
         }.getOrThrow()
@@ -152,10 +129,25 @@ class TemplateRepositoryImpl(
 
     override suspend fun delete(id: String) {
         val userId = auth.currentUser?.uid ?: throw UnauthorizedException()
-        templateCollection(userId).document(id).delete().await()
-    }
 
-    private fun String.decryptIfCustom(isCustom: Boolean) =
-        if (isCustom) crypto.decryptBase64(this) else this
+        val categoryRefs = getCategoryRefs(fireStore, id, userId)
+        val vaultRefs =
+            categoryRefs.flatMap { categoryRef -> getVaultRefs(fireStore, categoryRef.id, userId) }
+        val fieldRefs = getFieldRefs(vaultRefs)
+
+        //TODO add specific exception when internet is unavailable
+        fireStore.runTransaction { transaction ->
+            transaction.delete(fireStore.templateCollection(userId).document(id))
+            categoryRefs.forEach { categoryRef ->
+                transaction.delete(categoryRef)
+            }
+            vaultRefs.forEach { vaultRef ->
+                transaction.delete(vaultRef)
+            }
+            fieldRefs.forEach { fieldRef ->
+                transaction.delete(fieldRef)
+            }
+        }.await()
+    }
 
 }

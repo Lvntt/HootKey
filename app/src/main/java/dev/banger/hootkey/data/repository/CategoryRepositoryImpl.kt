@@ -6,8 +6,6 @@ import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.toObject
-import dev.banger.hootkey.data.Constants.COMMON
-import dev.banger.hootkey.data.Constants.VAULTS
 import dev.banger.hootkey.data.crypto.CryptoManager
 import dev.banger.hootkey.data.model.CategoryModel
 import dev.banger.hootkey.domain.entity.auth.exception.UnauthorizedException
@@ -17,6 +15,7 @@ import dev.banger.hootkey.domain.entity.category.CategoryIcon
 import dev.banger.hootkey.domain.entity.category.CategoryShort
 import dev.banger.hootkey.domain.entity.category.CreateCategoryRequest
 import dev.banger.hootkey.domain.entity.category.EditCategoryRequest
+import dev.banger.hootkey.domain.entity.template.FieldType
 import dev.banger.hootkey.domain.entity.template.TemplateDoesNotExistException
 import dev.banger.hootkey.domain.repository.CategoryRepository
 import dev.banger.hootkey.domain.repository.TemplateRepository
@@ -24,25 +23,15 @@ import kotlinx.coroutines.tasks.await
 
 class CategoryRepositoryImpl(
     private val auth: FirebaseAuth,
-    private val firestore: FirebaseFirestore,
+    private val fireStore: FirebaseFirestore,
     private val templateRepository: TemplateRepository,
     private val crypto: CryptoManager
 ) : CategoryRepository {
 
-    private companion object {
-        const val CATEGORIES = "categories"
-    }
-
-    private fun categoryCollection(userId: String) =
-        firestore.collection(userId).document(CATEGORIES).collection(CATEGORIES)
-
-    private fun commonCategoryCollection() =
-        firestore.collection(COMMON).document(CATEGORIES).collection(CATEGORIES)
-
     private suspend fun getVaultCountInCategory(categoryId: String): Int {
         val userId = auth.currentUser?.uid ?: throw UnauthorizedException()
 
-        return firestore.collection(userId).document(VAULTS).collection(VAULTS)
+        return fireStore.vaultCollection(userId)
             .whereEqualTo("categoryId", categoryId).count().get(
                 AggregateSource.SERVER
             ).await().count.toInt()
@@ -53,7 +42,7 @@ class CategoryRepositoryImpl(
             ?: throw CategoryDoesNotExistException("Category with id $id does not exist")
         return Category(
             id = id,
-            name = categoryModel.name.decryptIfCustom(isCustom),
+            name = categoryModel.name.decryptWhen(crypto) { isCustom },
             icon = CategoryIcon.entries[categoryModel.icon],
             template = templateRepository.getById(categoryModel.templateId)!!,
             vaultsAmount = getVaultCountInCategory(id),
@@ -74,7 +63,7 @@ class CategoryRepositoryImpl(
         val categoryModel = category.toObject<CategoryModel>()
         CategoryShort(
             id = id,
-            name = categoryModel.name.decryptIfCustom(customCollection),
+            name = categoryModel.name.decryptWhen(crypto) { customCollection },
             icon = CategoryIcon.entries[categoryModel.icon],
             templateId = categoryModel.templateId,
             vaultsAmount = getVaultCountInCategory(id),
@@ -85,41 +74,51 @@ class CategoryRepositoryImpl(
     override suspend fun getAllFull(): List<Category> {
         val userId = auth.currentUser?.uid ?: throw UnauthorizedException()
 
-        return categoryCollection(userId).getCategories(customCollection = true) + commonCategoryCollection().getCategories(
-            customCollection = false
-        )
+        return (fireStore.categoryCollection(userId)
+            .getCategories(customCollection = true) + fireStore.commonCategoryCollection()
+            .getCategories(
+                customCollection = false
+            )).sortedByDescending { category -> category.vaultsAmount }
     }
 
     override suspend fun getAllShort(): List<CategoryShort> {
         val userId = auth.currentUser?.uid ?: throw UnauthorizedException()
 
-        return categoryCollection(userId).getCategoriesShort(customCollection = true) + commonCategoryCollection().getCategoriesShort(
-            customCollection = false
-        )
+        return (fireStore.categoryCollection(userId)
+            .getCategoriesShort(customCollection = true) + fireStore.commonCategoryCollection()
+            .getCategoriesShort(
+                customCollection = false
+            )).sortedByDescending { category -> category.vaultsAmount }
     }
 
     override suspend fun getById(id: String): Category? {
         val userId = auth.currentUser?.uid ?: throw UnauthorizedException()
 
-        val customCategory = categoryCollection(userId).document(id).get().await()
+        val customCategory = fireStore.categoryCollection(userId).document(id).get().await()
         if (customCategory.exists()) return customCategory.toCategory(isCustom = true)
-        val commonCategory = commonCategoryCollection().document(id).get().await()
+        val commonCategory = fireStore.commonCategoryCollection().document(id).get().await()
         if (commonCategory.exists()) return commonCategory.toCategory(isCustom = false)
         return null
     }
 
     override suspend fun create(category: CreateCategoryRequest): Category {
         val userId = auth.currentUser?.uid ?: throw UnauthorizedException()
-        if (!templateRepository.templateExists(category.templateId)) throw TemplateDoesNotExistException(
-            "Template with id ${category.templateId} does not exist"
-        )
+        if (!templateRepository.templateExists(category.templateId))
+            throw TemplateDoesNotExistException("Template with id ${category.templateId} does not exist")
+        val template = templateRepository.getById(category.templateId)!!
+        val loginIndex =
+            template.fields.firstOrNull { field -> field.type == FieldType.LOGIN }?.index ?: -1
+        val linkIndex =
+            template.fields.firstOrNull { field -> field.type == FieldType.LINK }?.index ?: -1
 
         val categoryModel = CategoryModel(
             name = crypto.encryptBase64(category.name),
             icon = category.icon.ordinal,
-            templateId = category.templateId
+            templateId = category.templateId,
+            loginIndex = loginIndex,
+            linkIndex = linkIndex
         )
-        val categoryId = categoryCollection(userId).add(categoryModel).await().id
+        val categoryId = fireStore.categoryCollection(userId).add(categoryModel).await().id
 
         return Category(
             id = categoryId,
@@ -133,15 +132,13 @@ class CategoryRepositoryImpl(
 
     override suspend fun edit(category: EditCategoryRequest): Category {
         val userId = auth.currentUser?.uid ?: throw UnauthorizedException()
-        val document = categoryCollection(userId).document(category.id).get().await()
+        val document = fireStore.categoryCollection(userId).document(category.id).get().await()
         if (!document.exists()) throw CategoryDoesNotExistException("Category with id ${category.id} does not exist")
         val templateId = document.toObject<CategoryModel>()?.templateId
             ?: throw CategoryDoesNotExistException("Category with id ${category.id} does not exist")
 
-        categoryCollection(userId).document(category.id).update(
-            mapOf(
-                "name" to crypto.encryptBase64(category.name), "icon" to category.icon.ordinal
-            )
+        fireStore.categoryCollection(userId).document(category.id).update(
+            mapOf("name" to crypto.encryptBase64(category.name), "icon" to category.icon.ordinal)
         ).await()
 
         return Category(
@@ -156,10 +153,20 @@ class CategoryRepositoryImpl(
 
     override suspend fun delete(id: String) {
         val userId = auth.currentUser?.uid ?: throw UnauthorizedException()
-        categoryCollection(userId).document(id).delete().await()
-    }
 
-    private fun String.decryptIfCustom(isCustom: Boolean) =
-        if (isCustom) crypto.decryptBase64(this) else this
+        val vaultRefs = getVaultRefs(fireStore, id, userId)
+        val fieldRefs = getFieldRefs(vaultRefs)
+
+        //TODO add specific exception when internet is unavailable
+        fireStore.runTransaction { transaction ->
+            transaction.delete(fireStore.categoryCollection(userId).document(id))
+            vaultRefs.forEach { vaultRef ->
+                transaction.delete(vaultRef)
+            }
+            fieldRefs.forEach { fieldRef ->
+                transaction.delete(fieldRef)
+            }
+        }.await()
+    }
 
 }
