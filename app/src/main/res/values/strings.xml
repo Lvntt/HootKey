@@ -50,6 +50,8 @@
     <string name="date">Date</string>
     <string name="delete_field">Delete Field</string>
     <string name="new_template_error">Error creating new template</string>
+    <string name="new_category_error">Error creating new category</string>
+    <string name="fetching_templates_error">Error fetching templates</string>
     <string name="invalid_email">Valid email is required</string>
     <string name="password_length_error">Password must be at least 6 characters long</string>
     <string name="view">View</string>

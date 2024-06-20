@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
@@ -19,10 +20,13 @@ import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -61,6 +65,7 @@ import dev.banger.hootkey.presentation.ui.theme.White
 import dev.banger.hootkey.presentation.ui.utils.gradientTint
 import dev.banger.hootkey.presentation.ui.utils.noRippleClickable
 import dev.banger.hootkey.presentation.viewmodel.NewCategoryViewModel
+import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -74,6 +79,9 @@ fun NewCategoryScreen(
 ) {
     val focusManager = LocalFocusManager.current
     val savedStateHandle = savedStateHandleProvider()
+    val coroutineScope = rememberCoroutineScope()
+    val snackbarText = stringResource(id = R.string.new_category_error)
+    val snackbarHostState = remember { SnackbarHostState() }
 
     val state by viewModel.state.collectAsStateWithLifecycle()
     ObserveAsEvents(viewModel.effects) {
@@ -81,7 +89,13 @@ fun NewCategoryScreen(
             NewCategoryEffect.GoToTemplates -> onNavigateToTemplates()
             NewCategoryEffect.GoToIcons -> onNavigateToIcons()
             NewCategoryEffect.HandleSuccess -> onNavigateBack()
-            NewCategoryEffect.ShowError -> TODO()
+            NewCategoryEffect.ShowError -> {
+                coroutineScope.launch {
+                    snackbarHostState.showSnackbar(
+                        message = snackbarText
+                    )
+                }
+            }
         }
     }
 
@@ -114,6 +128,12 @@ fun NewCategoryScreen(
             HootKeyTopBar(
                 onNavigateBack = onNavigateBack,
                 title = stringResource(id = R.string.create_new_category)
+            )
+        },
+        snackbarHost = {
+            SnackbarHost(
+                modifier = Modifier.systemBarsPadding(),
+                hostState = snackbarHostState
             )
         }
     ) { contentPadding ->

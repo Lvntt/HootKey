@@ -10,14 +10,19 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -42,6 +47,7 @@ import dev.banger.hootkey.presentation.ui.theme.White
 import dev.banger.hootkey.presentation.ui.utils.gradientTint
 import dev.banger.hootkey.presentation.ui.utils.noRippleClickable
 import dev.banger.hootkey.presentation.viewmodel.TemplatesViewModel
+import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -52,10 +58,20 @@ fun TemplatesScreen(
     modifier: Modifier = Modifier,
     viewModel: TemplatesViewModel = koinViewModel()
 ) {
+    val coroutineScope = rememberCoroutineScope()
+    val snackbarText = stringResource(id = R.string.fetching_templates_error)
+    val snackbarHostState = remember { SnackbarHostState() }
+
     val state by viewModel.state.collectAsStateWithLifecycle()
     ObserveAsEvents(viewModel.effects) {
         when (it) {
-            TemplatesEffect.ShowError -> TODO()
+            TemplatesEffect.ShowError -> {
+                coroutineScope.launch {
+                    snackbarHostState.showSnackbar(
+                        message = snackbarText
+                    )
+                }
+            }
         }
     }
 
@@ -64,6 +80,12 @@ fun TemplatesScreen(
             HootKeyTopBar(
                 onNavigateBack = onNavigateBack,
                 title = stringResource(id = R.string.select_template)
+            )
+        },
+        snackbarHost = {
+            SnackbarHost(
+                modifier = Modifier.systemBarsPadding(),
+                hostState = snackbarHostState
             )
         }
     ) { contentPadding ->
