@@ -1,4 +1,4 @@
-package dev.banger.hootkey.presentation.ui.screen.templates
+package dev.banger.hootkey.presentation.ui.screen.categories
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -11,9 +11,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -32,16 +32,17 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import dev.banger.hootkey.Constants.CREATED_TEMPLATE_ID_KEY
+import dev.banger.hootkey.Constants.CREATED_CATEGORY_ID_KEY
 import dev.banger.hootkey.R
-import dev.banger.hootkey.presentation.entity.UiTemplateShort
-import dev.banger.hootkey.presentation.intent.TemplatesIntent
-import dev.banger.hootkey.presentation.state.templates.TemplatesEffect
+import dev.banger.hootkey.presentation.entity.UiCategoryShort
+import dev.banger.hootkey.presentation.intent.CategoriesIntent
+import dev.banger.hootkey.presentation.state.categories.CategoriesEffect
 import dev.banger.hootkey.presentation.ui.common.LoadingContent
 import dev.banger.hootkey.presentation.ui.common.ObserveAsEvents
 import dev.banger.hootkey.presentation.ui.common.topbar.HootKeyTopBar
 import dev.banger.hootkey.presentation.ui.theme.DefaultBackgroundBrush
 import dev.banger.hootkey.presentation.ui.theme.PaddingMedium
+import dev.banger.hootkey.presentation.ui.theme.PaddingRegular
 import dev.banger.hootkey.presentation.ui.theme.PaddingSmall
 import dev.banger.hootkey.presentation.ui.theme.Primary
 import dev.banger.hootkey.presentation.ui.theme.RoundedCornerShapeRegular
@@ -50,28 +51,28 @@ import dev.banger.hootkey.presentation.ui.theme.TypeM14
 import dev.banger.hootkey.presentation.ui.theme.White
 import dev.banger.hootkey.presentation.ui.utils.gradientTint
 import dev.banger.hootkey.presentation.ui.utils.noRippleClickable
-import dev.banger.hootkey.presentation.viewmodel.TemplatesViewModel
+import dev.banger.hootkey.presentation.viewmodel.CategoriesViewModel
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
-fun TemplatesScreen(
+fun CategoriesScreen(
     savedStateHandleProvider: () -> SavedStateHandle?,
     onNavigateBack: () -> Unit,
-    onChooseTemplate: (UiTemplateShort) -> Unit,
-    onCreateTemplateClick: () -> Unit,
+    onCreateCategoryClick: () -> Unit,
+    onChooseCategory: (UiCategoryShort) -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: TemplatesViewModel = koinViewModel()
+    viewModel: CategoriesViewModel = koinViewModel()
 ) {
     val coroutineScope = rememberCoroutineScope()
-    val snackbarText = stringResource(id = R.string.fetching_templates_error)
+    val snackbarText = stringResource(id = R.string.fetching_categories_error)
     val snackbarHostState = remember { SnackbarHostState() }
     val savedStateHandle = savedStateHandleProvider()
 
     val state by viewModel.state.collectAsStateWithLifecycle()
     ObserveAsEvents(viewModel.effects) {
         when (it) {
-            TemplatesEffect.ShowError -> {
+            CategoriesEffect.ShowError -> {
                 coroutineScope.launch {
                     snackbarHostState.showSnackbar(
                         message = snackbarText
@@ -81,21 +82,21 @@ fun TemplatesScreen(
         }
     }
 
-    val newTemplateId = savedStateHandle
-        ?.getStateFlow<String?>(CREATED_TEMPLATE_ID_KEY, null)
+    val newCategoryId = savedStateHandle
+        ?.getStateFlow<String?>(CREATED_CATEGORY_ID_KEY, null)
         ?.collectAsStateWithLifecycle()
         ?.value
 
-    newTemplateId?.let {
-        viewModel.dispatch(TemplatesIntent.LoadTemplates)
-        savedStateHandle.remove<String?>(CREATED_TEMPLATE_ID_KEY)
+    newCategoryId?.let {
+        viewModel.dispatch(CategoriesIntent.LoadCategories)
+        savedStateHandle.remove<String?>(CREATED_CATEGORY_ID_KEY)
     }
 
     Scaffold(
         topBar = {
             HootKeyTopBar(
                 onNavigateBack = onNavigateBack,
-                title = stringResource(id = R.string.select_template)
+                title = stringResource(id = R.string.select_category)
             )
         },
         snackbarHost = {
@@ -106,28 +107,30 @@ fun TemplatesScreen(
         }
     ) { contentPadding ->
         if (state.isLoading) {
-            LoadingContent()
+            LoadingContent(
+                modifier = Modifier
+                    .background(DefaultBackgroundBrush)
+            )
         } else {
-            TemplatesContent(
+            CategoriesContent(
                 modifier = modifier
                     .fillMaxSize()
                     .background(DefaultBackgroundBrush)
                     .padding(contentPadding)
                     .padding(start = 20.dp, end = 20.dp, top = PaddingMedium),
-                templates = state.templates,
-                onChooseTemplate = onChooseTemplate,
-                onCreateTemplateClick = onCreateTemplateClick
+                categories = state.categories,
+                onChooseCategory = onChooseCategory,
+                onCreateCategoryClick = onCreateCategoryClick
             )
         }
-
     }
 }
 
 @Composable
-private fun TemplatesContent(
-    templates: List<UiTemplateShort>,
-    onChooseTemplate: (UiTemplateShort) -> Unit,
-    onCreateTemplateClick: () -> Unit,
+private fun CategoriesContent(
+    categories: List<UiCategoryShort>,
+    onCreateCategoryClick: () -> Unit,
+    onChooseCategory: (UiCategoryShort) -> Unit,
     modifier: Modifier = Modifier
 ) {
     LazyColumn(
@@ -139,7 +142,7 @@ private fun TemplatesContent(
                     .fillMaxWidth()
                     .clip(RoundedCornerShapeRegular)
                     .background(White)
-                    .noRippleClickable { onCreateTemplateClick() }
+                    .noRippleClickable { onCreateCategoryClick() }
             ) {
                 Row(
                     modifier = Modifier.padding(PaddingMedium),
@@ -152,7 +155,7 @@ private fun TemplatesContent(
                         contentDescription = null
                     )
                     Text(
-                        text = stringResource(id = R.string.create_new_template),
+                        text = stringResource(id = R.string.create_new_category),
                         style = TypeM14,
                         color = Secondary
                     )
@@ -162,20 +165,34 @@ private fun TemplatesContent(
             Spacer(modifier = Modifier.height(PaddingMedium))
         }
 
-        items(templates) { template ->
+        items(categories) { category ->
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShapeRegular)
                     .background(White)
-                    .noRippleClickable { onChooseTemplate(template) }
+                    .noRippleClickable { onChooseCategory(category) },
             ) {
-                Text(
+                Row(
                     modifier = Modifier.padding(PaddingMedium),
-                    text = template.name,
-                    style = TypeM14,
-                    color = Secondary
-                )
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        modifier = Modifier
+                            .size(24.dp)
+                            .gradientTint(Primary),
+                        imageVector = ImageVector.vectorResource(id = category.icon.icon),
+                        contentDescription = null
+                    )
+
+                    Spacer(modifier = Modifier.width(PaddingRegular))
+
+                    Text(
+                        text = category.name,
+                        style = TypeM14,
+                        color = Secondary
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(PaddingMedium))

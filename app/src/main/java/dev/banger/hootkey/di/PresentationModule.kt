@@ -3,11 +3,13 @@ package dev.banger.hootkey.di
 import dev.banger.hootkey.Constants
 import dev.banger.hootkey.presentation.viewmodel.AccountAuthViewModel
 import dev.banger.hootkey.presentation.viewmodel.AuthViewModel
+import dev.banger.hootkey.presentation.viewmodel.CategoriesViewModel
 import dev.banger.hootkey.presentation.viewmodel.EditTemplateFieldViewModel
 import dev.banger.hootkey.presentation.viewmodel.LaunchViewModel
 import dev.banger.hootkey.presentation.viewmodel.NewCategoryViewModel
 import dev.banger.hootkey.presentation.viewmodel.NewTemplateFieldViewModel
 import dev.banger.hootkey.presentation.viewmodel.NewTemplateViewModel
+import dev.banger.hootkey.presentation.viewmodel.NewVaultViewModel
 import dev.banger.hootkey.presentation.viewmodel.PasswordGeneratorViewModel
 import dev.banger.hootkey.presentation.viewmodel.TemplatesViewModel
 import kotlinx.coroutines.Dispatchers
@@ -47,5 +49,13 @@ fun providePresentationModule() = module {
 
     viewModel {
         TemplatesViewModel(get(), Dispatchers.IO)
+    }
+
+    viewModel {
+        CategoriesViewModel(get(), Dispatchers.IO)
+    }
+
+    viewModel {
+        NewVaultViewModel(get(), Dispatchers.IO)
     }
 }
