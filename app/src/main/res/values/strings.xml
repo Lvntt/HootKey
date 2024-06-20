@@ -18,7 +18,7 @@
     <string name="biometric_cancel_text">Use password</string>
     <string name="biometric_error_not_available">Biometric auth is not available</string>
     <string name="biometric_error_not_enrolled">Biometric auth is not enrolled</string>
-    <string name="generate_password">Generate Password</string>
+    <string name="generate_new_password">Generate new password</string>
     <string name="regenerate">Regenerate Password</string>
     <string name="length">Length</string>
     <string name="numbers">Numbers</string>

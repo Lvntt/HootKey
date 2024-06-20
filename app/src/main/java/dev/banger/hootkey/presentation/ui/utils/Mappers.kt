@@ -22,7 +22,8 @@ import dev.banger.hootkey.presentation.entity.UiFieldType
 import dev.banger.hootkey.presentation.entity.UiGeneratedPassword
 import dev.banger.hootkey.presentation.entity.UiPasswordOptions
 import dev.banger.hootkey.presentation.entity.UiPasswordStrength
-import dev.banger.hootkey.presentation.entity.UiTemplate
+import dev.banger.hootkey.presentation.entity.UiEditableTemplate
+import dev.banger.hootkey.presentation.entity.UiEditableTemplateFieldShort
 import dev.banger.hootkey.presentation.entity.UiTemplateField
 import dev.banger.hootkey.presentation.entity.UiTemplateFieldShort
 import dev.banger.hootkey.presentation.entity.UiTemplateShort
@@ -81,8 +82,8 @@ fun UiTemplateField.toDomain(index: Int) = with(this) {
     )
 }
 
-fun TemplateField.toUiShort() = with(this) {
-    UiTemplateFieldShort(
+fun TemplateField.toUiEditableShort() = with(this) {
+    UiEditableTemplateFieldShort(
         name = name,
         type = type.toUi()
     )
@@ -119,11 +120,11 @@ fun Template.toUi() = with(this) {
         fieldValues[index] = EMPTY_STRING
     }
 
-    UiTemplate(
+    UiEditableTemplate(
         id = id,
         name = name,
         isCustom = isCustom,
-        fields = fields.map { it.toUiShort() },
+        fields = fields.map { it.toUiEditableShort() },
         fieldValues = fieldValues
     )
 }
