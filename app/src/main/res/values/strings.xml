@@ -29,16 +29,20 @@
     <string name="continue_text">Continue</string>
     <string name="empty_char_pool_error">At least 1 character type is required</string>
     <string name="create_new_template">Create New Template</string>
+    <string name="create_new_category">Create New Category</string>
     <string name="navigate_back">Navigate back</string>
     <string name="template">Template</string>
+    <string name="category">Category</string>
     <string name="field">Field</string>
     <string name="name">Name</string>
     <string name="create_new_field">Create new field</string>
     <string name="create_template">Create template</string>
+    <string name="create_category">Create category</string>
     <string name="new_field">New field</string>
     <string name="enter_field_name">Enter field name</string>
     <string name="type">Type</string>
     <string name="choose_field_type">Choose field type</string>
+    <string name="select_template">Select Template</string>
     <string name="text">Text</string>
     <string name="password">Password</string>
     <string name="secret">Secret</string>
@@ -46,9 +50,12 @@
     <string name="date">Date</string>
     <string name="delete_field">Delete Field</string>
     <string name="new_template_error">Error creating new template</string>
+    <string name="new_category_error">Error creating new category</string>
+    <string name="fetching_templates_error">Error fetching templates</string>
     <string name="invalid_email">Valid email is required</string>
     <string name="password_length_error">Password must be at least 6 characters long</string>
     <string name="view">View</string>
     <string name="hide">Hide</string>
     <string name="welcome_to">Welcome to</string>
+    <string name="choose_icon">Choose Icon</string>
 </resources>
