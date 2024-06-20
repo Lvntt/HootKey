@@ -32,6 +32,7 @@ import dev.banger.hootkey.presentation.ui.screen.auth.AuthScreen
 import dev.banger.hootkey.presentation.ui.screen.launch.LaunchScreen
 import dev.banger.hootkey.presentation.ui.screen.new_category.CategoryIconsScreen
 import dev.banger.hootkey.presentation.ui.screen.new_category.NewCategoryScreen
+import dev.banger.hootkey.presentation.ui.screen.new_template.NewTemplateScreen
 import dev.banger.hootkey.presentation.ui.screen.templates.TemplatesScreen
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -164,6 +165,14 @@ fun AppNavigation(navHostController: NavHostController) {
             }
             //-------------------------
         }
+        composable(NavigationDestinations.NEW_TEMPLATE) {
+            NewTemplateScreen(
+                onNavigateBack = {
+                    navHostController.popBackStack()
+                }
+            )
+        }
+
         composable(NavigationDestinations.NEW_CATEGORY) {
             NewCategoryScreen(
                 savedStateHandleProvider = {
@@ -204,6 +213,9 @@ fun AppNavigation(navHostController: NavHostController) {
                     navHostController.currentBackStackEntry
                         ?.savedStateHandle
                         ?.set(TEMPLATE_KEY, it)
+                },
+                onCreateTemplateClick = {
+                    navHostController.navigate(NavigationDestinations.NEW_TEMPLATE)
                 }
             )
         }

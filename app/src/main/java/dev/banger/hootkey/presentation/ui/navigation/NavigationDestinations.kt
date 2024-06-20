@@ -6,6 +6,7 @@ object NavigationDestinations {
     const val DASHBOARD = "dashboard"
     const val LOGIN = "login"
     const val LAUNCH = "launch"
+    const val NEW_TEMPLATE = "new_template"
     const val NEW_CATEGORY = "new_category"
     const val CATEGORY_ICONS = "category_icons"
     const val TEMPLATES = "templates"
