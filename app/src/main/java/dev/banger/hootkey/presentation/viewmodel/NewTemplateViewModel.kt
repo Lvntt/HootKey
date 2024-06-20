@@ -119,9 +119,9 @@ class NewTemplateViewModel(
                     state.value.toCreateTemplateRequest()
                 )
             }.fold(
-                onSuccess = {
+                onSuccess = { template ->
                     stateFlow.update { it.copy(isLoading = false) }
-                    effectsFlow.tryEmit(NewTemplateEffect.HandleSuccess)
+                    effectsFlow.tryEmit(NewTemplateEffect.HandleSuccess(template.id))
                 },
                 onFailure = { throwable ->
                     Log.e(TAG, throwable.stackTraceToString())
