@@ -63,5 +63,11 @@
     <string name="view">View</string>
     <string name="hide">Hide</string>
     <string name="welcome_to">Welcome to</string>
+    <string name="search_vaults">Search your vaults</string>
+    <string name="password_count">%1$d Passwords</string>
+    <string name="recently_used">Recently Used</string>
+    <string name="see_more">See more</string>
+    <string name="dashboard_title">Hello 👋</string>
+    <string name="dashboard_subtitle">Welcome back again!</string>
     <string name="choose_icon">Choose Icon</string>
 </resources>

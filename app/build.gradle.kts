@@ -81,4 +81,6 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.compose.android)
 
     debugImplementation(libs.androidx.ui.tooling)
+
+    implementation(libs.landscapist.glide)
 }

@@ -1,20 +1,10 @@
 package dev.banger.hootkey.presentation.ui.navigation
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import dev.banger.hootkey.presentation.ui.screen.dashboard.DashboardScreen
 import dev.banger.hootkey.Constants.CATEGORY_ICON_KEY
 import dev.banger.hootkey.Constants.CREATED_CATEGORY_ID_KEY
 import dev.banger.hootkey.Constants.CREATED_TEMPLATE_ID_KEY
@@ -75,99 +65,8 @@ fun AppNavigation(navHostController: NavHostController) {
                 navHostController.navigate(NavigationDestinations.DASHBOARD)
             })
         }
-        composable(NavigationDestinations.DASHBOARD) {
-            //TODO FOR TESTING PURPOSES ONLY
-            val templateRepo = koinInject<TemplateRepository>()
-            val categoryRepo = koinInject<CategoryRepository>()
-            val vaultRepo = koinInject<VaultRepository>()
-            var templateText by remember { mutableStateOf("") }
-            var categoryText by remember { mutableStateOf("") }
-            var vaultText by remember { mutableStateOf("") }
-            Column(modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())) {
-                Button(onClick = {
-                    navHostController.navigate(NavigationDestinations.PASSWORD_GENERATOR)
-                }) {
-                    Text("Password generator")
-                }
-                Button(onClick = {
-                    CoroutineScope(Dispatchers.IO).launch {
-                        templateRepo.create(
-                            CreateTemplateRequest(
-                                name = "Account", fields = listOf(
-                                    TemplateField(
-                                        index = 0, name = "Login", type = FieldType.LOGIN
-                                    ), TemplateField(
-                                        index = 1, name = "Password", type = FieldType.PASSWORD
-                                    )
-                                )
-                            )
-                        )
-                    }
-                }) {
-                    Text("Create template")
-                }
-
-                Button(onClick = {
-                    CoroutineScope(Dispatchers.IO).launch {
-                        templateText = templateRepo.getAllFull().firstOrNull().toString()
-                    }
-                }) {
-                    Text("Get first template")
-                }
-
-                Text(templateText)
-
-                Button(onClick = {
-                    CoroutineScope(Dispatchers.IO).launch {
-                        categoryRepo.create(
-                            CreateCategoryRequest(
-                                icon = CategoryIcon.SOCIAL_MEDIA,
-                                name = "Social media",
-                                templateId = templateRepo.getAllShort().first().id
-                            )
-                        )
-                    }
-                }) {
-                    Text("Create category")
-                }
-
-                Button(onClick = {
-                    CoroutineScope(Dispatchers.IO).launch {
-                        categoryText = categoryRepo.getAllShort().firstOrNull().toString()
-                    }
-                }) {
-                    Text("Get first category")
-                }
-
-                Text(categoryText)
-
-                Button(onClick = {
-                    CoroutineScope(Dispatchers.IO).launch {
-                        vaultText = vaultRepo.create(
-                            CreateVaultRequest(
-                                categoryId = categoryRepo.getAllShort().first().id,
-                                name = "GitHub",
-                                fieldValues = mapOf(0 to "SecretLogin", 1 to "SecretPassword")
-                            )
-                        ).toString()
-                    }
-                }) {
-                    Text("Create vault")
-                }
-
-                Text(vaultText)
-
-                Button(
-                    onClick = {
-                        navHostController.navigate(NavigationDestinations.NEW_VAULT)
-                    }
-                ) {
-                    Text("New vault")
-                }
-            }
-            //-------------------------
+        composable<NavigationDestinations.Dashboard> {
+            DashboardScreen()
         }
         composable(NavigationDestinations.NEW_VAULT) {
             NewVaultScreen(
