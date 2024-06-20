@@ -96,46 +96,44 @@ fun VaultShortItem(
             horizontalArrangement = Arrangement.End,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            CompositionLocalProvider(LocalMinimumInteractiveComponentEnforcement provides false) {
-                IconButton(
-                    modifier = Modifier
-                        .graphicsLayer {
-                            scaleX = state.progress(SwipePosition.NotSwiped, SwipePosition.Swiped)
-                            scaleY = scaleX
-                            alpha = scaleX
-                        }
-                        .size(34.dp)
-                        .clip(CircleShape)
-                        .background(Secondary),
-                    onClick = onEditClick,
-                    colors = IconButtonDefaults.iconButtonColors(
-                        contentColor = White
-                    )
-                ) {
-                    Icon(
-                        imageVector = ImageVector.vectorResource(R.drawable.edit_icon),
-                        contentDescription = null
-                    )
-                }
-                Spacer(modifier = Modifier.width(7.dp))
-                IconButton(
-                    modifier = Modifier
-                        .graphicsLayer {
-                            scaleX = state.progress(SwipePosition.NotSwiped, SwipePosition.Swiped)
-                            scaleY = scaleX
-                            alpha = scaleX
-                        }
-                        .size(34.dp)
-                        .clip(CircleShape)
-                        .background(Primary),
-                    onClick = onDeleteClick,
-                    colors = IconButtonDefaults.iconButtonColors(contentColor = White)
-                ) {
-                    Icon(
-                        imageVector = ImageVector.vectorResource(R.drawable.trash_icon),
-                        contentDescription = null
-                    )
-                }
+            IconButton(
+                modifier = Modifier
+                    .graphicsLayer {
+                        scaleX = state.progress(SwipePosition.NotSwiped, SwipePosition.Swiped)
+                        scaleY = scaleX
+                        alpha = scaleX
+                    }
+                    .size(34.dp)
+                    .clip(CircleShape)
+                    .background(Secondary),
+                onClick = onEditClick,
+                colors = IconButtonDefaults.iconButtonColors(
+                    contentColor = White
+                )
+            ) {
+                Icon(
+                    imageVector = ImageVector.vectorResource(R.drawable.edit_icon),
+                    contentDescription = null
+                )
+            }
+            Spacer(modifier = Modifier.width(7.dp))
+            IconButton(
+                modifier = Modifier
+                    .graphicsLayer {
+                        scaleX = state.progress(SwipePosition.NotSwiped, SwipePosition.Swiped)
+                        scaleY = scaleX
+                        alpha = scaleX
+                    }
+                    .size(34.dp)
+                    .clip(CircleShape)
+                    .background(Primary),
+                onClick = onDeleteClick,
+                colors = IconButtonDefaults.iconButtonColors(contentColor = White)
+            ) {
+                Icon(
+                    imageVector = ImageVector.vectorResource(R.drawable.trash_icon),
+                    contentDescription = null
+                )
             }
         }
 

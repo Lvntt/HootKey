@@ -37,4 +37,6 @@
     <string name="password_count">%1$d Passwords</string>
     <string name="recently_used">Recently Used</string>
     <string name="see_more">See more</string>
+    <string name="dashboard_title">Hello 👋</string>
+    <string name="dashboard_subtitle">Welcome back again!</string>
 </resources>
