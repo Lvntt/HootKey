@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -43,12 +42,10 @@ import dev.banger.hootkey.presentation.ui.common.topbar.HootKeyTopBar
 import dev.banger.hootkey.presentation.ui.theme.DefaultBackgroundBrush
 import dev.banger.hootkey.presentation.ui.theme.PaddingMedium
 import dev.banger.hootkey.presentation.ui.theme.PaddingSmall
-import dev.banger.hootkey.presentation.ui.theme.Primary
 import dev.banger.hootkey.presentation.ui.theme.RoundedCornerShapeRegular
 import dev.banger.hootkey.presentation.ui.theme.Secondary
 import dev.banger.hootkey.presentation.ui.theme.TypeM14
 import dev.banger.hootkey.presentation.ui.theme.White
-import dev.banger.hootkey.presentation.ui.utils.gradientTint
 import dev.banger.hootkey.presentation.ui.utils.noRippleClickable
 import dev.banger.hootkey.presentation.viewmodel.TemplatesViewModel
 import kotlinx.coroutines.launch
@@ -149,7 +146,8 @@ private fun TemplatesContent(
                     Icon(
                         modifier = Modifier.size(18.dp),
                         imageVector = ImageVector.vectorResource(id = R.drawable.ic_add),
-                        contentDescription = null
+                        contentDescription = null,
+                        tint = Secondary
                     )
                     Text(
                         text = stringResource(id = R.string.create_new_template),

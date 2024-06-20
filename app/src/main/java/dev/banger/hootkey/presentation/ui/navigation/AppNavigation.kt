@@ -4,34 +4,21 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import dev.banger.hootkey.presentation.ui.screen.dashboard.DashboardScreen
 import dev.banger.hootkey.Constants.CATEGORY_ICON_KEY
 import dev.banger.hootkey.Constants.CREATED_CATEGORY_ID_KEY
 import dev.banger.hootkey.Constants.CREATED_TEMPLATE_ID_KEY
 import dev.banger.hootkey.Constants.TEMPLATE_KEY
-import dev.banger.hootkey.domain.entity.category.CategoryIcon
-import dev.banger.hootkey.domain.entity.category.CreateCategoryRequest
-import dev.banger.hootkey.domain.entity.template.CreateTemplateRequest
-import dev.banger.hootkey.domain.entity.template.FieldType
-import dev.banger.hootkey.domain.entity.template.TemplateField
-import dev.banger.hootkey.domain.entity.vault.CreateVaultRequest
-import dev.banger.hootkey.domain.repository.CategoryRepository
-import dev.banger.hootkey.domain.repository.TemplateRepository
-import dev.banger.hootkey.domain.repository.VaultRepository
 import dev.banger.hootkey.presentation.ui.screen.TestScreen
 import dev.banger.hootkey.presentation.ui.screen.auth.AccountAuthScreen
 import dev.banger.hootkey.presentation.ui.screen.auth.AuthScreen
 import dev.banger.hootkey.presentation.ui.screen.categories.CategoriesScreen
+import dev.banger.hootkey.presentation.ui.screen.dashboard.DashboardScreen
 import dev.banger.hootkey.presentation.ui.screen.launch.LaunchScreen
 import dev.banger.hootkey.presentation.ui.screen.new_category.CategoryIconsScreen
 import dev.banger.hootkey.presentation.ui.screen.new_category.NewCategoryScreen
 import dev.banger.hootkey.presentation.ui.screen.new_template.NewTemplateScreen
 import dev.banger.hootkey.presentation.ui.screen.new_vault.NewVaultScreen
 import dev.banger.hootkey.presentation.ui.screen.templates.TemplatesScreen
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import org.koin.compose.koinInject
 
 @Composable
 fun AppNavigation(navHostController: NavHostController) {
@@ -65,8 +52,10 @@ fun AppNavigation(navHostController: NavHostController) {
                 navHostController.navigate(NavigationDestinations.DASHBOARD)
             })
         }
-        composable<NavigationDestinations.Dashboard> {
-            DashboardScreen()
+        composable(NavigationDestinations.DASHBOARD) {
+            DashboardScreen(onAddNewVault = {
+                navHostController.navigate(NavigationDestinations.NEW_VAULT)
+            })
         }
         composable(NavigationDestinations.NEW_VAULT) {
             NewVaultScreen(

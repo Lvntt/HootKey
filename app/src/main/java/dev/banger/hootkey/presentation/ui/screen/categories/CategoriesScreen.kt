@@ -152,7 +152,8 @@ private fun CategoriesContent(
                     Icon(
                         modifier = Modifier.size(18.dp),
                         imageVector = ImageVector.vectorResource(id = R.drawable.ic_add),
-                        contentDescription = null
+                        contentDescription = null,
+                        tint = Secondary
                     )
                     Text(
                         text = stringResource(id = R.string.create_new_category),

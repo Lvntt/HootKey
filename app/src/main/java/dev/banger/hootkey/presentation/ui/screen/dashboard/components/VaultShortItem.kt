@@ -1,8 +1,8 @@
 package dev.banger.hootkey.presentation.ui.screen.dashboard.components
 
-import androidx.compose.animation.core.Spring.DampingRatioMediumBouncy
-import androidx.compose.animation.core.Spring.StiffnessMediumLow
-import androidx.compose.animation.core.exponentialDecay
+import androidx.compose.animation.core.Spring.DampingRatioNoBouncy
+import androidx.compose.animation.core.Spring.StiffnessHigh
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -29,6 +29,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -77,56 +78,53 @@ fun VaultShortItem(
         AnchoredDraggableState(
             initialValue = SwipePosition.NotSwiped,
             anchors = anchors,
-            positionalThreshold = { distance -> distance * 0.8f },
+            positionalThreshold = { distance: Float -> distance * 0.8f },
             velocityThreshold = { velocityThreshold },
-            snapAnimationSpec = spring(
-                dampingRatio = DampingRatioMediumBouncy, stiffness = StiffnessMediumLow
-            ),
-            decayAnimationSpec = exponentialDecay()
+            animationSpec = spring(
+                dampingRatio = DampingRatioNoBouncy, stiffness = StiffnessHigh
+            )
         )
     }
 
+    val progress by animateFloatAsState(
+        if (state.targetValue == SwipePosition.Swiped) 1f else 0f, label = "progress"
+    )
     Box(modifier = Modifier.height(IntrinsicSize.Min)) {
         Row(
-            modifier = modifier
-                .fillMaxHeight(),
+            modifier = modifier.fillMaxHeight(),
             horizontalArrangement = Arrangement.End,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            IconButton(
-                modifier = Modifier
-                    .graphicsLayer {
-                        scaleX = state.progress(SwipePosition.NotSwiped, SwipePosition.Swiped)
-                        scaleY = scaleX
-                        alpha = scaleX
-                    }
-                    .size(34.dp)
-                    .clip(CircleShape)
-                    .background(Secondary),
+            IconButton(modifier = Modifier
+                .graphicsLayer {
+                    scaleX = progress
+                    scaleY = scaleX
+                    alpha = scaleX
+                }
+                .size(34.dp)
+                .clip(CircleShape)
+                .background(Secondary),
                 onClick = onEditClick,
                 colors = IconButtonDefaults.iconButtonColors(
                     contentColor = White
-                )
-            ) {
+                )) {
                 Icon(
                     imageVector = ImageVector.vectorResource(R.drawable.edit_icon),
                     contentDescription = null
                 )
             }
             Spacer(modifier = Modifier.width(7.dp))
-            IconButton(
-                modifier = Modifier
-                    .graphicsLayer {
-                        scaleX = state.progress(SwipePosition.NotSwiped, SwipePosition.Swiped)
-                        scaleY = scaleX
-                        alpha = scaleX
-                    }
-                    .size(34.dp)
-                    .clip(CircleShape)
-                    .background(Primary),
+            IconButton(modifier = Modifier
+                .graphicsLayer {
+                    scaleX = progress
+                    scaleY = scaleX
+                    alpha = scaleX
+                }
+                .size(34.dp)
+                .clip(CircleShape)
+                .background(Primary),
                 onClick = onDeleteClick,
-                colors = IconButtonDefaults.iconButtonColors(contentColor = White)
-            ) {
+                colors = IconButtonDefaults.iconButtonColors(contentColor = White)) {
                 Icon(
                     imageVector = ImageVector.vectorResource(R.drawable.trash_icon),
                     contentDescription = null
@@ -135,15 +133,16 @@ fun VaultShortItem(
         }
 
         Row(modifier = modifier
-            .anchoredDraggable(state = state, orientation = Orientation.Horizontal)
+            .anchoredDraggable(
+                state = state, orientation = Orientation.Horizontal
+            )
             .graphicsLayer {
                 translationX = state.requireOffset()
             }
             .clip(RoundedCornerShape(16.dp))
             .background(White)
             .clickable { onClick() }
-            .padding(all = 12.dp),
-            verticalAlignment = Alignment.CenterVertically) {
+            .padding(all = 12.dp), verticalAlignment = Alignment.CenterVertically) {
             Box(
                 modifier = Modifier
                     .width(65.dp)
@@ -163,7 +162,8 @@ fun VaultShortItem(
             Column(
                 modifier = Modifier
                     .weight(1f)
-                    .height(60.dp), verticalArrangement = Arrangement.Center
+                    .height(60.dp),
+                verticalArrangement = Arrangement.Center
             ) {
                 Text(
                     text = name,

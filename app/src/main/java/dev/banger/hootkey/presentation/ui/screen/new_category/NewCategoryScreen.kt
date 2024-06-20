@@ -217,9 +217,9 @@ fun NewCategoryScreen(
                                 imageVector = ImageVector.vectorResource(id = R.drawable.ic_text_field),
                                 contentDescription = null,
                                 tint = if (state.isNameTextFieldFocused) {
-                                    Secondary80
-                                } else {
                                     LocalContentColor.current
+                                } else {
+                                    Secondary80
                                 }
                             )
                         },
