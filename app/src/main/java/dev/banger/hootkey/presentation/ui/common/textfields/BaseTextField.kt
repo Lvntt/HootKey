@@ -58,6 +58,7 @@ fun BaseTextField(
     decorationBoxModifier: Modifier = Modifier,
     singleLine: Boolean = true,
     isError: Boolean = false,
+    enabled: Boolean = true,
     errorText: String? = null,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     visualTransformation: VisualTransformation = VisualTransformation.None,
@@ -96,7 +97,10 @@ fun BaseTextField(
             value = value,
             onValueChange = onValueChange,
             singleLine = singleLine,
-            textStyle = TypeM14,
+            enabled = enabled,
+            textStyle = TypeM14.copy(
+                color = Secondary80
+            ),
             cursorBrush = SolidColor(Secondary80),
             interactionSource = interactionSource,
             keyboardOptions = keyboardOptions,

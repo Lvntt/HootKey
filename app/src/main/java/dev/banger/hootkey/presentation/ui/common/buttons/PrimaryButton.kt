@@ -34,8 +34,8 @@ fun PrimaryButton(
     shape: RoundedCornerShape = ButtonShapeRegular,
     loadingContent: @Composable () -> Unit = { ButtonProgressLoader() }
 ) {
-    val backgroundColor = if (enabled) Primary else PrimaryDisabled
-    val contentColor = if (enabled) White else DarkGray
+    val backgroundColor = if (enabled || isLoading) Primary else PrimaryDisabled
+    val contentColor = if (enabled || isLoading) White else DarkGray
 
     Box(
         modifier = modifier
