@@ -30,9 +30,12 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import dev.banger.hootkey.Constants.CREATED_TEMPLATE_ID_KEY
 import dev.banger.hootkey.R
 import dev.banger.hootkey.presentation.entity.UiTemplateShort
+import dev.banger.hootkey.presentation.intent.TemplatesIntent
 import dev.banger.hootkey.presentation.state.templates.TemplatesEffect
 import dev.banger.hootkey.presentation.ui.common.ObserveAsEvents
 import dev.banger.hootkey.presentation.ui.common.topbar.HootKeyTopBar
@@ -52,6 +55,7 @@ import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun TemplatesScreen(
+    savedStateHandleProvider: () -> SavedStateHandle?,
     onNavigateBack: () -> Unit,
     onChooseTemplate: (UiTemplateShort) -> Unit,
     onCreateTemplateClick: () -> Unit,
@@ -61,6 +65,7 @@ fun TemplatesScreen(
     val coroutineScope = rememberCoroutineScope()
     val snackbarText = stringResource(id = R.string.fetching_templates_error)
     val snackbarHostState = remember { SnackbarHostState() }
+    val savedStateHandle = savedStateHandleProvider()
 
     val state by viewModel.state.collectAsStateWithLifecycle()
     ObserveAsEvents(viewModel.effects) {
@@ -73,6 +78,16 @@ fun TemplatesScreen(
                 }
             }
         }
+    }
+
+    val newTemplateId = savedStateHandle
+        ?.getStateFlow<String?>(CREATED_TEMPLATE_ID_KEY, null)
+        ?.collectAsStateWithLifecycle()
+        ?.value
+
+    newTemplateId?.let {
+        viewModel.dispatch(TemplatesIntent.LoadTemplates)
+        savedStateHandle.remove<String?>(CREATED_TEMPLATE_ID_KEY)
     }
 
     Scaffold(
@@ -126,7 +141,6 @@ private fun TemplatesContent(
     onCreateTemplateClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // TODO errors (check other TODOs)
     LazyColumn(
         modifier = modifier
     ) {
@@ -140,10 +154,11 @@ private fun TemplatesContent(
             ) {
                 Row(
                     modifier = Modifier.padding(PaddingMedium),
-                    horizontalArrangement = Arrangement.spacedBy(PaddingSmall)
+                    horizontalArrangement = Arrangement.spacedBy(PaddingSmall),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
-                        modifier = Modifier.size(20.dp),
+                        modifier = Modifier.size(18.dp),
                         imageVector = ImageVector.vectorResource(id = R.drawable.ic_add),
                         contentDescription = null
                     )

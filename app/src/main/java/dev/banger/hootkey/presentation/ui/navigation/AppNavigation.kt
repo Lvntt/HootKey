@@ -16,6 +16,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import dev.banger.hootkey.Constants.CATEGORY_ICON_KEY
+import dev.banger.hootkey.Constants.CREATED_TEMPLATE_ID_KEY
 import dev.banger.hootkey.Constants.TEMPLATE_KEY
 import dev.banger.hootkey.domain.entity.category.CategoryIcon
 import dev.banger.hootkey.domain.entity.category.CreateCategoryRequest
@@ -167,6 +168,12 @@ fun AppNavigation(navHostController: NavHostController) {
         }
         composable(NavigationDestinations.NEW_TEMPLATE) {
             NewTemplateScreen(
+                onSuccess = {
+                    navHostController.popBackStack()
+                    navHostController.currentBackStackEntry
+                        ?.savedStateHandle
+                        ?.set(CREATED_TEMPLATE_ID_KEY, it)
+                },
                 onNavigateBack = {
                     navHostController.popBackStack()
                 }
@@ -205,6 +212,9 @@ fun AppNavigation(navHostController: NavHostController) {
         }
         composable(NavigationDestinations.TEMPLATES) {
             TemplatesScreen(
+                savedStateHandleProvider = {
+                    navHostController.currentBackStackEntry?.savedStateHandle
+                },
                 onNavigateBack = {
                     navHostController.popBackStack()
                 },

@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.banger.hootkey.domain.repository.TemplateRepository
+import dev.banger.hootkey.presentation.intent.TemplatesIntent
 import dev.banger.hootkey.presentation.state.templates.TemplatesEffect
 import dev.banger.hootkey.presentation.state.templates.TemplatesState
 import dev.banger.hootkey.presentation.ui.utils.toUi
@@ -32,6 +33,12 @@ class TemplatesViewModel(
 
     init {
         loadTemplates()
+    }
+
+    fun dispatch(intent: TemplatesIntent) {
+        when (intent) {
+            TemplatesIntent.LoadTemplates -> loadTemplates()
+        }
     }
 
     private fun loadTemplates() {

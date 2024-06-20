@@ -85,6 +85,7 @@ import sh.calvin.reorderable.rememberReorderableLazyListState
 @Composable
 fun NewTemplateScreen(
     onNavigateBack: () -> Unit,
+    onSuccess: (String) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: NewTemplateViewModel = koinViewModel()
 ) {
@@ -102,7 +103,9 @@ fun NewTemplateScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     ObserveAsEvents(viewModel.effects) {
         when (it) {
-            NewTemplateEffect.HandleSuccess -> onNavigateBack()
+            is NewTemplateEffect.HandleSuccess -> {
+                onSuccess(it.templateId)
+            }
             NewTemplateEffect.ShowError -> {
                 coroutineScope.launch {
                     snackbarHostState.showSnackbar(
@@ -314,6 +317,7 @@ fun NewTemplateScreen(
                     onClick = {
                         viewModel.dispatch(NewTemplateIntent.CreateTemplate)
                     },
+                    isLoading = state.isLoading,
                     text = stringResource(id = R.string.create_template),
                     enabled = state.isCreationAllowed
                 )
@@ -327,5 +331,5 @@ fun NewTemplateScreen(
 @Preview
 @Composable
 private fun NewTemplateScreenPreview() {
-    NewTemplateScreen(onNavigateBack = {})
+    NewTemplateScreen({}, {})
 }
