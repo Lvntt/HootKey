@@ -35,14 +35,11 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.google.android.play.integrity.internal.i
 import dev.banger.hootkey.Constants.CREATED_CATEGORY_ID_KEY
 import dev.banger.hootkey.R
 import dev.banger.hootkey.presentation.entity.UiCategory
@@ -130,6 +127,7 @@ fun NewVaultScreen(
                 // TODO strength?
                 viewModel.dispatch(NewVaultIntent.FieldValueChanged(index, it.password))
                 viewModel.dispatch(NewVaultIntent.DismissPasswordGenerator)
+                focusManager.clearFocus()
             }
         )
     }
@@ -268,47 +266,66 @@ private fun NewVaultContent(
         }
 
         itemsIndexed(fields) { index, field ->
-            when (field.type) {
-                UiFieldType.LOGIN -> Unit
-                UiFieldType.PASSWORD -> {
-                    Column {
-                        RegularTextField(
-                            leadingContent = {
-                                Icon(
-                                    modifier = if (field.isFocused) {
-                                        Modifier.gradientTint(Primary)
-                                    } else {
-                                        Modifier
-                                    },
-                                    imageVector = ImageVector.vectorResource(id = R.drawable.ic_lock),
-                                    contentDescription = null,
-                                    tint = if (field.isFocused) {
-                                        Secondary80
-                                    } else {
-                                        LocalContentColor.current
-                                    }
-                                )
-                            },
-                            trailingContent = {
+            Column {
+                RegularTextField(
+                    leadingContent = if (field.type.icon != null) {
+                        {
+                            Icon(
+                                modifier = if (field.isFocused) {
+                                    Modifier.gradientTint(Primary)
+                                } else {
+                                    Modifier
+                                },
+                                imageVector = ImageVector.vectorResource(id = field.type.icon),
+                                contentDescription = null,
+                                tint = if (field.isFocused) {
+                                    Secondary80
+                                } else {
+                                    LocalContentColor.current
+                                }
+                            )
+                        }
+                    } else null,
+                    trailingContent = when (field.type) {
+                        UiFieldType.PASSWORD -> {
+                            {
                                 AlternativeButtonTiny(
                                     onClick = {
-                                        viewModel.dispatch(NewVaultIntent.FieldVisibilityChanged(index, !field.isHidden))
+                                        viewModel.dispatch(
+                                            NewVaultIntent.FieldVisibilityChanged(
+                                                index,
+                                                !field.isHidden
+                                            )
+                                        )
                                     },
-                                    text = if (field.isHidden) stringResource(id = R.string.view) else stringResource(id = R.string.hide)
+                                    text = if (field.isHidden) stringResource(id = R.string.view) else stringResource(
+                                        id = R.string.hide
+                                    )
                                 )
-                            },
-                            onFocusChange = { isFocused ->
-                                viewModel.dispatch(NewVaultIntent.FieldFocusChanged(index, isFocused))
-                            },
-                            hint = field.name,
-                            value = field.value,
-                            onValueChange = {
-                                viewModel.dispatch(NewVaultIntent.FieldValueChanged(index, it))
-                            },
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                            visualTransformation = if (field.isHidden) PasswordVisualTransformation() else VisualTransformation.None
+                            }
+                        }
+                        UiFieldType.DATE -> TODO()
+                        else -> null
+                    },
+                    onFocusChange = { isFocused ->
+                        viewModel.dispatch(
+                            NewVaultIntent.FieldFocusChanged(
+                                index,
+                                isFocused
+                            )
                         )
+                    },
+                    hint = field.name,
+                    value = field.value,
+                    onValueChange = {
+                        viewModel.dispatch(NewVaultIntent.FieldValueChanged(index, it))
+                    },
+                    keyboardOptions = KeyboardOptions(keyboardType = field.type.keyboardType),
+                    visualTransformation = if (field.isHidden) field.type.visualTransformation else VisualTransformation.None
+                )
 
+                when (field.type) {
+                    UiFieldType.PASSWORD -> {
                         Spacer(modifier = Modifier.height(PaddingRegular))
 
                         AlternativeButton(
@@ -319,11 +336,10 @@ private fun NewVaultContent(
                             text = stringResource(id = R.string.generate_new_password)
                         )
                     }
+                    else -> Unit
                 }
-                UiFieldType.SECRET -> TODO()
-                UiFieldType.TEXT -> TODO()
-                UiFieldType.LINK -> TODO()
-                UiFieldType.DATE -> TODO()
+
+                Spacer(modifier = Modifier.height(PaddingRegular))
             }
         }
     }
