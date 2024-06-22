@@ -38,16 +38,15 @@ import dev.banger.hootkey.presentation.ui.theme.TypeR14
 import dev.banger.hootkey.presentation.ui.theme.White
 
 @Composable
-fun DashboardBackgroundContent(
-    listStateProvider: () -> LazyListState, onSetNonBottomSheetContentHeight: (Float) -> Unit
+inline fun DashboardBackgroundContent(
+    crossinline listStateProvider: () -> LazyListState, crossinline onSetNonBottomSheetContentHeight: (Float) -> Unit
 ) {
-    val listState = listStateProvider()
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .systemBarsPadding()
             .graphicsLayer {
-                alpha = 1f - listState.firstVisibleItemScrollOffset * 0.001f
+                alpha = 1f - listStateProvider().firstVisibleItemScrollOffset * 0.001f
             }, horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(modifier = Modifier.height(17.dp))
@@ -112,8 +111,8 @@ fun DashboardBackgroundContent(
             modifier = Modifier
                 .size(239.dp)
                 .graphicsLayer {
-                    scaleX = 1f + listState.firstVisibleItemScrollOffset * 0.0003f
-                    scaleY = 1f + listState.firstVisibleItemScrollOffset * 0.0003f
+                    scaleX = 1f + listStateProvider().firstVisibleItemScrollOffset * 0.0003f
+                    scaleY = 1f + listStateProvider().firstVisibleItemScrollOffset * 0.0003f
                 },
             painter = painterResource(R.drawable.health_score_placeholder),
             contentDescription = null

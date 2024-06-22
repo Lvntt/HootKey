@@ -15,14 +15,13 @@ import dev.banger.hootkey.presentation.state.dashboard.DashboardState
 import dev.banger.hootkey.presentation.ui.common.VaultErrorItem
 import dev.banger.hootkey.presentation.ui.common.VaultShortItem
 
-fun LazyListScope.vaultsContent(
-    stateProvider: () -> DashboardState,
-    onLoadNextPageRequested: () -> Unit,
+inline fun LazyListScope.vaultsContent(
+    crossinline stateProvider: () -> DashboardState,
+    crossinline onLoadNextPageRequested: () -> Unit,
     clipboardManager: ClipboardManager
 ) {
-    val state = stateProvider()
-    itemsIndexed(items = state.vaults) { index, vault ->
-        if (index >= state.vaults.size - 1 && !state.isEndReached && state.vaultsPageLoadingState == LceState.CONTENT) {
+    itemsIndexed(items = stateProvider().vaults) { index, vault ->
+        if (index >= stateProvider().vaults.size - 1 && !stateProvider().isEndReached && stateProvider().vaultsPageLoadingState == LceState.CONTENT) {
             onLoadNextPageRequested()
         }
         VaultShortItem(modifier = Modifier
@@ -42,7 +41,7 @@ fun LazyListScope.vaultsContent(
             onDeleteClick = {})
         Spacer(modifier = Modifier.height(12.dp))
     }
-    when (state.vaultsPageLoadingState) {
+    when (stateProvider().vaultsPageLoadingState) {
         LceState.LOADING -> item {
             DashboardLoadingContent()
         }

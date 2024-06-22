@@ -23,6 +23,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.paint
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
@@ -67,6 +68,7 @@ fun DashboardScreen(
         val configuration = LocalConfiguration.current
         val clipboardManager = LocalClipboardManager.current
         val defaultOffset = -with(LocalDensity.current) { 68.dp.toPx() }
+        val cornerRadius = with(LocalDensity.current) { CornerRadius(40.dp.toPx(), 40.dp.toPx()) }
         var bottomSheetBackgroundYOffset by remember { mutableFloatStateOf(defaultOffset) }
         var bottomSheetStartPosY by remember { mutableFloatStateOf(-Float.MAX_VALUE) }
         var bottomSheetEndPosY by remember { mutableFloatStateOf(0f) }
@@ -88,7 +90,8 @@ fun DashboardScreen(
             state = listState,
             modifier = Modifier
                 .fillMaxSize()
-                .bottomSheetBackground(bottomSheetBackgroundYOffset),
+                .bottomSheetBackground({ bottomSheetBackgroundYOffset }, cornerRadius)
+            ,
             contentPadding = WindowInsets.systemBars.asPaddingValues(),
         ) {
             item {

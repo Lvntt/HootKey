@@ -18,14 +18,13 @@ import dev.banger.hootkey.presentation.state.dashboard.DashboardState
 import dev.banger.hootkey.presentation.ui.screen.dashboard.Id
 import dev.banger.hootkey.presentation.ui.screen.dashboard.Name
 
-fun LazyListScope.categoriesContent(
-    stateProvider: () -> DashboardState,
-    onCategorySelected: (Id, Name) -> Unit,
-    onLoadCategoriesRequested: () -> Unit
+inline fun LazyListScope.categoriesContent(
+    crossinline stateProvider: () -> DashboardState,
+    crossinline onCategorySelected: (Id, Name) -> Unit,
+    noinline onLoadCategoriesRequested: () -> Unit
 ) {
     item {
-        val state = stateProvider()
-        when (state.categoriesLoadingState) {
+        when (stateProvider().categoriesLoadingState) {
             LceState.LOADING -> DashboardLoadingContent()
 
             LceState.CONTENT -> LazyRow(
@@ -33,7 +32,7 @@ fun LazyListScope.categoriesContent(
                 contentPadding = PaddingValues(horizontal = 20.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                items(state.categories) { category ->
+                items(stateProvider().categories) { category ->
                     DashboardCategory(iconResId = category.icon.icon,
                         title = category.name,
                         passwordCount = category.vaultsAmount,
@@ -53,7 +52,7 @@ fun LazyListScope.categoriesContent(
                 onClick = onLoadCategoriesRequested
             )
         }
-        if (state.categoriesLoadingState != LceState.CONTENT || state.categories.isNotEmpty()) Spacer(
+        if (stateProvider().categoriesLoadingState != LceState.CONTENT || stateProvider().categories.isNotEmpty()) Spacer(
             modifier = Modifier.height(20.dp)
         )
     }
