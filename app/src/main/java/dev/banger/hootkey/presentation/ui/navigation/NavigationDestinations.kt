@@ -12,6 +12,10 @@ object NavigationDestinations {
     const val CATEGORY_ICONS = "category_icons"
     const val CATEGORIES = "categories"
     const val TEMPLATES = "templates"
+    const val VAULTS = "vaults"
+    const val VAULT_CATEGORY_ID_ARG = "vault_category_id"
+    const val VAULT_CATEGORY_NAME_ARG = "vault_category_name"
+    const val NULL_ARG_VALUE = "null_arg"
     //TODO FOR TESTING PURPOSES ONLY
     const val PASSWORD_GENERATOR = "password_generator"
 }

@@ -1,4 +1,4 @@
-package dev.banger.hootkey.presentation.ui.screen.dashboard.components
+package dev.banger.hootkey.presentation.ui.common
 
 import androidx.compose.animation.core.Spring.DampingRatioNoBouncy
 import androidx.compose.animation.core.Spring.StiffnessHigh

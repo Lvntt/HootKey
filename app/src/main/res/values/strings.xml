@@ -70,4 +70,9 @@
     <string name="dashboard_title">Hello 👋</string>
     <string name="dashboard_subtitle">Welcome back again!</string>
     <string name="choose_icon">Choose Icon</string>
+    <string name="my_vaults">My Vaults</string>
+    <string name="all">All</string>
+    <string name="recent">Recent</string>
+    <string name="favourite">Favourite</string>
+    <string name="last_edit">Last Edit</string>
 </resources>
