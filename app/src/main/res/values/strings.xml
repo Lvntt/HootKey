@@ -75,4 +75,7 @@
     <string name="recent">Recent</string>
     <string name="favourite">Favourite</string>
     <string name="last_edit">Last Edit</string>
+    <string name="choose">Choose</string>
+    <string name="enter_the_field">Enter the %1$s</string>
+    <string name="enter_the_vault_name">Enter the Vault name</string>
 </resources>

@@ -87,7 +87,7 @@ fun PasswordGeneratorDialog(
                     .padding(PaddingMedium)
             ) {
                 Text(
-                    text = stringResource(id = R.string.generate_password),
+                    text = stringResource(id = R.string.generate_new_password),
                     style = TypeB16,
                     color = MainDark
                 )

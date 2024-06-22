@@ -13,21 +13,23 @@ import dev.banger.hootkey.domain.entity.template.FieldType
 import dev.banger.hootkey.domain.entity.template.Template
 import dev.banger.hootkey.domain.entity.template.TemplateField
 import dev.banger.hootkey.domain.entity.template.TemplateShort
+import dev.banger.hootkey.domain.entity.vault.CreateVaultRequest
 import dev.banger.hootkey.domain.entity.vault.Index
 import dev.banger.hootkey.domain.entity.vault.Value
 import dev.banger.hootkey.presentation.entity.UiCategory
 import dev.banger.hootkey.presentation.entity.UiCategoryIcon
 import dev.banger.hootkey.presentation.entity.UiCategoryShort
+import dev.banger.hootkey.presentation.entity.UiEditableTemplate
+import dev.banger.hootkey.presentation.entity.UiEditableTemplateFieldShort
 import dev.banger.hootkey.presentation.entity.UiFieldType
 import dev.banger.hootkey.presentation.entity.UiGeneratedPassword
 import dev.banger.hootkey.presentation.entity.UiPasswordOptions
 import dev.banger.hootkey.presentation.entity.UiPasswordStrength
-import dev.banger.hootkey.presentation.entity.UiTemplate
 import dev.banger.hootkey.presentation.entity.UiTemplateField
-import dev.banger.hootkey.presentation.entity.UiTemplateFieldShort
 import dev.banger.hootkey.presentation.entity.UiTemplateShort
 import dev.banger.hootkey.presentation.state.new_category.NewCategoryState
 import dev.banger.hootkey.presentation.state.new_template.NewTemplateState
+import dev.banger.hootkey.presentation.state.new_vault.NewVaultState
 
 fun UiPasswordOptions.toDomain() = with(this) {
     PasswordOptions(
@@ -81,8 +83,8 @@ fun UiTemplateField.toDomain(index: Int) = with(this) {
     )
 }
 
-fun TemplateField.toUiShort() = with(this) {
-    UiTemplateFieldShort(
+fun TemplateField.toUiEditableShort() = with(this) {
+    UiEditableTemplateFieldShort(
         name = name,
         type = type.toUi()
     )
@@ -119,11 +121,11 @@ fun Template.toUi() = with(this) {
         fieldValues[index] = EMPTY_STRING
     }
 
-    UiTemplate(
+    UiEditableTemplate(
         id = id,
         name = name,
         isCustom = isCustom,
-        fields = fields.map { it.toUiShort() },
+        fields = fields.map { it.toUiEditableShort() },
         fieldValues = fieldValues
     )
 }
@@ -156,5 +158,26 @@ fun CategoryShort.toUi() = with(this) {
         templateId = templateId,
         vaultsAmount = vaultsAmount,
         isCustom = isCustom
+    )
+}
+
+fun NewVaultState.toCreateVaultRequest() = with(this) {
+    val categoryId = category?.id ?: throw IllegalStateException("category cannot be null")
+    val fieldValues = mutableMapOf<Index, Value>()
+    category.template.fields.forEachIndexed { index, fieldValue ->
+        when (fieldValue.type) {
+            UiFieldType.DATE -> {
+                val value = fieldValue.valueMillis
+                    ?: throw IllegalStateException("field with type DATE cannot have null valueMillis")
+                fieldValues[index] = value.toString()
+            }
+            else -> fieldValues[index] = fieldValue.value
+        }
+    }
+
+    CreateVaultRequest(
+        categoryId = categoryId,
+        name = name,
+        fieldValues = fieldValues
     )
 }
