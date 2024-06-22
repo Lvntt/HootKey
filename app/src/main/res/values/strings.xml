@@ -40,6 +40,7 @@
     <string name="create_new_field">Create new field</string>
     <string name="create_template">Create template</string>
     <string name="create_category">Create category</string>
+    <string name="create_vault">Create vault</string>
     <string name="new_field">New field</string>
     <string name="enter_field_name">Enter field name</string>
     <string name="type">Type</string>
@@ -64,4 +65,7 @@
     <string name="hide">Hide</string>
     <string name="welcome_to">Welcome to</string>
     <string name="choose_icon">Choose Icon</string>
+    <string name="choose">Choose</string>
+    <string name="enter_the_field">Enter the %1$s</string>
+    <string name="enter_the_vault_name">Enter the Vault name</string>
 </resources>

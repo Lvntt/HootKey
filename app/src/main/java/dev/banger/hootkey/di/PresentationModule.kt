@@ -56,6 +56,6 @@ fun providePresentationModule() = module {
     }
 
     viewModel {
-        NewVaultViewModel(get(), Dispatchers.IO)
+        NewVaultViewModel(get(), get(), Dispatchers.IO)
     }
 }

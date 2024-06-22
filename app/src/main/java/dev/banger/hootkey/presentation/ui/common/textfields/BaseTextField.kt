@@ -60,6 +60,7 @@ fun BaseTextField(
     isError: Boolean = false,
     enabled: Boolean = true,
     errorText: String? = null,
+    placeholder: String = "",
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     visualTransformation: VisualTransformation = VisualTransformation.None,
     leadingContent: @Composable (() -> Unit)? = null,
@@ -68,6 +69,7 @@ fun BaseTextField(
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isFocused by interactionSource.collectIsFocusedAsState()
+    val isPlaceholderShown = value.isEmpty() && !isFocused
 
     LaunchedEffect(key1 = isFocused) {
         onFocusChange(isFocused)
@@ -119,7 +121,16 @@ fun BaseTextField(
                             Spacer(modifier = Modifier.width(PaddingRegular))
                         }
 
-                        innerTextField()
+                        if (isPlaceholderShown) {
+                            Text(
+                                text = placeholder,
+                                style = TypeM14,
+                                color = Secondary60
+                            )
+                        } else {
+                            innerTextField()
+                        }
+
                     }
 
                     trailingContent?.let {
@@ -186,6 +197,7 @@ private fun EnabledRegularTextFieldPreview() {
             isTextFieldFocused = isFocused
         },
         hint = "Password",
+        placeholder = "Fill the field",
         isError = true,
         errorText = "Field cannot be empty",
         decorationBoxModifier = Modifier
