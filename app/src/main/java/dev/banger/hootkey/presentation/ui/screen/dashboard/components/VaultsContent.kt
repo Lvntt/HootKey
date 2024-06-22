@@ -20,7 +20,7 @@ inline fun LazyListScope.vaultsContent(
     crossinline onLoadNextPageRequested: () -> Unit,
     clipboardManager: ClipboardManager
 ) {
-    itemsIndexed(items = stateProvider().vaults) { index, vault ->
+    itemsIndexed(items = stateProvider().vaults, key = { _, item -> item.id }) { index, vault ->
         if (index >= stateProvider().vaults.size - 1 && !stateProvider().isEndReached && stateProvider().vaultsPageLoadingState == LceState.CONTENT) {
             onLoadNextPageRequested()
         }

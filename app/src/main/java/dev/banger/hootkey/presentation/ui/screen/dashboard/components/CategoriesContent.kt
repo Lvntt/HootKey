@@ -32,7 +32,7 @@ inline fun LazyListScope.categoriesContent(
                 contentPadding = PaddingValues(horizontal = 20.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                items(stateProvider().categories) { category ->
+                items(stateProvider().categories, key = { it.id }) { category ->
                     DashboardCategory(iconResId = category.icon.icon,
                         title = category.name,
                         passwordCount = category.vaultsAmount,
