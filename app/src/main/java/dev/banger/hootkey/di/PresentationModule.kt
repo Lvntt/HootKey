@@ -4,6 +4,7 @@ import dev.banger.hootkey.Constants
 import dev.banger.hootkey.presentation.viewmodel.AccountAuthViewModel
 import dev.banger.hootkey.presentation.viewmodel.AuthViewModel
 import dev.banger.hootkey.presentation.viewmodel.CategoriesViewModel
+import dev.banger.hootkey.presentation.viewmodel.DashboardViewmodel
 import dev.banger.hootkey.presentation.viewmodel.EditTemplateFieldViewModel
 import dev.banger.hootkey.presentation.viewmodel.LaunchViewModel
 import dev.banger.hootkey.presentation.viewmodel.NewCategoryViewModel
@@ -57,5 +58,9 @@ fun providePresentationModule() = module {
 
     viewModel {
         NewVaultViewModel(get(), Dispatchers.IO)
+    }
+
+    viewModel {
+        DashboardViewmodel(get(), get(), Dispatchers.IO)
     }
 }

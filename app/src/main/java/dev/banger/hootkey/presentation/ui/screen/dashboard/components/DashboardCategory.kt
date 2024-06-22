@@ -41,13 +41,29 @@ fun DashboardCategory(
     passwordCount: Int,
     onClick: () -> Unit
 ) {
+    DashboardCategoryCard(
+        modifier = Modifier.width(104.dp),
+        iconResId = iconResId,
+        title = title,
+        subtitle = stringResource(R.string.password_count, passwordCount),
+        onClick = onClick
+    )
+}
+
+@Composable
+fun DashboardCategoryCard(
+    modifier: Modifier = Modifier,
+    @DrawableRes iconResId: Int,
+    title: String,
+    subtitle: String,
+    onClick: () -> Unit
+) {
     Column(
-        modifier = Modifier
-            .width(104.dp)
+        modifier = modifier
             .clip(RoundedCornerShape(20.dp))
             .background(White)
             .clickable { onClick() }
-            .padding(vertical = 15.dp),
+            .padding(vertical = 15.dp, horizontal = 10.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Box(
@@ -74,7 +90,7 @@ fun DashboardCategory(
         )
         Spacer(modifier = Modifier.height(4.dp))
         Text(
-            text = stringResource(R.string.password_count, passwordCount),
+            text = subtitle,
             style = TypeR10,
             color = Secondary60,
             maxLines = 1,

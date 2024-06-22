@@ -75,4 +75,11 @@
     <string name="recent">Recent</string>
     <string name="favourite">Favourite</string>
     <string name="last_edit">Last Edit</string>
+    <string name="no_categories">No categories yet</string>
+    <string name="no_vaults">No vaults yet</string>
+    <string name="press_to_refresh">Press to refresh</string>
+    <string name="an_error_occurred">An error occurred</string>
+    <string name="error_loading_categories">Error loading categories</string>
+    <string name="first_vault_title">Create your first vault!</string>
+    <string name="first_vault_subtitle">Press the arrow on the right</string>
 </resources>
