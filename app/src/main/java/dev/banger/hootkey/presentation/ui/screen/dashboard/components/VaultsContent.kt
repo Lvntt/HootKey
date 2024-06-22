@@ -1,6 +1,8 @@
 package dev.banger.hootkey.presentation.ui.screen.dashboard.components
 
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -38,6 +40,7 @@ fun LazyListScope.vaultsContent(
             },
             onEditClick = {},
             onDeleteClick = {})
+        Spacer(modifier = Modifier.height(12.dp))
     }
     when (state.vaultsPageLoadingState) {
         LceState.LOADING -> item {
