@@ -4,7 +4,7 @@ data class UiCategory(
     val id: String,
     val icon: UiCategoryIcon,
     val name: String,
-    val template: UiTemplate,
+    val template: UiEditableTemplate,
     val vaultsAmount: Int,
     val isCustom: Boolean
 )
