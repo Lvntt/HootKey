@@ -26,6 +26,7 @@ import androidx.compose.ui.draw.paint
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
@@ -64,6 +65,7 @@ fun DashboardScreen(
         LocalMinimumInteractiveComponentEnforcement provides false
     ) {
         val configuration = LocalConfiguration.current
+        val clipboardManager = LocalClipboardManager.current
         val defaultOffset = -with(LocalDensity.current) { 68.dp.toPx() }
         var bottomSheetBackgroundYOffset by remember { mutableFloatStateOf(defaultOffset) }
         var bottomSheetStartPosY by remember { mutableFloatStateOf(-Float.MAX_VALUE) }
@@ -132,7 +134,7 @@ fun DashboardScreen(
 
             vaultsContent(stateProvider = { state }, onLoadNextPageRequested = {
                 viewModel.dispatch(DashboardIntent.LoadNextVaultsPage)
-            })
+            }, clipboardManager = clipboardManager)
 
             item {
                 Spacer(modifier = Modifier

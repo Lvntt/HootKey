@@ -1,12 +1,12 @@
 package dev.banger.hootkey.presentation.ui.screen.dashboard.components
 
-import android.content.ClipData
-import android.content.ClipboardManager
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ClipboardManager
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import dev.banger.hootkey.presentation.entity.LceState
 import dev.banger.hootkey.presentation.state.dashboard.DashboardState
@@ -31,14 +31,10 @@ fun LazyListScope.vaultsContent(
             login = vault.login ?: "",
             onClick = {},
             onCopyClick = {
-                val clipData = if (!vault.password.isNullOrBlank()) ClipData.newPlainText(
-                    "password", vault.password
-                ) else if (!vault.login.isNullOrBlank()) ClipData.newPlainText(
-                    "login", vault.login
-                ) else ClipData.newPlainText(
-                    "name", vault.name
-                )
-                clipboardManager.setPrimaryClip(clipData)
+                val clipData = if (!vault.password.isNullOrBlank()) vault.password
+                else if (!vault.login.isNullOrBlank()) vault.login
+                else vault.name
+                clipboardManager.setText(AnnotatedString(clipData))
             },
             onEditClick = {},
             onDeleteClick = {})
