@@ -5,5 +5,6 @@ data class VaultShort(
     val name: String,
     val login: String?,
     val link: String?,
+    val password: String?,
     val isFavourite: Boolean,
 )
