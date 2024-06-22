@@ -53,6 +53,7 @@ import dev.banger.hootkey.presentation.ui.theme.Secondary70
 import dev.banger.hootkey.presentation.ui.theme.TypeM16
 import dev.banger.hootkey.presentation.ui.theme.TypeR12
 import dev.banger.hootkey.presentation.ui.theme.White
+import dev.banger.hootkey.presentation.ui.utils.gradientTint
 
 enum class SwipePosition { Swiped, NotSwiped }
 
@@ -155,7 +156,16 @@ fun VaultShortItem(
                         .padding(all = 14.dp)
                         .clip(RoundedCornerShape(4.dp)),
                     imageOptions = ImageOptions(contentScale = ContentScale.Fit),
-                    imageModel = iconModel
+                    imageModel = iconModel,
+                    failure = {
+                        Icon(
+                            modifier = Modifier
+                                .size(32.dp)
+                                .gradientTint(Primary),
+                            imageVector = ImageVector.vectorResource(R.drawable.vault_icon),
+                            contentDescription = null
+                        )
+                    }
                 )
             }
             Spacer(modifier = Modifier.width(14.dp))
