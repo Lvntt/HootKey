@@ -1,5 +1,7 @@
 package dev.banger.hootkey.presentation.ui.screen.dashboard.components
 
+import android.content.ClipData
+import android.content.ClipboardManager
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListScope
@@ -12,7 +14,9 @@ import dev.banger.hootkey.presentation.ui.common.VaultErrorItem
 import dev.banger.hootkey.presentation.ui.common.VaultShortItem
 
 fun LazyListScope.vaultsContent(
-    stateProvider: () -> DashboardState, onLoadNextPageRequested: () -> Unit
+    stateProvider: () -> DashboardState,
+    onLoadNextPageRequested: () -> Unit,
+    clipboardManager: ClipboardManager
 ) {
     val state = stateProvider()
     itemsIndexed(items = state.vaults) { index, vault ->
@@ -26,7 +30,16 @@ fun LazyListScope.vaultsContent(
             name = vault.name,
             login = vault.login ?: "",
             onClick = {},
-            onCopyClick = {},
+            onCopyClick = {
+                val clipData = if (!vault.password.isNullOrBlank()) ClipData.newPlainText(
+                    "password", vault.password
+                ) else if (!vault.login.isNullOrBlank()) ClipData.newPlainText(
+                    "login", vault.login
+                ) else ClipData.newPlainText(
+                    "name", vault.name
+                )
+                clipboardManager.setPrimaryClip(clipData)
+            },
             onEditClick = {},
             onDeleteClick = {})
     }

@@ -112,15 +112,18 @@ class VaultRepositoryImpl(
             val category = categories[vault.categoryId]
             val linkIndex = category?.linkIndex ?: -1
             val loginIndex = category?.loginIndex ?: -1
+            val passwordIndex = category?.passwordIndex ?: -1
             val login = fieldValue(userId, id, linkIndex) { it.isNotEmpty() }
             val link = fieldValue(userId, id, loginIndex) { it.isNotEmpty() }
+            val password = fieldValue(userId, id, passwordIndex) { it.isNotEmpty() }
 
             VaultShort(
                 id = id,
                 name = vault.name,
                 isFavourite = vault.isFavourite,
                 login = login,
-                link = link
+                link = link,
+                password = password
             )
         }
 
@@ -153,17 +156,20 @@ class VaultRepositoryImpl(
             .toObject<CategoryModel>()
         val linkIndex = category?.linkIndex ?: -1
         val loginIndex = category?.loginIndex ?: -1
+        val passwordIndex = category?.passwordIndex ?: -1
 
         val convertedVaults = vaultModels.map { (id, vault) ->
             val login = fieldValue(userId, id, linkIndex) { it.isNotEmpty() }
             val link = fieldValue(userId, id, loginIndex) { it.isNotEmpty() }
+            val password = fieldValue(userId, id, passwordIndex) { it.isNotEmpty() }
 
             VaultShort(
                 id = id,
                 name = vault.name,
                 isFavourite = vault.isFavourite,
                 login = login,
-                link = link
+                link = link,
+                password = password
             )
         }
 

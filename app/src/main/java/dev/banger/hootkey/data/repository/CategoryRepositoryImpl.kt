@@ -110,13 +110,16 @@ class CategoryRepositoryImpl(
             template.fields.firstOrNull { field -> field.type == FieldType.LOGIN }?.index ?: -1
         val linkIndex =
             template.fields.firstOrNull { field -> field.type == FieldType.LINK }?.index ?: -1
+        val passwordIndex =
+            template.fields.firstOrNull { field -> field.type == FieldType.PASSWORD }?.index ?: -1
 
         val categoryModel = CategoryModel(
             name = crypto.encryptBase64(category.name),
             icon = category.icon.ordinal,
             templateId = category.templateId,
             loginIndex = loginIndex,
-            linkIndex = linkIndex
+            linkIndex = linkIndex,
+            passwordIndex = passwordIndex
         )
         val categoryId = fireStore.categoryCollection(userId).add(categoryModel).await().id
 
