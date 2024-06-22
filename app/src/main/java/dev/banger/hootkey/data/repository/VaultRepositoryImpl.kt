@@ -25,6 +25,8 @@ import dev.banger.hootkey.domain.entity.vault.VaultNotFoundException
 import dev.banger.hootkey.domain.entity.vault.VaultShort
 import dev.banger.hootkey.domain.entity.vault.VaultsPage
 import dev.banger.hootkey.domain.repository.CategoryRepository
+import dev.banger.hootkey.domain.repository.VaultId
+import dev.banger.hootkey.domain.repository.VaultName
 import dev.banger.hootkey.domain.repository.VaultRepository
 import kotlinx.coroutines.tasks.await
 
@@ -86,6 +88,13 @@ class VaultRepositoryImpl(
                 name = field.name, type = field.type, value = value
             )
         }
+
+    override suspend fun getAllNames(): Map<VaultName, VaultId> {
+        val userId = auth.currentUser?.uid ?: throw UnauthorizedException()
+        return fireStore.vaultCollection(userId).get().await().associate { vaultSnapshot ->
+            vaultSnapshot.toObject<VaultModel>().name to vaultSnapshot.id
+        }
+    }
 
     override suspend fun getAll(filter: FilterType, query: String?, pageKey: String?): VaultsPage {
         val userId = auth.currentUser?.uid ?: throw UnauthorizedException()
