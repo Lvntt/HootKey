@@ -2,12 +2,15 @@ package dev.banger.hootkey.presentation.ui.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import dev.banger.hootkey.Constants.CATEGORY_ICON_KEY
 import dev.banger.hootkey.Constants.CREATED_CATEGORY_ID_KEY
 import dev.banger.hootkey.Constants.CREATED_TEMPLATE_ID_KEY
 import dev.banger.hootkey.Constants.TEMPLATE_KEY
+import dev.banger.hootkey.presentation.ui.navigation.NavigationDestinations.NULL_ARG_VALUE
 import dev.banger.hootkey.presentation.ui.screen.TestScreen
 import dev.banger.hootkey.presentation.ui.screen.auth.AccountAuthScreen
 import dev.banger.hootkey.presentation.ui.screen.auth.AuthScreen
@@ -19,6 +22,7 @@ import dev.banger.hootkey.presentation.ui.screen.new_category.NewCategoryScreen
 import dev.banger.hootkey.presentation.ui.screen.new_template.NewTemplateScreen
 import dev.banger.hootkey.presentation.ui.screen.new_vault.NewVaultScreen
 import dev.banger.hootkey.presentation.ui.screen.templates.TemplatesScreen
+import dev.banger.hootkey.presentation.ui.screen.vaults_list.VaultsListScreen
 
 @Composable
 fun AppNavigation(navHostController: NavHostController) {
@@ -55,7 +59,23 @@ fun AppNavigation(navHostController: NavHostController) {
         composable(NavigationDestinations.DASHBOARD) {
             DashboardScreen(onAddNewVault = {
                 navHostController.navigate(NavigationDestinations.NEW_VAULT)
+            }, onCategorySelected = { id, name ->
+                navHostController.navigate("${NavigationDestinations.VAULTS}/${id ?: NULL_ARG_VALUE }/${name ?: NULL_ARG_VALUE }")
             })
+        }
+        composable("${NavigationDestinations.VAULTS}/{${NavigationDestinations.VAULT_CATEGORY_ID_ARG}}/{${NavigationDestinations.VAULT_CATEGORY_NAME_ARG}}", arguments = listOf(
+            navArgument(NavigationDestinations.VAULT_CATEGORY_ID_ARG) {
+                type = NavType.StringType
+            },
+            navArgument(NavigationDestinations.VAULT_CATEGORY_NAME_ARG) {
+                type = NavType.StringType
+            }
+        )) { backStackEntry ->
+            val categoryId = backStackEntry.arguments?.getString(NavigationDestinations.VAULT_CATEGORY_ID_ARG).takeIf { it != NULL_ARG_VALUE }
+            val categoryName = backStackEntry.arguments?.getString(NavigationDestinations.VAULT_CATEGORY_NAME_ARG).takeIf { it != NULL_ARG_VALUE }
+            VaultsListScreen(categoryName, categoryId) {
+                navHostController.popBackStack()
+            }
         }
         composable(NavigationDestinations.NEW_VAULT) {
             NewVaultScreen(

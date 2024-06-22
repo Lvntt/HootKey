@@ -67,7 +67,7 @@ import androidx.compose.ui.unit.dp
 import dev.banger.hootkey.R
 import dev.banger.hootkey.presentation.ui.common.textfields.SearchTextField
 import dev.banger.hootkey.presentation.ui.screen.dashboard.components.DashboardCategory
-import dev.banger.hootkey.presentation.ui.screen.dashboard.components.VaultShortItem
+import dev.banger.hootkey.presentation.ui.common.VaultShortItem
 import dev.banger.hootkey.presentation.ui.theme.Gray
 import dev.banger.hootkey.presentation.ui.theme.Primary
 import dev.banger.hootkey.presentation.ui.theme.Secondary
@@ -77,11 +77,16 @@ import dev.banger.hootkey.presentation.ui.theme.TypeM12
 import dev.banger.hootkey.presentation.ui.theme.TypeM20
 import dev.banger.hootkey.presentation.ui.theme.TypeR14
 import dev.banger.hootkey.presentation.ui.theme.White
+import dev.banger.hootkey.presentation.ui.utils.noRippleClickable
+
+typealias Id = String?
+typealias Name = String?
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardScreen(
-    onAddNewVault: () -> Unit
+    onAddNewVault: () -> Unit,
+    onCategorySelected: (Id, Name) -> Unit,
 ) {
     CompositionLocalProvider(
         LocalOverscrollConfiguration provides null,
@@ -215,11 +220,12 @@ fun DashboardScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(48.dp)
-                        .padding(start = 20.dp, end = 20.dp),
+                        .padding(start = 20.dp, end = 20.dp)
+                        .noRippleClickable { onCategorySelected(null, null) },
                     value = "",
                     onValueChange = {},
                     placeholder = stringResource(R.string.search_vaults),
-                    enabled = false
+                    enabled = false,
                 )
                 Spacer(modifier = Modifier
                     .height(20.dp)
@@ -237,7 +243,9 @@ fun DashboardScreen(
                         DashboardCategory(iconResId = R.drawable.finance_icon,
                             title = "Finance $it",
                             passwordCount = 5 * it,
-                            onClick = {})
+                            onClick = {
+                                onCategorySelected("id", "Finance $it")
+                            })
                     }
                 }
             }
