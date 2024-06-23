@@ -83,9 +83,9 @@ fun AppNavigation(navHostController: NavHostController) {
             val categoryName =
                 backStackEntry.arguments?.getString(NavigationDestinations.VAULT_CATEGORY_NAME_ARG)
                     .takeIf { it != NULL_ARG_VALUE }
-            VaultsListScreen(categoryName, categoryId) {
+            VaultsListScreen(categoryName, categoryId, {
                 navHostController.popBackStack()
-            }
+            })
         }
         composable(NavigationDestinations.NEW_VAULT) {
             NewVaultScreen(

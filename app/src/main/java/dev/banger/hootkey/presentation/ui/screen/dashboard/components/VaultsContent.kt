@@ -13,6 +13,7 @@ import androidx.compose.ui.unit.dp
 import dev.banger.hootkey.domain.entity.vault.VaultShort
 import dev.banger.hootkey.presentation.entity.LceState
 import dev.banger.hootkey.presentation.state.dashboard.DashboardState
+import dev.banger.hootkey.presentation.ui.common.ListLoadingContent
 import dev.banger.hootkey.presentation.ui.common.VaultErrorItem
 import dev.banger.hootkey.presentation.ui.common.VaultShortItem
 import dev.banger.hootkey.presentation.ui.screen.dashboard.DashboardListContentTypes.ERROR_VAULTS
@@ -52,7 +53,7 @@ inline fun LazyListScope.vaultsContent(
     }
     when (stateProvider().vaultsPageLoadingState) {
         LceState.LOADING -> item(contentType = LOADING_CONTENT) {
-            DashboardLoadingContent()
+            ListLoadingContent()
         }
 
         LceState.CONTENT -> Unit
