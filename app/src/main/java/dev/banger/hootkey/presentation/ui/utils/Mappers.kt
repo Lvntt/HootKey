@@ -14,6 +14,8 @@ import dev.banger.hootkey.domain.entity.template.Template
 import dev.banger.hootkey.domain.entity.template.TemplateField
 import dev.banger.hootkey.domain.entity.template.TemplateShort
 import dev.banger.hootkey.domain.entity.vault.CreateVaultRequest
+import dev.banger.hootkey.domain.entity.vault.EditVaultRequest
+import dev.banger.hootkey.domain.entity.vault.FieldValue
 import dev.banger.hootkey.domain.entity.vault.Index
 import dev.banger.hootkey.domain.entity.vault.Value
 import dev.banger.hootkey.presentation.entity.UiCategory
@@ -27,6 +29,7 @@ import dev.banger.hootkey.presentation.entity.UiPasswordOptions
 import dev.banger.hootkey.presentation.entity.UiPasswordStrength
 import dev.banger.hootkey.presentation.entity.UiTemplateField
 import dev.banger.hootkey.presentation.entity.UiTemplateShort
+import dev.banger.hootkey.presentation.state.edit_vault.EditVaultState
 import dev.banger.hootkey.presentation.state.new_category.NewCategoryState
 import dev.banger.hootkey.presentation.state.new_template.NewTemplateState
 import dev.banger.hootkey.presentation.state.new_vault.NewVaultState
@@ -130,6 +133,39 @@ fun Template.toUi() = with(this) {
     )
 }
 
+fun Template.toUi(fieldValues: Map<Index, FieldValue>) = with(this) {
+    val editableFields = mutableListOf<UiEditableTemplateFieldShort>()
+
+    val sortedKeys = fieldValues.keys.sorted()
+    sortedKeys.forEach { key ->
+        val field = fields[key]
+        var value = fieldValues[key]?.value ?: EMPTY_STRING
+        var valueMillis: Long? = null
+
+        if (field.type == FieldType.DATE) {
+            valueMillis = value.toLong()
+            value = formatDate(valueMillis)
+        }
+
+        val uiEditableTemplateFieldShort = UiEditableTemplateFieldShort(
+            name = field.name,
+            type = field.type.toUi(),
+            value = value,
+            valueMillis = valueMillis
+        )
+        editableFields.add(uiEditableTemplateFieldShort)
+    }
+
+    UiEditableTemplate(
+        id = id,
+        name = name,
+        isCustom = isCustom,
+        fields = editableFields,
+        // TODO useless field, to be removed
+        fieldValues = mapOf()
+    )
+}
+
 fun CategoryIcon.toUi() = when (this) {
     CategoryIcon.SOCIAL_MEDIA -> UiCategoryIcon.SOCIAL_MEDIA
     CategoryIcon.EMAIL -> UiCategoryIcon.EMAIL
@@ -145,6 +181,17 @@ fun Category.toUi() = with(this) {
         icon = icon.toUi(),
         name = name,
         template = template.toUi(),
+        vaultsAmount = vaultsAmount,
+        isCustom = isCustom
+    )
+}
+
+fun Category.toUi(fieldValues: Map<Index, FieldValue>) = with(this) {
+    UiCategory(
+        id = id,
+        icon = icon.toUi(),
+        name = name,
+        template = template.toUi(fieldValues),
         vaultsAmount = vaultsAmount,
         isCustom = isCustom
     )
@@ -167,15 +214,35 @@ fun NewVaultState.toCreateVaultRequest() = with(this) {
     category.template.fields.forEachIndexed { index, fieldValue ->
         when (fieldValue.type) {
             UiFieldType.DATE -> {
-                val value = fieldValue.valueMillis
-                    ?: throw IllegalStateException("field with type DATE cannot have null valueMillis")
-                fieldValues[index] = value.toString()
+                val value = fieldValue.valueMillis?.toString() ?: EMPTY_STRING
+                fieldValues[index] = value
             }
             else -> fieldValues[index] = fieldValue.value
         }
     }
 
     CreateVaultRequest(
+        categoryId = categoryId,
+        name = name,
+        fieldValues = fieldValues
+    )
+}
+
+fun EditVaultState.toEditVaultRequest() = with(this) {
+    val categoryId = category?.id ?: throw IllegalStateException("category cannot be null")
+    val fieldValues = mutableMapOf<Index, Value>()
+    category.template.fields.forEachIndexed { index, fieldValue ->
+        when (fieldValue.type) {
+            UiFieldType.DATE -> {
+                val value = fieldValue.valueMillis?.toString() ?: EMPTY_STRING
+                fieldValues[index] = value
+            }
+            else -> fieldValues[index] = fieldValue.value
+        }
+    }
+
+    EditVaultRequest(
+        vaultId = vaultId,
         categoryId = categoryId,
         name = name,
         fieldValues = fieldValues

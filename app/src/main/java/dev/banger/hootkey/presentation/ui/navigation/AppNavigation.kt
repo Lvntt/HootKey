@@ -18,6 +18,7 @@ import dev.banger.hootkey.presentation.ui.screen.auth.AccountAuthScreen
 import dev.banger.hootkey.presentation.ui.screen.auth.AuthScreen
 import dev.banger.hootkey.presentation.ui.screen.categories.CategoriesScreen
 import dev.banger.hootkey.presentation.ui.screen.dashboard.DashboardScreen
+import dev.banger.hootkey.presentation.ui.screen.edit_vault.EditVaultScreen
 import dev.banger.hootkey.presentation.ui.screen.launch.LaunchScreen
 import dev.banger.hootkey.presentation.ui.screen.new_category.CategoryIconsScreen
 import dev.banger.hootkey.presentation.ui.screen.new_category.NewCategoryScreen
@@ -66,6 +67,8 @@ fun AppNavigation(navHostController: NavHostController) {
                     navHostController.navigate(NavigationDestinations.NEW_VAULT)
                 }, onCategorySelected = { id, name ->
                     navHostController.navigate("${NavigationDestinations.VAULTS}/${id ?: NULL_ARG_VALUE}/${name ?: NULL_ARG_VALUE}")
+                }, onEditClick = { id ->
+                    navHostController.navigate("${NavigationDestinations.EDIT_VAULT}/$id")
                 })
         }
         composable("${NavigationDestinations.VAULTS}/{${NavigationDestinations.VAULT_CATEGORY_ID_ARG}}/{${NavigationDestinations.VAULT_CATEGORY_NAME_ARG}}",
@@ -199,6 +202,32 @@ fun AppNavigation(navHostController: NavHostController) {
                 }
             )
         }
+
+        composable(
+            route = "${NavigationDestinations.EDIT_VAULT}/{${NavigationDestinations.VAULT_ID_ARG}}",
+            arguments = listOf(
+                navArgument(NavigationDestinations.VAULT_ID_ARG) {
+                    type = NavType.StringType
+                }
+            )
+        ) { backStackEntry ->
+            val vaultId = backStackEntry.arguments?.getString(NavigationDestinations.VAULT_ID_ARG)
+                ?: throw IllegalStateException("could not get vaultId for EditVault")
+
+            EditVaultScreen(
+                vaultId = vaultId,
+                savedStateHandleProvider = {
+                    navHostController.currentBackStackEntry?.savedStateHandle
+                },
+                onNavigateBack = {
+                    navHostController.popBackStack()
+                },
+                onNavigateToCategories = {
+                    navHostController.navigate(NavigationDestinations.CATEGORIES)
+                }
+            )
+        }
+
         //TODO FOR TESTING PURPOSES ONLY
         composable(NavigationDestinations.PASSWORD_GENERATOR) {
             TestScreen()

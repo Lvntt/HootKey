@@ -16,6 +16,9 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 
@@ -33,4 +36,11 @@ fun Modifier.noRippleClickable(onClick: () -> Unit): Modifier = this.composed {
         interactionSource = remember { MutableInteractionSource() }) {
         onClick()
     }
+}
+
+fun formatDate(millis: Long): String {
+    val locale = Locale.getDefault()
+    val date = Date(millis)
+    val dateFormat = SimpleDateFormat("dd.MM.yyyy", locale)
+    return dateFormat.format(date)
 }

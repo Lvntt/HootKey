@@ -68,6 +68,7 @@ fun DashboardScreen(
     savedStateHandleProvider: () -> SavedStateHandle?,
     onAddNewVault: () -> Unit,
     onCategorySelected: (Id, Name) -> Unit,
+    onEditClick: (String) -> Unit,
     viewModel: DashboardViewmodel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -176,7 +177,7 @@ fun DashboardScreen(
                 viewModel.dispatch(DashboardIntent.LoadNextVaultsPage)
             }, onDeleteVaultRequested = {
                 viewModel.dispatch(DashboardIntent.OpenDeleteDialog(it))
-            }, clipboardManager = clipboardManager)
+            }, onEditClick = onEditClick, clipboardManager = clipboardManager)
 
             item(contentType = BOTTOM_SPACER) {
                 Spacer(modifier = Modifier

@@ -9,6 +9,8 @@ object NavigationDestinations {
     const val NEW_VAULT = "new_vault"
     const val NEW_TEMPLATE = "new_template"
     const val NEW_CATEGORY = "new_category"
+    const val EDIT_VAULT = "edit_vault"
+    const val VAULT_ID_ARG = "vault_id"
     const val CATEGORY_ICONS = "category_icons"
     const val CATEGORIES = "categories"
     const val TEMPLATES = "templates"
