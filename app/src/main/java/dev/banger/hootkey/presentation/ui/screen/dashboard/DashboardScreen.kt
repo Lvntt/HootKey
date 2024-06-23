@@ -39,6 +39,7 @@ import dev.banger.hootkey.presentation.entity.LceState
 import dev.banger.hootkey.presentation.intent.DashboardIntent
 import dev.banger.hootkey.presentation.ui.common.bottomSheetBackground
 import dev.banger.hootkey.presentation.ui.common.textfields.SearchTextField
+import dev.banger.hootkey.presentation.ui.dialog.AppAlertDialog
 import dev.banger.hootkey.presentation.ui.screen.dashboard.DashboardListContentTypes.BOTTOM_SPACER
 import dev.banger.hootkey.presentation.ui.screen.dashboard.DashboardListContentTypes.FIRST_VAULT_HINT
 import dev.banger.hootkey.presentation.ui.screen.dashboard.DashboardListContentTypes.RECENTLY_USED_HEADER
@@ -79,6 +80,17 @@ fun DashboardScreen(
         var bottomSheetEndPosY by remember { mutableFloatStateOf(0f) }
         var nonBottomSheetContentHeight by remember { mutableFloatStateOf(0f) }
         val listState = rememberLazyListState()
+
+        state.deleteDialogOpenedForVaultId?.let {
+            AppAlertDialog(
+                onDismissRequest = { viewModel.dispatch(DashboardIntent.DismissDeleteDialog) },
+                onPositiveAction = { viewModel.dispatch(DashboardIntent.DeleteVault) },
+                title = stringResource(R.string.are_you_sure),
+                message = stringResource(R.string.delete_vault_message),
+                isLoading = state.isDeletingVault,
+                positiveButtonText = stringResource(R.string.delete),
+            )
+        }
 
         Box(
             modifier = Modifier
@@ -145,6 +157,8 @@ fun DashboardScreen(
 
             vaultsContent(stateProvider = { state }, onLoadNextPageRequested = {
                 viewModel.dispatch(DashboardIntent.LoadNextVaultsPage)
+            }, onDeleteVaultRequested = {
+                viewModel.dispatch(DashboardIntent.OpenDeleteDialog(it))
             }, clipboardManager = clipboardManager)
 
             item(contentType = BOTTOM_SPACER) {

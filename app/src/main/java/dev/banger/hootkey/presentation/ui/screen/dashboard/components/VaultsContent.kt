@@ -21,6 +21,7 @@ import dev.banger.hootkey.presentation.ui.screen.dashboard.DashboardListContentT
 inline fun LazyListScope.vaultsContent(
     crossinline stateProvider: () -> DashboardState,
     crossinline onLoadNextPageRequested: () -> Unit,
+    crossinline onDeleteVaultRequested: (String) -> Unit,
     clipboardManager: ClipboardManager
 ) {
     itemsIndexed(items = stateProvider().vaults,
@@ -43,7 +44,9 @@ inline fun LazyListScope.vaultsContent(
                 clipboardManager.setText(AnnotatedString(clipData))
             },
             onEditClick = {},
-            onDeleteClick = {})
+            onDeleteClick = {
+                onDeleteVaultRequested(vault.id)
+            })
         Spacer(modifier = Modifier.height(12.dp))
     }
     when (stateProvider().vaultsPageLoadingState) {

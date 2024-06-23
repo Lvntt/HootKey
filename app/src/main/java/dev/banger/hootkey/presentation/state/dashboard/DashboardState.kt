@@ -12,5 +12,7 @@ data class DashboardState(
     val vaultsPageLoadingState: LceState = LceState.CONTENT,
     val vaults: List<VaultShort> = emptyList(),
     val nextPageKey: String? = null,
-    val isEndReached: Boolean = false
+    val isEndReached: Boolean = false,
+    val deleteDialogOpenedForVaultId: String? = null,
+    val isDeletingVault: Boolean = false
 )

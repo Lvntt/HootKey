@@ -34,7 +34,41 @@ class DashboardViewmodel(
         when (intent) {
             is DashboardIntent.LoadCategories -> loadCategories()
             is DashboardIntent.LoadNextVaultsPage -> loadNextVaultsPage()
+            DashboardIntent.DeleteVault -> deleteVault()
+            DashboardIntent.DismissDeleteDialog -> dismissDeleteDialog()
+            is DashboardIntent.OpenDeleteDialog -> openDeleteDialog(intent.vaultId)
         }
+    }
+
+    private fun deleteVault() {
+        val vaultIdToDelete = _state.value.deleteDialogOpenedForVaultId ?: return
+        if (_state.value.isDeletingVault) return
+        _state.update { it.copy(isDeletingVault = true) }
+        viewModelScope.launch(defaultDispatcher) {
+            runCatching {
+                vaultRepository.delete(vaultIdToDelete)
+            }.onSuccess {
+                _state.update {
+                    it.copy(
+                        isDeletingVault = false,
+                        vaults = it.vaults.filter { vault -> vault.id != vaultIdToDelete })
+                }
+                dismissDeleteDialog()
+            }.onFailure { throwable ->
+                if (throwable is CancellationException) throw throwable
+                _state.update { it.copy(isDeletingVault = false) }
+            }
+        }
+    }
+
+    private fun dismissDeleteDialog() {
+        if (_state.value.isDeletingVault) return
+        _state.update { it.copy(deleteDialogOpenedForVaultId = null) }
+    }
+
+    private fun openDeleteDialog(vaultId: String) {
+        if (_state.value.deleteDialogOpenedForVaultId != null || _state.value.isDeletingVault) return
+        _state.update { it.copy(deleteDialogOpenedForVaultId = vaultId) }
     }
 
     private fun loadNextVaultsPage() {
