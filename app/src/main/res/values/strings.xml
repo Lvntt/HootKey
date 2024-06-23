@@ -41,6 +41,7 @@
     <string name="create_template">Create template</string>
     <string name="create_category">Create category</string>
     <string name="create_vault">Create vault</string>
+    <string name="save_changes">Save changes</string>
     <string name="new_field">New field</string>
     <string name="enter_field_name">Enter field name</string>
     <string name="type">Type</string>
@@ -57,6 +58,7 @@
     <string name="new_category_error">Error creating new category</string>
     <string name="selected_category_fetch_error">Error fetching selected category</string>
     <string name="new_vault_error">Error creating new vault</string>
+    <string name="edit_vault_error">Error editing new vault</string>
     <string name="fetching_templates_error">Error fetching templates</string>
     <string name="fetching_categories_error">Error fetching categories</string>
     <string name="invalid_email">Valid email is required</string>
@@ -81,6 +83,7 @@
     <string name="press_to_refresh">Press to refresh</string>
     <string name="an_error_occurred">An error occurred</string>
     <string name="error_loading_categories">Error loading categories</string>
+    <string name="error_loading_vault">Error loading vault</string>
     <string name="first_vault_title">Create your first vault!</string>
     <string name="first_vault_subtitle">Press the arrow on the right</string>
     <string name="choose">Choose</string>

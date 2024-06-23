@@ -98,8 +98,10 @@ class VaultRepositoryImpl(
 
     override suspend fun getShortByIds(ids: List<String>): List<VaultShort> {
         val userId = auth.currentUser?.uid ?: throw UnauthorizedException()
-        val vaults = fireStore.vaultCollection(userId).whereIn(FieldPath.documentId(), ids).get().await()
-        val vaultModels = vaults.map { vaultSnapshot -> vaultSnapshot.id to vaultSnapshot.toObject<VaultModel>() }
+        val vaults =
+            fireStore.vaultCollection(userId).whereIn(FieldPath.documentId(), ids).get().await()
+        val vaultModels =
+            vaults.map { vaultSnapshot -> vaultSnapshot.id to vaultSnapshot.toObject<VaultModel>() }
 
         val categories = vaultModels.map { (_, vault) -> vault.categoryId }.distinct()
             .associateWith { categoryId ->
@@ -237,7 +239,9 @@ class VaultRepositoryImpl(
             ?: throw CategoryDoesNotExistException("Category with id ${vault.categoryId} does not exist")
         val vaultFields =
             fireStore.fieldCollection(userId, id).get().await().associate { fieldSnapshot ->
-                fieldSnapshot.id.toInt() to fieldSnapshot.toObject<VaultFieldModel>().value
+                fieldSnapshot.id.toInt() to fieldSnapshot.toObject<VaultFieldModel>().value.decryptWhen(
+                    crypto
+                ) { it.isNotEmpty() }
             }
 
         return Vault(
