@@ -126,7 +126,8 @@ class VaultRepositoryImpl(
                 isFavourite = vault.isFavourite,
                 login = login,
                 link = link,
-                password = password
+                password = password,
+                categoryId = vault.categoryId
             )
         }
 
@@ -169,7 +170,8 @@ class VaultRepositoryImpl(
                 isFavourite = vault.isFavourite,
                 login = login,
                 link = link,
-                password = password
+                password = password,
+                categoryId = vault.categoryId
             )
         }
 
@@ -215,7 +217,8 @@ class VaultRepositoryImpl(
                 isFavourite = vault.isFavourite,
                 login = login,
                 link = link,
-                password = password
+                password = password,
+                categoryId = categoryId
             )
         }
 
