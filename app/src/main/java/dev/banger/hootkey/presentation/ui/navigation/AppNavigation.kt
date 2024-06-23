@@ -9,6 +9,8 @@ import androidx.navigation.navArgument
 import dev.banger.hootkey.Constants.CATEGORY_ICON_KEY
 import dev.banger.hootkey.Constants.CREATED_CATEGORY_ID_KEY
 import dev.banger.hootkey.Constants.CREATED_TEMPLATE_ID_KEY
+import dev.banger.hootkey.Constants.DELETED_VAULT_CATEGORIES_KEY
+import dev.banger.hootkey.Constants.DELETED_VAULT_IDS_KEY
 import dev.banger.hootkey.Constants.TEMPLATE_KEY
 import dev.banger.hootkey.Constants.VAULT_CATEGORY_KEY
 import dev.banger.hootkey.Constants.VAULT_KEY
@@ -86,8 +88,20 @@ fun AppNavigation(navHostController: NavHostController) {
             val categoryName =
                 backStackEntry.arguments?.getString(NavigationDestinations.VAULT_CATEGORY_NAME_ARG)
                     .takeIf { it != NULL_ARG_VALUE }
-            VaultsListScreen(categoryName, categoryId, {
+            VaultsListScreen(categoryName, categoryId, { id ->
+                navHostController.navigate("${NavigationDestinations.EDIT_VAULT}/$id")
+            }, { deletedVaultIds, deletedVaultCategories ->
                 navHostController.popBackStack()
+                if (deletedVaultIds.isNotEmpty()) {
+                    navHostController.currentBackStackEntry
+                        ?.savedStateHandle
+                        ?.set(DELETED_VAULT_IDS_KEY, deletedVaultIds)
+                }
+                if (deletedVaultCategories.isNotEmpty()) {
+                    navHostController.currentBackStackEntry
+                        ?.savedStateHandle
+                        ?.set(DELETED_VAULT_CATEGORIES_KEY, deletedVaultCategories)
+                }
             })
         }
         composable(NavigationDestinations.NEW_VAULT) {

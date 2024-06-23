@@ -42,8 +42,40 @@ class DashboardViewmodel(
             is DashboardIntent.OpenDeleteDialog -> openDeleteDialog(intent.vault)
             is DashboardIntent.AddNewVault -> addNewVault(intent.vaultId)
             is DashboardIntent.IncrementCategoryVaultsCount -> incrementCategoryVaultsCount(intent.categoryId)
+            is DashboardIntent.DecrementCategoryVaultsCount -> decrementCategoryVaultsCount(intent.categoryIds)
+            is DashboardIntent.RemoveDeletedVaults -> removeDeletedVaults(intent.vaultIds)
         }
     }
+
+    private fun decrementCategoryVaultsCount(categoryIds: List<String>) {
+        viewModelScope.launch(defaultDispatcher) {
+            runCatching {
+                _state.update {
+                    it.copy(
+                        categories = it.categories.map { category ->
+                            category.copy(
+                                vaultsAmount = category.vaultsAmount - categoryIds.count { categoryId -> categoryId == category.id }
+                            )
+                        }.sortedWith(
+                            compareByDescending<UiCategoryShort> { category -> category.vaultsAmount }
+                                .thenBy { category -> category.name }
+                        )
+                    )
+                }
+            }
+        }
+    }
+
+    private fun removeDeletedVaults(vaultIds: List<String>) {
+        viewModelScope.launch {
+            runCatching {
+                _state.update {
+                    it.copy(vaults = it.vaults.filter { vault -> vault.id !in vaultIds })
+                }
+            }
+        }
+    }
+
 
     private fun addNewVault(vaultId: String) {
         viewModelScope.launch(defaultDispatcher) {

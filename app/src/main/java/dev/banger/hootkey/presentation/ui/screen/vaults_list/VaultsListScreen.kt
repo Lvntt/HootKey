@@ -1,5 +1,6 @@
 package dev.banger.hootkey.presentation.ui.screen.vaults_list
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
@@ -34,6 +35,7 @@ import dev.banger.hootkey.presentation.ui.common.VaultErrorItem
 import dev.banger.hootkey.presentation.ui.common.VaultShortItem
 import dev.banger.hootkey.presentation.ui.common.textfields.SearchTextField
 import dev.banger.hootkey.presentation.ui.common.topbar.HootKeyTopBar
+import dev.banger.hootkey.presentation.ui.dialog.AppAlertDialog
 import dev.banger.hootkey.presentation.ui.screen.vaults_list.VaultsListContentTypes.ERROR_VAULTS
 import dev.banger.hootkey.presentation.ui.screen.vaults_list.VaultsListContentTypes.FILTER_CHIPS
 import dev.banger.hootkey.presentation.ui.screen.vaults_list.VaultsListContentTypes.LOADING_CONTENT
@@ -46,17 +48,36 @@ import dev.banger.hootkey.presentation.viewmodel.VaultsListViewModel
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 
+typealias DeletedVaultIds = List<String>
+typealias DeletedVaultCategories = List<String>
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VaultsListScreen(
     categoryName: String? = null,
     categoryId: String? = null,
-    onNavigateBack: () -> Unit,
+    onEditClick: (String) -> Unit,
+    onNavigateBack: (DeletedVaultIds, DeletedVaultCategories) -> Unit,
     viewModel: VaultsListViewModel = koinViewModel(parameters = { parametersOf(categoryId ?: "") })
 ) {
     val query by viewModel.searchQuery.collectAsStateWithLifecycle()
     val state by viewModel.state.collectAsStateWithLifecycle()
     val clipboardManager = LocalClipboardManager.current
+
+    BackHandler {
+        onNavigateBack(state.deletedVaultIds, state.deletedVaultCategories)
+    }
+
+    state.deleteDialogOpenedForVault?.let {
+        AppAlertDialog(
+            onDismissRequest = { viewModel.dispatch(VaultsListIntent.DismissDeleteDialog) },
+            onPositiveAction = { viewModel.dispatch(VaultsListIntent.DeleteVault) },
+            title = stringResource(R.string.are_you_sure),
+            message = stringResource(R.string.delete_vault_message),
+            isLoading = state.isDeletingVault,
+            positiveButtonText = stringResource(R.string.delete),
+        )
+    }
 
     CompositionLocalProvider(
         LocalMinimumInteractiveComponentEnforcement provides false
@@ -68,7 +89,9 @@ fun VaultsListScreen(
                 focusManager.clearFocus()
             }, topBar = {
             HootKeyTopBar(
-                onNavigateBack = onNavigateBack,
+                onNavigateBack = {
+                    onNavigateBack(state.deletedVaultIds, state.deletedVaultCategories)
+                },
                 title = categoryName ?: stringResource(id = R.string.my_vaults)
             )
         }) { padding ->
@@ -128,8 +151,8 @@ fun VaultsListScreen(
                             else vault.name
                             clipboardManager.setText(AnnotatedString(clipData))
                         },
-                        onEditClick = {},
-                        onDeleteClick = {})
+                        onEditClick = { onEditClick(vault.id) },
+                        onDeleteClick = { viewModel.dispatch(VaultsListIntent.OpenDeleteDialog(vault)) })
                     Spacer(modifier = Modifier.height(12.dp))
                 }
                 when (state.vaultsPageLoadingState) {

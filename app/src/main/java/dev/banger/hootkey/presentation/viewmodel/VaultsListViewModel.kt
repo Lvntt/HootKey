@@ -2,6 +2,7 @@ package dev.banger.hootkey.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dev.banger.hootkey.domain.entity.vault.VaultShort
 import dev.banger.hootkey.domain.repository.VaultRepository
 import dev.banger.hootkey.presentation.entity.LceState
 import dev.banger.hootkey.presentation.entity.UiFilterType
@@ -46,7 +47,44 @@ class VaultsListViewModel(
             is VaultsListIntent.ChangeFilterType -> changeFilterType(intent.filterType)
             is VaultsListIntent.ChangeSearchQuery -> _searchQuery.value = intent.query
             VaultsListIntent.LoadVaultsNextPage -> loadVaultsNextPage()
+            is VaultsListIntent.OpenDeleteDialog -> openDeleteDialog(intent.vault)
+            VaultsListIntent.DeleteVault -> deleteVault()
+            VaultsListIntent.DismissDeleteDialog -> dismissDeleteDialog()
         }
+    }
+
+    private fun deleteVault() {
+        val vaultToDelete = _state.value.deleteDialogOpenedForVault ?: return
+        if (_state.value.isDeletingVault) return
+        _state.update { it.copy(isDeletingVault = true) }
+        viewModelScope.launch(defaultDispatcher) {
+            runCatching {
+                vaultRepository.delete(vaultToDelete.id)
+            }.onSuccess {
+                _state.update {
+                    it.copy(
+                        isDeletingVault = false,
+                        vaults = it.vaults.filter { vault -> vault.id != vaultToDelete.id },
+                        deletedVaultIds = it.deletedVaultIds + vaultToDelete.id,
+                        deletedVaultCategories = it.deletedVaultCategories + vaultToDelete.categoryId
+                    )
+                }
+                dismissDeleteDialog()
+            }.onFailure { throwable ->
+                if (throwable is CancellationException) throw throwable
+                _state.update { it.copy(isDeletingVault = false) }
+            }
+        }
+    }
+
+    private fun dismissDeleteDialog() {
+        if (_state.value.isDeletingVault) return
+        _state.update { it.copy(deleteDialogOpenedForVault = null) }
+    }
+
+    private fun openDeleteDialog(vault: VaultShort) {
+        if (_state.value.deleteDialogOpenedForVault != null || _state.value.isDeletingVault) return
+        _state.update { it.copy(deleteDialogOpenedForVault = vault) }
     }
 
     private fun loadVaultsNextPage() {

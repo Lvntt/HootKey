@@ -12,5 +12,9 @@ data class VaultsListState(
     val nextPageKey: String? = null,
     val endReached: Boolean = false,
     val searchQuery: String? = null,
-    val uiFilterType: UiFilterType = UiFilterType.ALL
+    val uiFilterType: UiFilterType = UiFilterType.ALL,
+    val deleteDialogOpenedForVault: VaultShort? = null,
+    val isDeletingVault: Boolean = false,
+    val deletedVaultIds: List<String> = emptyList(),
+    val deletedVaultCategories: List<String> = emptyList()
 )
