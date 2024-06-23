@@ -42,12 +42,14 @@ class DashboardViewmodel(
             is DashboardIntent.OpenDeleteDialog -> openDeleteDialog(intent.vault)
             is DashboardIntent.AddNewVault -> addNewVault(intent.vaultId)
             is DashboardIntent.IncrementCategoryVaultsCount -> incrementCategoryVaultsCount(intent.categoryId)
-            is DashboardIntent.DecrementCategoryVaultsCount -> decrementCategoryVaultsCount(intent.categoryIds)
+            is DashboardIntent.DecrementCategoriesVaultsCount -> decrementCategoriesVaultsCount(intent.categoryIds)
             is DashboardIntent.RemoveDeletedVaults -> removeDeletedVaults(intent.vaultIds)
+            is DashboardIntent.DecrementCategoryVaultsCount -> decrementCategoryVaultsCount(intent.categoryId)
+            is DashboardIntent.UpdateVault -> updateVault(intent.vaultId)
         }
     }
 
-    private fun decrementCategoryVaultsCount(categoryIds: List<String>) {
+    private fun decrementCategoriesVaultsCount(categoryIds: List<String>) {
         viewModelScope.launch(defaultDispatcher) {
             runCatching {
                 _state.update {
@@ -80,9 +82,50 @@ class DashboardViewmodel(
     private fun addNewVault(vaultId: String) {
         viewModelScope.launch(defaultDispatcher) {
             runCatching {
-                vaultRepository.getShortByIds(listOf(vaultId))
+                vaultRepository.getShortById(vaultId)
             }.onSuccess { vault ->
-                _state.update { it.copy(vaults = vault + it.vaults) }
+                _state.update { it.copy(vaults = listOf(vault) + it.vaults) }
+            }.onFailure {
+                if (it is CancellationException) throw it
+            }
+        }
+    }
+
+    private fun updateVault(vaultId: String) {
+        viewModelScope.launch(defaultDispatcher) {
+            runCatching {
+                vaultRepository.getShortById(vaultId)
+            }.onSuccess { vault ->
+                _state.update { it.copy(vaults = it.vaults.map { vaultShort ->
+                    if (vaultShort.id == vaultId) vault
+                    else vaultShort
+                }) }
+            }.onFailure {
+                if (it is CancellationException) throw it
+            }
+        }
+    }
+
+    private fun decrementCategoryVaultsCount(categoryId: String) {
+        viewModelScope.launch(defaultDispatcher) {
+            runCatching {
+                val categoryIndex = _state.value.categories.indexOfFirst { it.id == categoryId }
+                if (categoryIndex != -1) {
+                    val category = _state.value.categories[categoryIndex]
+                    val updatedCategory = category.copy(vaultsAmount = category.vaultsAmount - 1)
+                    _state.update {
+                        it.copy(categories = it.categories.toMutableList()
+                            .apply {
+                                if (updatedCategory.vaultsAmount == 0) removeAt(categoryIndex)
+                                else set(categoryIndex, updatedCategory)
+                            }
+                            .sortedWith(
+                                compareByDescending<UiCategoryShort> { category -> category.vaultsAmount }
+                                    .thenBy { category -> category.name }
+                            )
+                        )
+                    }
+                }
             }.onFailure {
                 if (it is CancellationException) throw it
             }

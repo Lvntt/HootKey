@@ -23,6 +23,8 @@ interface VaultRepository {
         pageKey: String?
     ): VaultsPage
 
+    suspend fun getShortById(id: String): VaultShort
+
     suspend fun getById(id: String): Vault
 
     suspend fun create(vault: CreateVaultRequest): Vault
