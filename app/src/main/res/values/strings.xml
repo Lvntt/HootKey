@@ -86,4 +86,5 @@
     <string name="choose">Choose</string>
     <string name="enter_the_field">Enter the %1$s</string>
     <string name="enter_the_vault_name">Enter the Vault name</string>
+    <string name="hootkey_autofill_service">HootKey Autofill Service</string>
 </resources>
