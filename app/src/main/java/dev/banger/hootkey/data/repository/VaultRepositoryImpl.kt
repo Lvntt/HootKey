@@ -2,6 +2,7 @@ package dev.banger.hootkey.data.repository
 
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentSnapshot
+import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.QuerySnapshot
@@ -21,6 +22,7 @@ import dev.banger.hootkey.domain.entity.vault.FieldValue
 import dev.banger.hootkey.domain.entity.vault.FilterType
 import dev.banger.hootkey.domain.entity.vault.Vault
 import dev.banger.hootkey.domain.entity.vault.VaultCreationException
+import dev.banger.hootkey.domain.entity.vault.VaultNameWithId
 import dev.banger.hootkey.domain.entity.vault.VaultNotFoundException
 import dev.banger.hootkey.domain.entity.vault.VaultShort
 import dev.banger.hootkey.domain.entity.vault.VaultsPage
@@ -43,8 +45,8 @@ class VaultRepositoryImpl(
 
     private fun determinePageSize(filter: FilterType, query: String?) = when {
         query.isNullOrBlank() && filter != FilterType.FAVOURITE -> PAGE_SIZE
-        filter == FilterType.FAVOURITE && query.isNullOrBlank()
-                || filter != FilterType.FAVOURITE && !query.isNullOrBlank() -> PAGE_SIZE_WITH_ONE_NARROW
+        filter == FilterType.FAVOURITE && query.isNullOrBlank() || filter != FilterType.FAVOURITE && !query.isNullOrBlank() -> PAGE_SIZE_WITH_ONE_NARROW
+
         else -> PAGE_SIZE_WITH_TWO_NARROWS
     }
 
@@ -57,7 +59,8 @@ class VaultRepositoryImpl(
     ): QuerySnapshot = fireStore.vaultCollection(userId).orderBy(
         if (filter == FilterType.RECENT) "lastViewedTime" else if (filter == FilterType.LAST_EDIT) "lastEditTime" else "name",
         if (filter == FilterType.RECENT || filter == FilterType.LAST_EDIT) Query.Direction.DESCENDING else Query.Direction.ASCENDING
-    ).additionalFilter().startAfterIfNotNull(pageStartVault).limit(determinePageSize(filter, query)).get().await()
+    ).additionalFilter().startAfterIfNotNull(pageStartVault).limit(determinePageSize(filter, query))
+        .get().await()
 
     private fun QuerySnapshot.toVaultModels(
         query: String?, filter: FilterType
@@ -86,6 +89,49 @@ class VaultRepositoryImpl(
                 name = field.name, type = field.type, value = value
             )
         }
+
+    override suspend fun getAllNames(): List<VaultNameWithId> {
+        val userId = auth.currentUser?.uid ?: throw UnauthorizedException()
+        return fireStore.vaultCollection(userId).get().await().map { vaultSnapshot ->
+            VaultNameWithId(vaultSnapshot.toObject<VaultModel>().name, vaultSnapshot.id)
+        }
+    }
+
+    override suspend fun getShortByIds(ids: List<String>): List<VaultShort> {
+        val userId = auth.currentUser?.uid ?: throw UnauthorizedException()
+        val vaults = fireStore.vaultCollection(userId).whereIn(FieldPath.documentId(), ids).get().await()
+        val vaultModels = vaults.map { vaultSnapshot -> vaultSnapshot.id to vaultSnapshot.toObject<VaultModel>() }
+
+        val categories = vaultModels.map { (_, vault) -> vault.categoryId }.distinct()
+            .associateWith { categoryId ->
+                val customCategory =
+                    fireStore.categoryCollection(userId).document(categoryId).get().await()
+                if (customCategory.exists()) customCategory.toObject<CategoryModel>()
+                else fireStore.commonCategoryCollection().document(categoryId).get().await()
+                    .toObject<CategoryModel>()
+            }
+
+        val convertedVaults = vaultModels.map { (id, vault) ->
+            val category = categories[vault.categoryId]
+            val linkIndex = category?.linkIndex ?: -1
+            val loginIndex = category?.loginIndex ?: -1
+            val passwordIndex = category?.passwordIndex ?: -1
+            val login = fieldValue(userId, id, loginIndex) { it.isNotEmpty() }
+            val link = fieldValue(userId, id, linkIndex) { it.isNotEmpty() }
+            val password = fieldValue(userId, id, passwordIndex) { it.isNotEmpty() }
+
+            VaultShort(
+                id = id,
+                name = vault.name,
+                isFavourite = vault.isFavourite,
+                login = login,
+                link = link,
+                password = password
+            )
+        }
+
+        return convertedVaults
+    }
 
     override suspend fun getAll(filter: FilterType, query: String?, pageKey: String?): VaultsPage {
         val userId = auth.currentUser?.uid ?: throw UnauthorizedException()
@@ -182,11 +228,15 @@ class VaultRepositoryImpl(
 
     override suspend fun getById(id: String): Vault {
         val userId = auth.currentUser?.uid ?: throw UnauthorizedException()
-        val vault = fireStore.vaultCollection(userId).document(id).get().await().toObject<VaultModel>() ?: throw VaultNotFoundException("Vault with id $id does not exist")
-        val category = categoryRepository.getById(vault.categoryId) ?: throw CategoryDoesNotExistException("Category with id ${vault.categoryId} does not exist")
-        val vaultFields = fireStore.fieldCollection(userId, id).get().await().associate { fieldSnapshot ->
-            fieldSnapshot.id.toInt() to fieldSnapshot.toObject<VaultFieldModel>().value
-        }
+        val vault =
+            fireStore.vaultCollection(userId).document(id).get().await().toObject<VaultModel>()
+                ?: throw VaultNotFoundException("Vault with id $id does not exist")
+        val category = categoryRepository.getById(vault.categoryId)
+            ?: throw CategoryDoesNotExistException("Category with id ${vault.categoryId} does not exist")
+        val vaultFields =
+            fireStore.fieldCollection(userId, id).get().await().associate { fieldSnapshot ->
+                fieldSnapshot.id.toInt() to fieldSnapshot.toObject<VaultFieldModel>().value
+            }
 
         return Vault(
             id = id,

@@ -4,9 +4,15 @@ import dev.banger.hootkey.domain.entity.vault.CreateVaultRequest
 import dev.banger.hootkey.domain.entity.vault.EditVaultRequest
 import dev.banger.hootkey.domain.entity.vault.FilterType
 import dev.banger.hootkey.domain.entity.vault.Vault
+import dev.banger.hootkey.domain.entity.vault.VaultNameWithId
+import dev.banger.hootkey.domain.entity.vault.VaultShort
 import dev.banger.hootkey.domain.entity.vault.VaultsPage
 
 interface VaultRepository {
+
+    suspend fun getAllNames(): List<VaultNameWithId>
+
+    suspend fun getShortByIds(ids: List<String>): List<VaultShort>
 
     suspend fun getAll(filter: FilterType, query: String?, pageKey: String?): VaultsPage
 
