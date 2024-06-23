@@ -332,9 +332,9 @@ private fun NewVaultContent(
                                     imageVector = ImageVector.vectorResource(id = field.type.icon),
                                     contentDescription = null,
                                     tint = if (field.isFocused) {
-                                        Secondary80
-                                    } else {
                                         LocalContentColor.current
+                                    } else {
+                                        Secondary80
                                     }
                                 )
                             }

@@ -7,5 +7,6 @@ data class CategoryModel(
     val icon: Int = 0,
     val templateId: String = EMPTY_STRING,
     val loginIndex: Int = -1,
-    val linkIndex: Int = -1
+    val linkIndex: Int = -1,
+    val passwordIndex: Int = -1
 )

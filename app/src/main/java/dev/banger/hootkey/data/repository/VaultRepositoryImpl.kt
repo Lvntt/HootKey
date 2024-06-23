@@ -25,6 +25,8 @@ import dev.banger.hootkey.domain.entity.vault.VaultNotFoundException
 import dev.banger.hootkey.domain.entity.vault.VaultShort
 import dev.banger.hootkey.domain.entity.vault.VaultsPage
 import dev.banger.hootkey.domain.repository.CategoryRepository
+import dev.banger.hootkey.domain.repository.VaultId
+import dev.banger.hootkey.domain.repository.VaultName
 import dev.banger.hootkey.domain.repository.VaultRepository
 import kotlinx.coroutines.tasks.await
 
@@ -87,6 +89,13 @@ class VaultRepositoryImpl(
             )
         }
 
+    override suspend fun getAllNames(): Map<VaultName, VaultId> {
+        val userId = auth.currentUser?.uid ?: throw UnauthorizedException()
+        return fireStore.vaultCollection(userId).get().await().associate { vaultSnapshot ->
+            vaultSnapshot.toObject<VaultModel>().name to vaultSnapshot.id
+        }
+    }
+
     override suspend fun getAll(filter: FilterType, query: String?, pageKey: String?): VaultsPage {
         val userId = auth.currentUser?.uid ?: throw UnauthorizedException()
 
@@ -112,15 +121,18 @@ class VaultRepositoryImpl(
             val category = categories[vault.categoryId]
             val linkIndex = category?.linkIndex ?: -1
             val loginIndex = category?.loginIndex ?: -1
-            val login = fieldValue(userId, id, linkIndex) { it.isNotEmpty() }
-            val link = fieldValue(userId, id, loginIndex) { it.isNotEmpty() }
+            val passwordIndex = category?.passwordIndex ?: -1
+            val login = fieldValue(userId, id, loginIndex) { it.isNotEmpty() }
+            val link = fieldValue(userId, id, linkIndex) { it.isNotEmpty() }
+            val password = fieldValue(userId, id, passwordIndex) { it.isNotEmpty() }
 
             VaultShort(
                 id = id,
                 name = vault.name,
                 isFavourite = vault.isFavourite,
                 login = login,
-                link = link
+                link = link,
+                password = password
             )
         }
 
@@ -153,17 +165,20 @@ class VaultRepositoryImpl(
             .toObject<CategoryModel>()
         val linkIndex = category?.linkIndex ?: -1
         val loginIndex = category?.loginIndex ?: -1
+        val passwordIndex = category?.passwordIndex ?: -1
 
         val convertedVaults = vaultModels.map { (id, vault) ->
-            val login = fieldValue(userId, id, linkIndex) { it.isNotEmpty() }
-            val link = fieldValue(userId, id, loginIndex) { it.isNotEmpty() }
+            val login = fieldValue(userId, id, loginIndex) { it.isNotEmpty() }
+            val link = fieldValue(userId, id, linkIndex) { it.isNotEmpty() }
+            val password = fieldValue(userId, id, passwordIndex) { it.isNotEmpty() }
 
             VaultShort(
                 id = id,
                 name = vault.name,
                 isFavourite = vault.isFavourite,
                 login = login,
-                link = link
+                link = link,
+                password = password
             )
         }
 

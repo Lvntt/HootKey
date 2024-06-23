@@ -6,7 +6,12 @@ import dev.banger.hootkey.domain.entity.vault.FilterType
 import dev.banger.hootkey.domain.entity.vault.Vault
 import dev.banger.hootkey.domain.entity.vault.VaultsPage
 
+typealias VaultName = String
+typealias VaultId = String
+
 interface VaultRepository {
+
+    suspend fun getAllNames(): Map<VaultName, VaultId>
 
     suspend fun getAll(filter: FilterType, query: String?, pageKey: String?): VaultsPage
 
