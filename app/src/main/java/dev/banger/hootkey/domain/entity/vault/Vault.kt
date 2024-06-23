@@ -1,11 +1,11 @@
 package dev.banger.hootkey.domain.entity.vault
 
-import dev.banger.hootkey.domain.entity.category.VaultCategoryInfo
+import dev.banger.hootkey.domain.entity.category.Category
 
 data class Vault(
     val id: String,
     val name: String,
-    val category: VaultCategoryInfo,
+    val category: Category,
     val isFavourite: Boolean,
     val lastEditTimeMillis: Long,
     val lastViewedTimeMillis: Long,

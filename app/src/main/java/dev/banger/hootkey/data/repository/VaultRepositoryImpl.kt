@@ -15,7 +15,6 @@ import dev.banger.hootkey.data.model.VaultModel
 import dev.banger.hootkey.domain.entity.auth.exception.UnauthorizedException
 import dev.banger.hootkey.domain.entity.category.Category
 import dev.banger.hootkey.domain.entity.category.CategoryDoesNotExistException
-import dev.banger.hootkey.domain.entity.category.VaultCategoryInfo
 import dev.banger.hootkey.domain.entity.vault.CreateVaultRequest
 import dev.banger.hootkey.domain.entity.vault.EditVaultRequest
 import dev.banger.hootkey.domain.entity.vault.FieldValue
@@ -244,9 +243,7 @@ class VaultRepositoryImpl(
         return Vault(
             id = id,
             name = vault.name,
-            category = VaultCategoryInfo(
-                id = category.id, name = category.name, icon = category.icon
-            ),
+            category = category,
             isFavourite = vault.isFavourite,
             lastEditTimeMillis = vault.lastEditTime.toInstant().toEpochMilli(),
             lastViewedTimeMillis = vault.lastViewedTime.toInstant().toEpochMilli(),
@@ -284,9 +281,7 @@ class VaultRepositoryImpl(
             Vault(
                 id = vaultId,
                 name = vault.name,
-                category = VaultCategoryInfo(
-                    id = category.id, name = category.name, icon = category.icon
-                ),
+                category = category,
                 isFavourite = false,
                 lastEditTimeMillis = System.currentTimeMillis(),
                 lastViewedTimeMillis = System.currentTimeMillis(),
@@ -324,9 +319,7 @@ class VaultRepositoryImpl(
         return Vault(
             id = vault.vaultId,
             name = vault.name,
-            category = VaultCategoryInfo(
-                id = category.id, name = category.name, icon = category.icon
-            ),
+            category = category,
             isFavourite = false,
             lastEditTimeMillis = System.currentTimeMillis(),
             lastViewedTimeMillis = System.currentTimeMillis(),
