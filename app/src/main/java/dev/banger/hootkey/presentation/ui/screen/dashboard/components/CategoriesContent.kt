@@ -15,6 +15,10 @@ import androidx.compose.ui.unit.dp
 import dev.banger.hootkey.R
 import dev.banger.hootkey.presentation.entity.LceState
 import dev.banger.hootkey.presentation.state.dashboard.DashboardState
+import dev.banger.hootkey.presentation.ui.screen.dashboard.DashboardListContentTypes.CATEGORIES
+import dev.banger.hootkey.presentation.ui.screen.dashboard.DashboardListContentTypes.ERROR_CATEGORIES
+import dev.banger.hootkey.presentation.ui.screen.dashboard.DashboardListContentTypes.LOADING_CONTENT
+import dev.banger.hootkey.presentation.ui.screen.dashboard.DashboardListContentTypes.MIDDLE_SPACER
 import dev.banger.hootkey.presentation.ui.screen.dashboard.Id
 import dev.banger.hootkey.presentation.ui.screen.dashboard.Name
 
@@ -23,11 +27,11 @@ inline fun LazyListScope.categoriesContent(
     crossinline onCategorySelected: (Id, Name) -> Unit,
     noinline onLoadCategoriesRequested: () -> Unit
 ) {
-    item {
-        when (stateProvider().categoriesLoadingState) {
-            LceState.LOADING -> DashboardLoadingContent()
+    when (stateProvider().categoriesLoadingState) {
+        LceState.LOADING -> item(contentType = LOADING_CONTENT) { DashboardLoadingContent() }
 
-            LceState.CONTENT -> LazyRow(
+        LceState.CONTENT -> item(contentType = CATEGORIES) {
+            LazyRow(
                 modifier = Modifier.fillMaxWidth(),
                 contentPadding = PaddingValues(horizontal = 20.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -41,8 +45,10 @@ inline fun LazyListScope.categoriesContent(
                         })
                 }
             }
+        }
 
-            LceState.ERROR -> DashboardCategoryCard(
+        LceState.ERROR -> item(contentType = ERROR_CATEGORIES) {
+            DashboardCategoryCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 20.dp),
@@ -52,7 +58,11 @@ inline fun LazyListScope.categoriesContent(
                 onClick = onLoadCategoriesRequested
             )
         }
-        if (stateProvider().categoriesLoadingState != LceState.CONTENT || stateProvider().categories.isNotEmpty()) Spacer(
+    }
+    if (stateProvider().categoriesLoadingState != LceState.CONTENT || stateProvider().categories.isNotEmpty()) item(
+        contentType = MIDDLE_SPACER
+    ) {
+        Spacer(
             modifier = Modifier.height(20.dp)
         )
     }

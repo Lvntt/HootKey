@@ -39,6 +39,11 @@ import dev.banger.hootkey.presentation.entity.LceState
 import dev.banger.hootkey.presentation.intent.DashboardIntent
 import dev.banger.hootkey.presentation.ui.common.bottomSheetBackground
 import dev.banger.hootkey.presentation.ui.common.textfields.SearchTextField
+import dev.banger.hootkey.presentation.ui.screen.dashboard.DashboardListContentTypes.BOTTOM_SPACER
+import dev.banger.hootkey.presentation.ui.screen.dashboard.DashboardListContentTypes.FIRST_VAULT_HINT
+import dev.banger.hootkey.presentation.ui.screen.dashboard.DashboardListContentTypes.RECENTLY_USED_HEADER
+import dev.banger.hootkey.presentation.ui.screen.dashboard.DashboardListContentTypes.SEARCH_FIELD
+import dev.banger.hootkey.presentation.ui.screen.dashboard.DashboardListContentTypes.TOP_SPACER
 import dev.banger.hootkey.presentation.ui.screen.dashboard.components.DashboardBackgroundContent
 import dev.banger.hootkey.presentation.ui.screen.dashboard.components.FirstVaultHintItem
 import dev.banger.hootkey.presentation.ui.screen.dashboard.components.NewVaultFab
@@ -90,14 +95,13 @@ fun DashboardScreen(
             state = listState,
             modifier = Modifier
                 .fillMaxSize()
-                .bottomSheetBackground({ bottomSheetBackgroundYOffset }, cornerRadius)
-            ,
+                .bottomSheetBackground({ bottomSheetBackgroundYOffset }, cornerRadius),
             contentPadding = WindowInsets.systemBars.asPaddingValues(),
         ) {
-            item {
+            item(contentType = TOP_SPACER) {
                 Spacer(modifier = Modifier.height(with(LocalDensity.current) { nonBottomSheetContentHeight.toDp() }))
             }
-            item {
+            item(contentType = SEARCH_FIELD) {
                 Spacer(modifier = Modifier
                     .height(20.dp)
                     .onGloballyPositioned {
@@ -125,10 +129,14 @@ fun DashboardScreen(
                 onCategorySelected = onCategorySelected,
                 onLoadCategoriesRequested = { viewModel.dispatch(DashboardIntent.LoadCategories) })
 
-            if (state.vaults.isNotEmpty() || state.vaultsPageLoadingState != LceState.CONTENT) item {
+            if (state.vaults.isNotEmpty() || state.vaultsPageLoadingState != LceState.CONTENT) item(
+                contentType = RECENTLY_USED_HEADER
+            ) {
                 RecentlyUsedHeader(onCategorySelected)
             }
-            if (state.vaults.isEmpty() && state.vaultsPageLoadingState == LceState.CONTENT) item {
+            if (state.vaults.isEmpty() && state.vaultsPageLoadingState == LceState.CONTENT) item(
+                contentType = FIRST_VAULT_HINT
+            ) {
                 FirstVaultHintItem(modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 20.dp),
@@ -139,7 +147,7 @@ fun DashboardScreen(
                 viewModel.dispatch(DashboardIntent.LoadNextVaultsPage)
             }, clipboardManager = clipboardManager)
 
-            item {
+            item(contentType = BOTTOM_SPACER) {
                 Spacer(modifier = Modifier
                     .onGloballyPositioned {
                         bottomSheetEndPosY = it.positionInParent().y
