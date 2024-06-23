@@ -86,5 +86,8 @@
     <string name="choose">Choose</string>
     <string name="enter_the_field">Enter the %1$s</string>
     <string name="enter_the_vault_name">Enter the Vault name</string>
+    <string name="are_you_sure">Are you sure?</string>
+    <string name="delete_vault_message">You are about to delete a vault. This action cannot be undone.</string>
+    <string name="delete">Delete</string>
     <string name="hootkey_autofill_service">HootKey Autofill Service</string>
 </resources>

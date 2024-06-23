@@ -177,7 +177,7 @@ class NewVaultViewModel(
             }.fold(
                 onSuccess = {
                     stateFlow.update { it.copy(isCreationLoading = false) }
-                    effectsFlow.tryEmit(NewVaultEffect.HandleSuccess)
+                    effectsFlow.tryEmit(NewVaultEffect.HandleSuccess(it.id, it.category.id))
                 },
                 onFailure = { throwable ->
                     Log.e(TAG, throwable.stackTraceToString())

@@ -32,10 +32,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.pointer.pointerInteropFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.vectorResource
@@ -57,7 +59,7 @@ import dev.banger.hootkey.presentation.ui.utils.gradientTint
 
 enum class SwipePosition { Swiped, NotSwiped }
 
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
 @Composable
 fun VaultShortItem(
     modifier: Modifier = Modifier,
@@ -134,6 +136,9 @@ fun VaultShortItem(
         }
 
         Row(modifier = modifier
+            .pointerInteropFilter {
+                return@pointerInteropFilter false
+            }
             .anchoredDraggable(
                 state = state, orientation = Orientation.Horizontal
             )

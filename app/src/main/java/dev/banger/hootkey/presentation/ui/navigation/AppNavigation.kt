@@ -10,6 +10,8 @@ import dev.banger.hootkey.Constants.CATEGORY_ICON_KEY
 import dev.banger.hootkey.Constants.CREATED_CATEGORY_ID_KEY
 import dev.banger.hootkey.Constants.CREATED_TEMPLATE_ID_KEY
 import dev.banger.hootkey.Constants.TEMPLATE_KEY
+import dev.banger.hootkey.Constants.VAULT_CATEGORY_KEY
+import dev.banger.hootkey.Constants.VAULT_KEY
 import dev.banger.hootkey.presentation.ui.navigation.NavigationDestinations.NULL_ARG_VALUE
 import dev.banger.hootkey.presentation.ui.screen.TestScreen
 import dev.banger.hootkey.presentation.ui.screen.auth.AccountAuthScreen
@@ -57,22 +59,30 @@ fun AppNavigation(navHostController: NavHostController) {
             })
         }
         composable(NavigationDestinations.DASHBOARD) {
-            DashboardScreen(onAddNewVault = {
-                navHostController.navigate(NavigationDestinations.NEW_VAULT)
-            }, onCategorySelected = { id, name ->
-                navHostController.navigate("${NavigationDestinations.VAULTS}/${id ?: NULL_ARG_VALUE }/${name ?: NULL_ARG_VALUE }")
-            })
+            DashboardScreen(
+                savedStateHandleProvider = {
+                    navHostController.currentBackStackEntry?.savedStateHandle
+                }, onAddNewVault = {
+                    navHostController.navigate(NavigationDestinations.NEW_VAULT)
+                }, onCategorySelected = { id, name ->
+                    navHostController.navigate("${NavigationDestinations.VAULTS}/${id ?: NULL_ARG_VALUE}/${name ?: NULL_ARG_VALUE}")
+                })
         }
-        composable("${NavigationDestinations.VAULTS}/{${NavigationDestinations.VAULT_CATEGORY_ID_ARG}}/{${NavigationDestinations.VAULT_CATEGORY_NAME_ARG}}", arguments = listOf(
-            navArgument(NavigationDestinations.VAULT_CATEGORY_ID_ARG) {
-                type = NavType.StringType
-            },
-            navArgument(NavigationDestinations.VAULT_CATEGORY_NAME_ARG) {
-                type = NavType.StringType
-            }
-        )) { backStackEntry ->
-            val categoryId = backStackEntry.arguments?.getString(NavigationDestinations.VAULT_CATEGORY_ID_ARG).takeIf { it != NULL_ARG_VALUE }
-            val categoryName = backStackEntry.arguments?.getString(NavigationDestinations.VAULT_CATEGORY_NAME_ARG).takeIf { it != NULL_ARG_VALUE }
+        composable("${NavigationDestinations.VAULTS}/{${NavigationDestinations.VAULT_CATEGORY_ID_ARG}}/{${NavigationDestinations.VAULT_CATEGORY_NAME_ARG}}",
+            arguments = listOf(
+                navArgument(NavigationDestinations.VAULT_CATEGORY_ID_ARG) {
+                    type = NavType.StringType
+                },
+                navArgument(NavigationDestinations.VAULT_CATEGORY_NAME_ARG) {
+                    type = NavType.StringType
+                }
+            )) { backStackEntry ->
+            val categoryId =
+                backStackEntry.arguments?.getString(NavigationDestinations.VAULT_CATEGORY_ID_ARG)
+                    .takeIf { it != NULL_ARG_VALUE }
+            val categoryName =
+                backStackEntry.arguments?.getString(NavigationDestinations.VAULT_CATEGORY_NAME_ARG)
+                    .takeIf { it != NULL_ARG_VALUE }
             VaultsListScreen(categoryName, categoryId) {
                 navHostController.popBackStack()
             }
@@ -87,6 +97,14 @@ fun AppNavigation(navHostController: NavHostController) {
                 },
                 onNavigateToCategories = {
                     navHostController.navigate(NavigationDestinations.CATEGORIES)
+                }, onSuccess = { vaultId, categoryId ->
+                    navHostController.popBackStack()
+                    navHostController.currentBackStackEntry
+                        ?.savedStateHandle
+                        ?.set(VAULT_KEY, vaultId)
+                    navHostController.currentBackStackEntry
+                        ?.savedStateHandle
+                        ?.set(VAULT_CATEGORY_KEY, categoryId)
                 }
             )
         }

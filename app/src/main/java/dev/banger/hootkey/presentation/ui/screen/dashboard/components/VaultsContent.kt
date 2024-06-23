@@ -10,17 +10,24 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
+import dev.banger.hootkey.domain.entity.vault.VaultShort
 import dev.banger.hootkey.presentation.entity.LceState
 import dev.banger.hootkey.presentation.state.dashboard.DashboardState
 import dev.banger.hootkey.presentation.ui.common.VaultErrorItem
 import dev.banger.hootkey.presentation.ui.common.VaultShortItem
+import dev.banger.hootkey.presentation.ui.screen.dashboard.DashboardListContentTypes.ERROR_VAULTS
+import dev.banger.hootkey.presentation.ui.screen.dashboard.DashboardListContentTypes.LOADING_CONTENT
+import dev.banger.hootkey.presentation.ui.screen.dashboard.DashboardListContentTypes.VAULT
 
 inline fun LazyListScope.vaultsContent(
     crossinline stateProvider: () -> DashboardState,
     crossinline onLoadNextPageRequested: () -> Unit,
+    crossinline onDeleteVaultRequested: (VaultShort) -> Unit,
     clipboardManager: ClipboardManager
 ) {
-    itemsIndexed(items = stateProvider().vaults, key = { _, item -> item.id }) { index, vault ->
+    itemsIndexed(items = stateProvider().vaults,
+        key = { _, item -> item.id },
+        contentType = { _, _ -> VAULT }) { index, vault ->
         if (index >= stateProvider().vaults.size - 1 && !stateProvider().isEndReached && stateProvider().vaultsPageLoadingState == LceState.CONTENT) {
             onLoadNextPageRequested()
         }
@@ -38,17 +45,19 @@ inline fun LazyListScope.vaultsContent(
                 clipboardManager.setText(AnnotatedString(clipData))
             },
             onEditClick = {},
-            onDeleteClick = {})
+            onDeleteClick = {
+                onDeleteVaultRequested(vault)
+            })
         Spacer(modifier = Modifier.height(12.dp))
     }
     when (stateProvider().vaultsPageLoadingState) {
-        LceState.LOADING -> item {
+        LceState.LOADING -> item(contentType = LOADING_CONTENT) {
             DashboardLoadingContent()
         }
 
         LceState.CONTENT -> Unit
 
-        LceState.ERROR -> item {
+        LceState.ERROR -> item(contentType = ERROR_VAULTS) {
             VaultErrorItem(modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp),
