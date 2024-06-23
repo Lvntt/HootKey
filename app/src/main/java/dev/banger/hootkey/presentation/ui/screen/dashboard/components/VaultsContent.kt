@@ -23,6 +23,7 @@ inline fun LazyListScope.vaultsContent(
     crossinline stateProvider: () -> DashboardState,
     crossinline onLoadNextPageRequested: () -> Unit,
     crossinline onDeleteVaultRequested: (VaultShort) -> Unit,
+    crossinline onEditClick: (String) -> Unit,
     clipboardManager: ClipboardManager
 ) {
     itemsIndexed(items = stateProvider().vaults,
@@ -44,7 +45,9 @@ inline fun LazyListScope.vaultsContent(
                 else vault.name
                 clipboardManager.setText(AnnotatedString(clipData))
             },
-            onEditClick = {},
+            onEditClick = {
+                onEditClick(vault.id)
+            },
             onDeleteClick = {
                 onDeleteVaultRequested(vault)
             })
