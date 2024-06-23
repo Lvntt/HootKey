@@ -2,10 +2,13 @@ package dev.banger.hootkey.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dev.banger.hootkey.domain.entity.category.CategoryShort
 import dev.banger.hootkey.domain.entity.vault.FilterType
+import dev.banger.hootkey.domain.entity.vault.VaultShort
 import dev.banger.hootkey.domain.repository.CategoryRepository
 import dev.banger.hootkey.domain.repository.VaultRepository
 import dev.banger.hootkey.presentation.entity.LceState
+import dev.banger.hootkey.presentation.entity.UiCategoryShort
 import dev.banger.hootkey.presentation.intent.DashboardIntent
 import dev.banger.hootkey.presentation.state.dashboard.DashboardState
 import dev.banger.hootkey.presentation.ui.utils.toUi
@@ -36,22 +39,81 @@ class DashboardViewmodel(
             is DashboardIntent.LoadNextVaultsPage -> loadNextVaultsPage()
             DashboardIntent.DeleteVault -> deleteVault()
             DashboardIntent.DismissDeleteDialog -> dismissDeleteDialog()
-            is DashboardIntent.OpenDeleteDialog -> openDeleteDialog(intent.vaultId)
+            is DashboardIntent.OpenDeleteDialog -> openDeleteDialog(intent.vault)
+            is DashboardIntent.AddNewVault -> addNewVault(intent.vaultId)
+            is DashboardIntent.IncrementCategoryVaultsCount -> incrementCategoryVaultsCount(intent.categoryId)
+        }
+    }
+
+    private fun addNewVault(vaultId: String) {
+        viewModelScope.launch(defaultDispatcher) {
+            runCatching {
+                vaultRepository.getShortByIds(listOf(vaultId))
+            }.onSuccess { vault ->
+                _state.update { it.copy(vaults = vault + it.vaults) }
+            }.onFailure {
+                if (it is CancellationException) throw it
+            }
+        }
+    }
+
+    private fun incrementCategoryVaultsCount(categoryId: String) {
+        viewModelScope.launch(defaultDispatcher) {
+            runCatching {
+                val categoryIndex = _state.value.categories.indexOfFirst { it.id == categoryId }
+                if (categoryIndex != -1) {
+                    val category = _state.value.categories[categoryIndex]
+                    val updatedCategory = category.copy(vaultsAmount = category.vaultsAmount + 1)
+                    _state.update {
+                        it.copy(categories = it.categories.toMutableList()
+                            .apply { set(categoryIndex, updatedCategory) }
+                            .sortedWith(
+                                compareByDescending<UiCategoryShort> { category -> category.vaultsAmount }
+                                    .thenBy { category -> category.name }
+                            )
+                        )
+                    }
+                } else {
+                    val category =
+                        categoryRepository.getShortById(id = categoryId) ?: return@runCatching
+                    _state.update {
+                        it.copy(
+                            categories = (it.categories + category.toUi()).sortedWith(
+                                compareBy(
+                                    { category -> category.vaultsAmount },
+                                    { category -> category.name })
+                            )
+                        )
+                    }
+                }
+            }.onFailure {
+                if (it is CancellationException) throw it
+            }
         }
     }
 
     private fun deleteVault() {
-        val vaultIdToDelete = _state.value.deleteDialogOpenedForVaultId ?: return
+        val vaultToDelete = _state.value.deleteDialogOpenedForVault ?: return
         if (_state.value.isDeletingVault) return
         _state.update { it.copy(isDeletingVault = true) }
         viewModelScope.launch(defaultDispatcher) {
             runCatching {
-                vaultRepository.delete(vaultIdToDelete)
+                vaultRepository.delete(vaultToDelete.id)
             }.onSuccess {
                 _state.update {
-                    it.copy(
-                        isDeletingVault = false,
-                        vaults = it.vaults.filter { vault -> vault.id != vaultIdToDelete })
+                    it.copy(isDeletingVault = false,
+                        vaults = it.vaults.filter { vault -> vault.id != vaultToDelete.id },
+                        categories = it.categories
+                            .mapNotNull { category ->
+                                if (category.id != vaultToDelete.categoryId) category
+                                else if (category.vaultsAmount == 1) null
+                                else category.copy(vaultsAmount = category.vaultsAmount - 1)
+                            }
+                            .sortedWith(
+                                compareByDescending<UiCategoryShort> { category -> category.vaultsAmount }
+                                    .thenBy { category -> category.name }
+                            )
+                    )
                 }
                 dismissDeleteDialog()
             }.onFailure { throwable ->
@@ -63,12 +125,12 @@ class DashboardViewmodel(
 
     private fun dismissDeleteDialog() {
         if (_state.value.isDeletingVault) return
-        _state.update { it.copy(deleteDialogOpenedForVaultId = null) }
+        _state.update { it.copy(deleteDialogOpenedForVault = null) }
     }
 
-    private fun openDeleteDialog(vaultId: String) {
-        if (_state.value.deleteDialogOpenedForVaultId != null || _state.value.isDeletingVault) return
-        _state.update { it.copy(deleteDialogOpenedForVaultId = vaultId) }
+    private fun openDeleteDialog(vault: VaultShort) {
+        if (_state.value.deleteDialogOpenedForVault != null || _state.value.isDeletingVault) return
+        _state.update { it.copy(deleteDialogOpenedForVault = vault) }
     }
 
     private fun loadNextVaultsPage() {
@@ -98,7 +160,11 @@ class DashboardViewmodel(
         _state.update { it.copy(categoriesLoadingState = LceState.LOADING) }
         viewModelScope.launch(defaultDispatcher) {
             runCatching {
-                categoryRepository.getAllShort()
+                categoryRepository.getAllShort().filter { it.vaultsAmount > 0 }
+                    .sortedWith(
+                        compareByDescending<CategoryShort> { category -> category.vaultsAmount }
+                            .thenBy { category -> category.name }
+                    )
             }.onSuccess { categories ->
                 val uiCategories = categories.map { it.toUi() }
                 _state.update { state ->

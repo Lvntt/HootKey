@@ -78,10 +78,14 @@ import dev.banger.hootkey.presentation.viewmodel.NewVaultViewModel
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
+typealias VaultId = String
+typealias CategoryId = String
+
 @Composable
 fun NewVaultScreen(
     savedStateHandleProvider: () -> SavedStateHandle?,
     onNavigateBack: () -> Unit,
+    onSuccess: (VaultId, CategoryId) -> Unit,
     onNavigateToCategories: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: NewVaultViewModel = koinViewModel()
@@ -111,7 +115,7 @@ fun NewVaultScreen(
                     )
                 }
             }
-            NewVaultEffect.HandleSuccess -> onNavigateBack()
+            is NewVaultEffect.HandleSuccess -> onSuccess(it.vaultId, it.categoryId)
         }
     }
 
@@ -439,5 +443,5 @@ private fun NewVaultContent(
 @Preview
 @Composable
 private fun NewVaultScreenPreview() {
-    NewVaultScreen({ null }, {}, {})
+    NewVaultScreen({ null }, {}, { _, _ -> }, {})
 }

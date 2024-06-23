@@ -13,6 +13,6 @@ data class DashboardState(
     val vaults: List<VaultShort> = emptyList(),
     val nextPageKey: String? = null,
     val isEndReached: Boolean = false,
-    val deleteDialogOpenedForVaultId: String? = null,
+    val deleteDialogOpenedForVault: VaultShort? = null,
     val isDeletingVault: Boolean = false
 )

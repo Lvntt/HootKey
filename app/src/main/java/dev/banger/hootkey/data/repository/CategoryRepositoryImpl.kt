@@ -59,9 +59,16 @@ class CategoryRepositoryImpl(
     private suspend inline fun CollectionReference.getCategoriesShort(
         customCollection: Boolean
     ): List<CategoryShort> = this.get().await().map { category ->
-        val id = category.id
-        val categoryModel = category.toObject<CategoryModel>()
-        CategoryShort(
+        category.toCategoryShort(customCollection)
+    }
+
+    private suspend fun DocumentSnapshot.toCategoryShort(
+        customCollection: Boolean
+    ): CategoryShort {
+        val categoryModel = toObject<CategoryModel>() ?: throw CategoryDoesNotExistException(
+            "Category with id $id does not exist"
+        )
+        return CategoryShort(
             id = id,
             name = categoryModel.name.decryptWhen(crypto) { customCollection },
             icon = CategoryIcon.entries[categoryModel.icon],
@@ -89,6 +96,16 @@ class CategoryRepositoryImpl(
             .getCategoriesShort(
                 customCollection = false
             )).sortedByDescending { category -> category.vaultsAmount }
+    }
+
+    override suspend fun getShortById(id: String): CategoryShort? {
+        val userId = auth.currentUser?.uid ?: throw UnauthorizedException()
+
+        val customCategory = fireStore.categoryCollection(userId).document(id).get().await()
+        if (customCategory.exists()) return customCategory.toCategoryShort(customCollection = true)
+        val commonCategory = fireStore.commonCategoryCollection().document(id).get().await()
+        if (commonCategory.exists()) return commonCategory.toCategoryShort(customCollection = false)
+        return null
     }
 
     override suspend fun getById(id: String): Category? {

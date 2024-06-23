@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
+import dev.banger.hootkey.domain.entity.vault.VaultShort
 import dev.banger.hootkey.presentation.entity.LceState
 import dev.banger.hootkey.presentation.state.dashboard.DashboardState
 import dev.banger.hootkey.presentation.ui.common.VaultErrorItem
@@ -21,7 +22,7 @@ import dev.banger.hootkey.presentation.ui.screen.dashboard.DashboardListContentT
 inline fun LazyListScope.vaultsContent(
     crossinline stateProvider: () -> DashboardState,
     crossinline onLoadNextPageRequested: () -> Unit,
-    crossinline onDeleteVaultRequested: (String) -> Unit,
+    crossinline onDeleteVaultRequested: (VaultShort) -> Unit,
     clipboardManager: ClipboardManager
 ) {
     itemsIndexed(items = stateProvider().vaults,
@@ -45,7 +46,7 @@ inline fun LazyListScope.vaultsContent(
             },
             onEditClick = {},
             onDeleteClick = {
-                onDeleteVaultRequested(vault.id)
+                onDeleteVaultRequested(vault)
             })
         Spacer(modifier = Modifier.height(12.dp))
     }

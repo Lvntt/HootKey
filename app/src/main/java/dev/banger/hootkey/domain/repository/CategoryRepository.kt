@@ -15,6 +15,8 @@ interface CategoryRepository {
 
     suspend fun getAllShort(): List<CategoryShort>
 
+    suspend fun getShortById(id: String): CategoryShort?
+
     suspend fun getById(id: String): Category?
 
     suspend fun create(category: CreateCategoryRequest): Category

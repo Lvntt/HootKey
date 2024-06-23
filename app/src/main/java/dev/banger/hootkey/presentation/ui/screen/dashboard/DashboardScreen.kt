@@ -17,6 +17,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LocalMinimumInteractiveComponentEnforcement
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
@@ -33,7 +34,10 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import dev.banger.hootkey.Constants.VAULT_CATEGORY_KEY
+import dev.banger.hootkey.Constants.VAULT_KEY
 import dev.banger.hootkey.R
 import dev.banger.hootkey.presentation.entity.LceState
 import dev.banger.hootkey.presentation.intent.DashboardIntent
@@ -61,11 +65,24 @@ typealias Name = String?
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardScreen(
+    savedStateHandleProvider: () -> SavedStateHandle?,
     onAddNewVault: () -> Unit,
     onCategorySelected: (Id, Name) -> Unit,
     viewModel: DashboardViewmodel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+
+    val savedStateHandle = savedStateHandleProvider()
+    val vaultKeyFlow =
+        savedStateHandle?.getStateFlow<String?>(VAULT_KEY, null)?.collectAsStateWithLifecycle()
+    LaunchedEffect(vaultKeyFlow?.value) {
+        val vaultKey = vaultKeyFlow?.value ?: return@LaunchedEffect
+        val categoryKey =
+            savedStateHandle.remove<String>(VAULT_CATEGORY_KEY) ?: return@LaunchedEffect
+        savedStateHandle.remove<String>(VAULT_KEY)
+        viewModel.dispatch(DashboardIntent.IncrementCategoryVaultsCount(categoryKey))
+        viewModel.dispatch(DashboardIntent.AddNewVault(vaultKey))
+    }
 
     CompositionLocalProvider(
         LocalOverscrollConfiguration provides null,
@@ -81,7 +98,7 @@ fun DashboardScreen(
         var nonBottomSheetContentHeight by remember { mutableFloatStateOf(0f) }
         val listState = rememberLazyListState()
 
-        state.deleteDialogOpenedForVaultId?.let {
+        state.deleteDialogOpenedForVault?.let {
             AppAlertDialog(
                 onDismissRequest = { viewModel.dispatch(DashboardIntent.DismissDeleteDialog) },
                 onPositiveAction = { viewModel.dispatch(DashboardIntent.DeleteVault) },
