@@ -70,7 +70,8 @@ class EditVaultViewModel(
                         it.copy(
                             isVaultLoading = false,
                             category = vault.category.toUi(fieldValues = vault.fieldValues),
-                            name = vault.name
+                            name = vault.name,
+                            oldCategoryId = vault.category.id
                         )
                     }
                 },
@@ -204,9 +205,9 @@ class EditVaultViewModel(
             runCatching {
                 vaultRepository.edit(stateFlow.value.toEditVaultRequest())
             }.fold(
-                onSuccess = {
+                onSuccess = { vault ->
                     stateFlow.update { it.copy(isEditLoading = false) }
-                    effectsFlow.tryEmit(EditVaultEffect.HandleSuccess)
+                    effectsFlow.tryEmit(EditVaultEffect.HandleSuccess(vault.id, vault.category.id))
                 },
                 onFailure = { throwable ->
                     Log.e(TAG, throwable.stackTraceToString())

@@ -48,6 +48,7 @@ import dev.banger.hootkey.presentation.entity.UiEditableTemplateFieldShort
 import dev.banger.hootkey.presentation.entity.UiFieldType
 import dev.banger.hootkey.presentation.intent.EditVaultIntent
 import dev.banger.hootkey.presentation.state.edit_vault.EditVaultEffect
+import dev.banger.hootkey.presentation.state.edit_vault.EditVaultSuccessInfo
 import dev.banger.hootkey.presentation.ui.common.LoadingContent
 import dev.banger.hootkey.presentation.ui.common.ObserveAsEvents
 import dev.banger.hootkey.presentation.ui.common.buttons.AlternativeButton
@@ -83,6 +84,7 @@ fun EditVaultScreen(
     vaultId: String,
     savedStateHandleProvider: () -> SavedStateHandle?,
     onNavigateBack: () -> Unit,
+    onSuccess: (EditVaultSuccessInfo) -> Unit,
     onNavigateToCategories: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: EditVaultViewModel = koinViewModel(
@@ -122,7 +124,24 @@ fun EditVaultScreen(
                     )
                 }
             }
-            EditVaultEffect.HandleSuccess -> onNavigateBack()
+            is EditVaultEffect.HandleSuccess -> {
+                if (state.oldCategoryId != it.categoryId)
+                    onSuccess(
+                        EditVaultSuccessInfo(
+                            vaultId = it.vaultId,
+                            oldCategoryId = state.oldCategoryId,
+                            newCategoryId = it.categoryId
+                        )
+                    )
+                else
+                    onSuccess(
+                        EditVaultSuccessInfo(
+                            vaultId = it.vaultId,
+                            oldCategoryId = null,
+                            newCategoryId = null
+                        )
+                    )
+            }
         }
     }
 
@@ -170,7 +189,7 @@ fun EditVaultScreen(
         topBar = {
             HootKeyTopBar(
                 onNavigateBack = onNavigateBack,
-                title = stringResource(id = R.string.create_new_vault)
+                title = stringResource(id = R.string.edit_vault)
             )
         },
         snackbarHost = {

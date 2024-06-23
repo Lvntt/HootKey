@@ -11,6 +11,9 @@ import dev.banger.hootkey.Constants.CREATED_CATEGORY_ID_KEY
 import dev.banger.hootkey.Constants.CREATED_TEMPLATE_ID_KEY
 import dev.banger.hootkey.Constants.DELETED_VAULT_CATEGORIES_KEY
 import dev.banger.hootkey.Constants.DELETED_VAULT_IDS_KEY
+import dev.banger.hootkey.Constants.EDITED_VAULT_KEY
+import dev.banger.hootkey.Constants.EDITED_VAULT_NEW_CATEGORY_KEY
+import dev.banger.hootkey.Constants.EDITED_VAULT_OLD_CATEGORY_KEY
 import dev.banger.hootkey.Constants.TEMPLATE_KEY
 import dev.banger.hootkey.Constants.VAULT_CATEGORY_KEY
 import dev.banger.hootkey.Constants.VAULT_KEY
@@ -235,6 +238,22 @@ fun AppNavigation(navHostController: NavHostController) {
                 },
                 onNavigateBack = {
                     navHostController.popBackStack()
+                },
+                onSuccess = { successInfo ->
+                    navHostController.popBackStack()
+                    navHostController.currentBackStackEntry
+                        ?.savedStateHandle
+                        ?.set(EDITED_VAULT_KEY, successInfo.vaultId)
+                    successInfo.newCategoryId?.let {
+                        navHostController.currentBackStackEntry
+                            ?.savedStateHandle
+                            ?.set(EDITED_VAULT_NEW_CATEGORY_KEY, it)
+                    }
+                    successInfo.oldCategoryId?.let {
+                        navHostController.currentBackStackEntry
+                            ?.savedStateHandle
+                            ?.set(EDITED_VAULT_OLD_CATEGORY_KEY, it)
+                    }
                 },
                 onNavigateToCategories = {
                     navHostController.navigate(NavigationDestinations.CATEGORIES)
