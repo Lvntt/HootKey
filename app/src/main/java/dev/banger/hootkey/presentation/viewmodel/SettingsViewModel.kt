@@ -47,6 +47,8 @@ class SettingsViewModel(
             is SettingsIntent.AutofillChanged -> onAutofillChanged(intent.isOn, intent.activityContext)
             is SettingsIntent.SyncChanged -> onSyncChanged(intent.isOn)
             is SettingsIntent.AutofillServiceChosen -> onAutofillServiceChosen(intent.activityContext)
+            SettingsIntent.ShowLogoutDialog -> showLogoutDialog()
+            SettingsIntent.DismissLogoutDialog -> dismissLogoutDialog()
             SettingsIntent.Logout -> logout()
         }
     }
@@ -146,6 +148,14 @@ class SettingsViewModel(
                 }
             )
         }
+    }
+
+    private fun showLogoutDialog() {
+        stateFlow.update { it.copy(isLogoutDialogShown = true) }
+    }
+
+    private fun dismissLogoutDialog() {
+        stateFlow.update { it.copy(isLogoutDialogShown = false) }
     }
 
     private fun logout() {

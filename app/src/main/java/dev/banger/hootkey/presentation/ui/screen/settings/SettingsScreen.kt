@@ -38,6 +38,7 @@ import dev.banger.hootkey.presentation.ui.common.ObserveAsEvents
 import dev.banger.hootkey.presentation.ui.common.buttons.PrimaryButton
 import dev.banger.hootkey.presentation.ui.common.switches.HootKeySwitch
 import dev.banger.hootkey.presentation.ui.common.topbar.HootKeyTopBar
+import dev.banger.hootkey.presentation.ui.dialog.AppAlertDialog
 import dev.banger.hootkey.presentation.ui.screen.auth.findActivity
 import dev.banger.hootkey.presentation.ui.theme.DefaultBackgroundBrush
 import dev.banger.hootkey.presentation.ui.theme.PaddingMedium
@@ -83,6 +84,20 @@ fun SettingsScreen(
             }
             is SettingsEffect.ShowAutofillSettings -> autofillLauncher.launch(it.intent)
         }
+    }
+
+    if (state.isLogoutDialogShown) {
+        AppAlertDialog(
+            onDismissRequest = {
+                viewModel.dispatch(SettingsIntent.DismissLogoutDialog)
+            },
+            onPositiveAction = {
+                viewModel.dispatch(SettingsIntent.Logout)
+            },
+            title = stringResource(id = R.string.are_you_sure),
+            message = stringResource(id = R.string.confirm_logout),
+            isLoading = state.isLogoutLoading
+        )
     }
 
     Scaffold(
@@ -138,8 +153,9 @@ fun SettingsScreen(
                     .fillMaxWidth()
                     .height(42.dp),
                 onClick = {
-                    viewModel.dispatch(SettingsIntent.Logout)
+                    viewModel.dispatch(SettingsIntent.ShowLogoutDialog)
                 },
+                isLoading = state.isLogoutLoading,
                 text = stringResource(id = R.string.logout)
             )
             Spacer(modifier = Modifier.height(PaddingMedium))

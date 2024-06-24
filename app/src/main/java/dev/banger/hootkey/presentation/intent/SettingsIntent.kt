@@ -7,5 +7,7 @@ sealed interface SettingsIntent {
     data class AutofillChanged(val isOn: Boolean, val activityContext: Activity) : SettingsIntent
     data class AutofillServiceChosen(val activityContext: Activity) : SettingsIntent
     data class SyncChanged(val isOn: Boolean) : SettingsIntent
+    data object ShowLogoutDialog : SettingsIntent
+    data object DismissLogoutDialog : SettingsIntent
     data object Logout : SettingsIntent
 }
