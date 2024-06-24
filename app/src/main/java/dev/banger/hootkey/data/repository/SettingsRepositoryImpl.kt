@@ -43,14 +43,6 @@ class SettingsRepositoryImpl(
         settingsManager.setOffline(false)
     }
 
-    override fun enableAutofill() {
-        settingsManager.setAutofill(true)
-    }
-
-    override fun disableAutofill() {
-        settingsManager.setAutofill(false)
-    }
-
     override fun enableBiometry() {
         settingsManager.setBiometry(true)
     }

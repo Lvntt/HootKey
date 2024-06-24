@@ -1,5 +1,10 @@
 package dev.banger.hootkey.presentation.ui.screen.settings
 
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -23,17 +28,20 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.banger.hootkey.R
+import dev.banger.hootkey.presentation.AutofillServiceContract
 import dev.banger.hootkey.presentation.intent.SettingsIntent
 import dev.banger.hootkey.presentation.state.settings.SettingsEffect
 import dev.banger.hootkey.presentation.ui.common.ObserveAsEvents
 import dev.banger.hootkey.presentation.ui.common.buttons.PrimaryButton
 import dev.banger.hootkey.presentation.ui.common.switches.HootKeySwitch
 import dev.banger.hootkey.presentation.ui.common.topbar.HootKeyTopBar
+import dev.banger.hootkey.presentation.ui.screen.auth.findActivity
 import dev.banger.hootkey.presentation.ui.theme.DefaultBackgroundBrush
 import dev.banger.hootkey.presentation.ui.theme.PaddingMedium
 import dev.banger.hootkey.presentation.ui.theme.PaddingRegular
@@ -50,13 +58,23 @@ fun SettingsScreen(
     modifier: Modifier = Modifier,
     viewModel: SettingsViewModel = koinViewModel()
 ) {
+    val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
+
+    val autofillLauncher = rememberLauncherForActivityResult(
+        contract = AutofillServiceContract()
+    ) { result ->
+        if (result) {
+            viewModel.dispatch(SettingsIntent.AutofillServiceChosen(context.findActivity()!!))
+        }
+    }
 
     val state by viewModel.state.collectAsStateWithLifecycle()
     ObserveAsEvents(viewModel.effects) {
         when (it) {
             SettingsEffect.RedirectToAuth -> TODO()
             SettingsEffect.ShowError -> TODO()
+            is SettingsEffect.ShowAutofillSettings -> autofillLauncher.launch(it.intent)
         }
     }
 
@@ -94,7 +112,7 @@ fun SettingsScreen(
                 text = stringResource(id = R.string.autofill_settings),
                 isChecked = state.isAutofillOn,
                 onCheckedChange = {
-                    viewModel.dispatch(SettingsIntent.AutofillChanged(it))
+                    viewModel.dispatch(SettingsIntent.AutofillChanged(it, context.findActivity()!!))
                 }
             )
             Spacer(modifier = Modifier.height(PaddingRegular))

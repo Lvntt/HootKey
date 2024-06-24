@@ -16,6 +16,7 @@ import dev.banger.hootkey.presentation.viewmodel.PasswordGeneratorViewModel
 import dev.banger.hootkey.presentation.viewmodel.SettingsViewModel
 import dev.banger.hootkey.presentation.viewmodel.TemplatesViewModel
 import kotlinx.coroutines.Dispatchers
+import org.koin.android.ext.koin.androidApplication
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.androidx.viewmodel.dsl.viewModelOf
 import org.koin.core.qualifier.named

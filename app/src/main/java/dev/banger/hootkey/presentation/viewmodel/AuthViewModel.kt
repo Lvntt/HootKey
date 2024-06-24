@@ -54,7 +54,7 @@ class AuthViewModel(
                 }
             },
             onFailure = { throwable ->
-                Log.e(TAG, "error getting biometry settings: \n $throwable")
+                Log.e(TAG, "error getting biometry settings: \n ${throwable.stackTraceToString()}")
             }
         )
     }

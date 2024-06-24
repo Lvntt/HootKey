@@ -1,5 +1,13 @@
 package dev.banger.hootkey.presentation.viewmodel
 
+import android.app.Activity
+import android.app.Application
+import android.content.Intent
+import android.net.Uri
+import android.provider.Settings
+import android.util.Log
+import android.view.autofill.AutofillManager
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.banger.hootkey.domain.repository.SettingsRepository
@@ -19,6 +27,10 @@ class SettingsViewModel(
     private val defaultDispatcher: CoroutineDispatcher
 ) : ViewModel() {
 
+    private companion object {
+        const val TAG = "SettingsViewModel"
+    }
+
     private val stateFlow = MutableStateFlow(SettingsState())
     val state = stateFlow.asStateFlow()
 
@@ -32,8 +44,9 @@ class SettingsViewModel(
     fun dispatch(intent: SettingsIntent) {
         when (intent) {
             is SettingsIntent.BiometryChanged -> onBiometryChanged(intent.isOn)
-            is SettingsIntent.AutofillChanged -> onAutofillChanged(intent.isOn)
+            is SettingsIntent.AutofillChanged -> onAutofillChanged(intent.isOn, intent.activityContext)
             is SettingsIntent.SyncChanged -> onSyncChanged(intent.isOn)
+            is SettingsIntent.AutofillServiceChosen -> onAutofillServiceChosen(intent.activityContext)
             SettingsIntent.Logout -> TODO()
         }
     }
@@ -82,24 +95,37 @@ class SettingsViewModel(
         }
     }
 
-    private fun onAutofillChanged(isOn: Boolean) {
+    private fun onAutofillChanged(isOn: Boolean, activityContext: Activity) {
         val isAutofillOnInitial = stateFlow.value.isAutofillOn
-        stateFlow.update { it.copy(isAutofillOn = isOn) }
         viewModelScope.launch(defaultDispatcher) {
             runCatching {
+                val autofillManager = activityContext.getSystemService(AutofillManager::class.java)
                 if (isOn) {
-                    TODO()
-                } else {
-                    TODO()
+                    if (autofillManager.isAutofillSupported) {
+                        val intent = Intent(Settings.ACTION_REQUEST_SET_AUTOFILL_SERVICE)
+                        val packageUri = Uri.parse("package:${activityContext.packageName}")
+                        intent.setData(packageUri)
+                        effectsFlow.tryEmit(SettingsEffect.ShowAutofillSettings(intent))
+                    }
+                } else if (autofillManager.isAutofillSupported && autofillManager.hasEnabledAutofillServices()) {
+                    autofillManager.disableAutofillServices()
+                    stateFlow.update { it.copy(isAutofillOn = false) }
                 }
             }.fold(
                 onSuccess = {},
-                onFailure = {
+                onFailure = { throwable ->
+                    Log.e(TAG, "error launching settings: \n ${throwable.stackTraceToString()}")
                     stateFlow.update { it.copy(isAutofillOn = isAutofillOnInitial) }
                     effectsFlow.tryEmit(SettingsEffect.ShowError)
                 }
             )
         }
+    }
+
+    private fun onAutofillServiceChosen(activityContext: Activity) {
+        val autofillManager = activityContext.getSystemService(AutofillManager::class.java)
+        val autofillEnabled = autofillManager.hasEnabledAutofillServices()
+        stateFlow.update { it.copy(isAutofillOn = autofillEnabled) }
     }
 
     private fun onSyncChanged(isOn: Boolean) {

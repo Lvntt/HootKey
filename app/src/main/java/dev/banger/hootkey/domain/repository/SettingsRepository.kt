@@ -18,10 +18,6 @@ interface SettingsRepository {
 
     suspend fun goOnline()
 
-    fun enableAutofill()
-
-    fun disableAutofill()
-
     fun enableBiometry()
 
     fun disableBiometry()
