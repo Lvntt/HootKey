@@ -141,7 +141,22 @@ fun DashboardScreen(
         viewModel.dispatch(DashboardIntent.UpdateVault(updatedVaultKey))
     }
 
-    VaultDetailsBottomSheet({}, {}, {})
+    state.vaultDetails?.let { vault ->
+        VaultDetailsBottomSheet(
+            vaultId = vault.id,
+            onDismissRequest = {
+                viewModel.dispatch(DashboardIntent.DismissVaultDetails)
+            },
+            onEditClick = {
+                onEditClick(vault.id)
+                viewModel.dispatch(DashboardIntent.DismissVaultDetails)
+            },
+            onDeleteClick = {
+                viewModel.dispatch(DashboardIntent.OpenDeleteDialog(vault))
+                viewModel.dispatch(DashboardIntent.DismissVaultDetails)
+            }
+        )
+    }
 
     CompositionLocalProvider(
         LocalOverscrollConfiguration provides null,
@@ -235,6 +250,8 @@ fun DashboardScreen(
                 viewModel.dispatch(DashboardIntent.LoadNextVaultsPage)
             }, onDeleteVaultRequested = {
                 viewModel.dispatch(DashboardIntent.OpenDeleteDialog(it))
+            }, onClick = {
+                viewModel.dispatch(DashboardIntent.OpenVaultDetails(it))
             }, onEditClick = onEditClick, clipboardManager = clipboardManager)
 
             item(contentType = BOTTOM_SPACER) {

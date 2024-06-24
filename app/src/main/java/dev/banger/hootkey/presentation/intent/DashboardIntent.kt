@@ -15,4 +15,6 @@ sealed interface DashboardIntent {
     data class RemoveDeletedVaults(val vaultIds: List<String>) : DashboardIntent
     data class UpdateVaults(val vaultIds: List<String>) : DashboardIntent
     data class ChangeCategoriesVaultsCount(val deletedCategoryIds: List<String>, val addedCategoryIds: List<String>) : DashboardIntent
+    data class OpenVaultDetails(val vault: VaultShort) : DashboardIntent
+    data object DismissVaultDetails : DashboardIntent
 }
