@@ -45,7 +45,7 @@ fun DashboardCategory(
         modifier = Modifier.width(104.dp),
         iconResId = iconResId,
         title = title,
-        subtitle = stringResource(R.string.password_count, passwordCount),
+        subtitle = stringResource(R.string.vault_count, passwordCount),
         onClick = onClick
     )
 }

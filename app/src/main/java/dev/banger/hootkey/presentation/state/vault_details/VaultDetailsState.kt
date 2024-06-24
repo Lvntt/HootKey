@@ -1,7 +1,9 @@
 package dev.banger.hootkey.presentation.state.vault_details
 
+import androidx.compose.runtime.Immutable
 import dev.banger.hootkey.presentation.entity.UiField
 
+@Immutable
 sealed interface VaultDetailsState {
     data object Loading : VaultDetailsState
 

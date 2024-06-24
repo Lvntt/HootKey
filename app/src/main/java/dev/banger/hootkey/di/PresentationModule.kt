@@ -78,7 +78,7 @@ fun providePresentationModule() = module {
         VaultsListViewModel(get(), Dispatchers.IO, params.get())
     }
 
-    viewModel { params ->
+    factory { params ->
         VaultDetailsViewModel(params.get(), get(), Dispatchers.IO)
     }
 }

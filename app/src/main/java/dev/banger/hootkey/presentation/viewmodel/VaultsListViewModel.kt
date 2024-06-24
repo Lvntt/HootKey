@@ -55,7 +55,17 @@ class VaultsListViewModel(
                 intent.newCategoryId,
                 intent.oldCategoryId
             )
+            VaultsListIntent.DismissVaultDetails -> dismissVaultDetails()
+            is VaultsListIntent.OpenVaultDetails -> openVaultDetails(intent.vault)
         }
+    }
+
+    private fun dismissVaultDetails() {
+        _state.update { it.copy(vaultDetails = null) }
+    }
+
+    private fun openVaultDetails(vault: VaultShort) {
+        _state.update { it.copy(vaultDetails = vault) }
     }
 
     private fun updateVault(vaultId: String, newCategoryId: String?, oldCategoryId: String?) {

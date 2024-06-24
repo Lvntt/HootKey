@@ -1,74 +1,44 @@
 package dev.banger.hootkey.presentation.ui.dialog.vault_details
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LocalMinimumInteractiveComponentEnforcement
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import dev.banger.hootkey.R
-import dev.banger.hootkey.presentation.entity.UiFieldType
 import dev.banger.hootkey.presentation.intent.VaultDetailsIntent
 import dev.banger.hootkey.presentation.state.vault_details.VaultDetailsState
 import dev.banger.hootkey.presentation.ui.common.ListLoadingContent
 import dev.banger.hootkey.presentation.ui.common.VaultErrorItem
-import dev.banger.hootkey.presentation.ui.common.buttons.AlternativeButtonTiny
-import dev.banger.hootkey.presentation.ui.common.buttons.PrimaryButton
-import dev.banger.hootkey.presentation.ui.common.textfields.RegularTextField
+import dev.banger.hootkey.presentation.ui.dialog.vault_details.VaultDetailsContentTypes.HEADER
+import dev.banger.hootkey.presentation.ui.dialog.vault_details.VaultDetailsContentTypes.TOP_SPACER
+import dev.banger.hootkey.presentation.ui.dialog.vault_details.VaultDetailsContentTypes.VAULT_ERROR
+import dev.banger.hootkey.presentation.ui.dialog.vault_details.VaultDetailsContentTypes.VAULT_FIELD
+import dev.banger.hootkey.presentation.ui.dialog.vault_details.VaultDetailsContentTypes.VAULT_LOADING
+import dev.banger.hootkey.presentation.ui.dialog.vault_details.components.VaultDetailsField
+import dev.banger.hootkey.presentation.ui.dialog.vault_details.components.VaultDetailsHeader
 import dev.banger.hootkey.presentation.ui.theme.BottomSheetDragHandle
-import dev.banger.hootkey.presentation.ui.theme.ButtonShapeSmall
 import dev.banger.hootkey.presentation.ui.theme.Gray
-import dev.banger.hootkey.presentation.ui.theme.PaddingMedium
-import dev.banger.hootkey.presentation.ui.theme.PaddingRegular
-import dev.banger.hootkey.presentation.ui.theme.PaddingTiny
-import dev.banger.hootkey.presentation.ui.theme.Primary
-import dev.banger.hootkey.presentation.ui.theme.Secondary
-import dev.banger.hootkey.presentation.ui.theme.Secondary60
-import dev.banger.hootkey.presentation.ui.theme.Secondary80
-import dev.banger.hootkey.presentation.ui.theme.TypeB24
-import dev.banger.hootkey.presentation.ui.theme.TypeM16
-import dev.banger.hootkey.presentation.ui.theme.White
-import dev.banger.hootkey.presentation.ui.utils.gradientTint
-import dev.banger.hootkey.presentation.ui.utils.noRippleClickable
 import dev.banger.hootkey.presentation.viewmodel.VaultDetailsViewModel
-import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.koinInject
 import org.koin.core.parameter.parametersOf
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -78,9 +48,8 @@ fun VaultDetailsBottomSheet(
     onDismissRequest: () -> Unit,
     onEditClick: () -> Unit,
     onDeleteClick: () -> Unit,
-    viewModel: VaultDetailsViewModel = koinViewModel(
+    viewModel: VaultDetailsViewModel = koinInject<VaultDetailsViewModel>(
         parameters = { parametersOf(vaultId) },
-        key = vaultId
     )
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -115,208 +84,52 @@ fun VaultDetailsBottomSheet(
             ) {
                 when (state) {
                     is VaultDetailsState.Content -> (state as? VaultDetailsState.Content)?.let { vault ->
-                        item {
-                            Row {
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        IconButton(
-                                            modifier = Modifier.size(24.dp),
-                                            onClick = {
-                                                viewModel.dispatch(VaultDetailsIntent.FavoriteVault)
-                                            },
-                                        ) {
-                                            Icon(
-                                                modifier = Modifier.gradientTint(Primary),
-                                                imageVector = ImageVector.vectorResource(if (vault.isFavorite) R.drawable.favourite_checked else R.drawable.favourite_unchecked),
-                                                contentDescription = null
-                                            )
-                                        }
-                                        Spacer(modifier = Modifier.width(7.dp))
-                                        Text(
-                                            text = vault.name,
-                                            style = TypeB24,
-                                            color = Secondary,
-                                            maxLines = 1,
-                                            overflow = TextOverflow.Ellipsis
-                                        )
-                                    }
-                                    Spacer(modifier = Modifier.size(1.5.dp))
-                                    Text(
-                                        text = vault.categoryName,
-                                        style = TypeM16,
-                                        color = Secondary,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis
-                                    )
-                                }
-                                Spacer(modifier = Modifier.width(7.dp))
-                                IconButton(
-                                    modifier = Modifier
-                                        .size(34.dp)
-                                        .clip(CircleShape)
-                                        .background(Secondary),
-                                    onClick = onEditClick,
-                                    colors = IconButtonDefaults.iconButtonColors(
-                                        contentColor = White
-                                    )
-                                ) {
-                                    Icon(
-                                        imageVector = ImageVector.vectorResource(R.drawable.edit_icon),
-                                        contentDescription = null
-                                    )
-                                }
-                                Spacer(modifier = Modifier.width(7.dp))
-                                IconButton(
-                                    modifier = Modifier
-                                        .size(34.dp)
-                                        .clip(CircleShape)
-                                        .background(Primary),
-                                    onClick = onDeleteClick,
-                                    colors = IconButtonDefaults.iconButtonColors(contentColor = White)
-                                ) {
-                                    Icon(
-                                        imageVector = ImageVector.vectorResource(R.drawable.trash_icon),
-                                        contentDescription = null
-                                    )
-                                }
-                            }
+                        item(contentType = HEADER) {
+                            VaultDetailsHeader(
+                                name = vault.name,
+                                category = vault.categoryName,
+                                isFavorite = vault.isFavorite,
+                                onFavoriteClick = {
+                                    viewModel.dispatch(VaultDetailsIntent.FavoriteVault)
+                                },
+                                onEditClick = onEditClick,
+                                onDeleteClick = onDeleteClick
+                            )
                         }
-                        item {
+                        item(contentType = TOP_SPACER) {
                             Spacer(modifier = Modifier.height(24.dp))
                         }
-                        itemsIndexed(vault.fields) { index, field ->
-                            val isLastItem = index == vault.fields.lastIndex
-                            val isFirstItem = index == 0
-                            Box(
-                                modifier = Modifier
-                                    .clip(
-                                        if (isLastItem) RoundedCornerShape(
-                                            bottomStart = 20.dp, bottomEnd = 20.dp
-                                        )
-                                        else if (isFirstItem) RoundedCornerShape(
-                                            topStart = 20.dp, topEnd = 20.dp
-                                        )
-                                        else RectangleShape
-                                    )
-                                    .fillMaxWidth()
-                                    .background(White)
-                            ) {
-                                Column(
-                                    modifier = Modifier.padding(horizontal = PaddingMedium)
-                                ) {
-                                    if (isFirstItem) {
-                                        Spacer(modifier = Modifier.height(PaddingMedium))
-                                    }
-
-                                    RegularTextField(
-                                        modifier = Modifier.noRippleClickable {
-                                            when (field.type) {
-                                                UiFieldType.LINK -> {
-                                                    runCatching {
-                                                        val url =
-                                                            if (!field.value.startsWith("http://") && !field.value.startsWith(
-                                                                    "https://"
-                                                                )
-                                                            ) {
-                                                                "https://${field.value}"
-                                                            } else {
-                                                                field.value
-                                                            }
-                                                        uriHandler.openUri(url)
-                                                    }
-                                                }
-
-                                                else -> Unit
-                                            }
-                                        },
-                                        leadingContent = if (field.type.icon != null) {
-                                            {
-                                                Icon(
-                                                    imageVector = ImageVector.vectorResource(id = field.type.icon),
-                                                    contentDescription = null,
-                                                    tint = Secondary80
+                        itemsIndexed(vault.fields,
+                            contentType = { _, _ -> VAULT_FIELD }) { index, field ->
+                            VaultDetailsField(isLastItem = index == vault.fields.lastIndex,
+                                isFirstItem = index == 0,
+                                field = field,
+                                onCopyContent = {
+                                    clipboardManager.setText(AnnotatedString(field.value))
+                                },
+                                onOpenLink = {
+                                    runCatching {
+                                        val url =
+                                            if (!field.value.startsWith("http://") && !field.value.startsWith(
+                                                    "https://"
                                                 )
+                                            ) {
+                                                "https://${field.value}"
+                                            } else {
+                                                field.value
                                             }
-                                        } else null,
-                                        trailingContent = when (field.type) {
-                                            UiFieldType.PASSWORD, UiFieldType.SECRET -> {
-                                                {
-                                                    AlternativeButtonTiny(
-                                                        onClick = {
-                                                            viewModel.dispatch(
-                                                                VaultDetailsIntent.ChangeFieldVisibility(
-                                                                    index
-                                                                )
-                                                            )
-                                                        },
-                                                        text = if (field.isHidden) stringResource(id = R.string.view) else stringResource(
-                                                            id = R.string.hide
-                                                        )
-                                                    )
-                                                }
-                                            }
-
-                                            else -> {
-                                                {
-                                                    IconButton(
-                                                        modifier = Modifier.size(24.dp),
-                                                        onClick = {
-                                                            clipboardManager.setText(
-                                                                AnnotatedString(
-                                                                    field.value
-                                                                )
-                                                            )
-                                                        },
-                                                        colors = IconButtonDefaults.iconButtonColors(
-                                                            contentColor = Secondary60
-                                                        )
-                                                    ) {
-                                                        Icon(
-                                                            imageVector = ImageVector.vectorResource(
-                                                                R.drawable.ic_copy
-                                                            ), contentDescription = null
-                                                        )
-                                                    }
-                                                }
-                                            }
-                                        },
-                                        enabled = false,
-                                        hint = field.name,
-                                        value = field.value,
-                                        onValueChange = {},
-                                        visualTransformation = if (field.isHidden) field.type.visualTransformation else VisualTransformation.None
+                                        uriHandler.openUri(url)
+                                    }
+                                },
+                                onToggleVisibility = {
+                                    viewModel.dispatch(
+                                        VaultDetailsIntent.ChangeFieldVisibility(index)
                                     )
-
-                                    when (field.type) {
-                                        UiFieldType.PASSWORD, UiFieldType.SECRET -> {
-                                            Spacer(modifier = Modifier.height(PaddingRegular))
-
-                                            PrimaryButton(
-                                                modifier = Modifier.fillMaxWidth(),
-                                                shape = ButtonShapeSmall,
-                                                onClick = {
-                                                    clipboardManager.setText(AnnotatedString(field.value))
-                                                },
-                                                text = stringResource(
-                                                    id = R.string.copy, field.name
-                                                )
-                                            )
-                                        }
-
-                                        else -> Unit
-                                    }
-
-                                    Spacer(modifier = Modifier.height(PaddingRegular))
-
-                                    if (isLastItem) {
-                                        Spacer(modifier = Modifier.height(PaddingTiny))
-                                    }
-                                }
-                            }
+                                })
                         }
                     }
 
-                    VaultDetailsState.Error -> item {
+                    VaultDetailsState.Error -> item(contentType = VAULT_ERROR) {
                         VaultErrorItem(
                             modifier = Modifier.fillMaxWidth()
                         ) {
@@ -324,7 +137,7 @@ fun VaultDetailsBottomSheet(
                         }
                     }
 
-                    VaultDetailsState.Loading -> item {
+                    VaultDetailsState.Loading -> item(contentType = VAULT_LOADING) {
                         ListLoadingContent()
                     }
                 }
