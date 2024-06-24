@@ -10,4 +10,9 @@ sealed interface VaultsListIntent {
     data class OpenDeleteDialog(val vault: VaultShort) : VaultsListIntent
     data object DismissDeleteDialog : VaultsListIntent
     data object DeleteVault : VaultsListIntent
+    data class UpdateVault(
+        val vaultId: String,
+        val newCategoryId: String?,
+        val oldCategoryId: String?
+    ) : VaultsListIntent
 }

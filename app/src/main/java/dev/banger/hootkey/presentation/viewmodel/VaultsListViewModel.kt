@@ -50,6 +50,41 @@ class VaultsListViewModel(
             is VaultsListIntent.OpenDeleteDialog -> openDeleteDialog(intent.vault)
             VaultsListIntent.DeleteVault -> deleteVault()
             VaultsListIntent.DismissDeleteDialog -> dismissDeleteDialog()
+            is VaultsListIntent.UpdateVault -> updateVault(
+                intent.vaultId,
+                intent.newCategoryId,
+                intent.oldCategoryId
+            )
+        }
+    }
+
+    private fun updateVault(vaultId: String, newCategoryId: String?, oldCategoryId: String?) {
+        viewModelScope.launch(defaultDispatcher) {
+            runCatching {
+                _state.update {
+                    it.copy(
+                        updatedVaultIds = it.updatedVaultIds + vaultId,
+                        deletedVaultCategories = if (oldCategoryId != null) it.deletedVaultCategories + oldCategoryId else it.deletedVaultCategories,
+                        addedVaultCategories = if (newCategoryId != null) it.addedVaultCategories + newCategoryId else it.addedVaultCategories
+                    )
+                }
+                if (!categoryId.isNullOrBlank() && newCategoryId != null) null else vaultRepository.getShortById(vaultId)
+            }.onSuccess { vault ->
+                _state.update {
+                    it.copy(
+                        vaults =
+                        if (vault == null)
+                            it.vaults.filter { vaultShort -> vaultShort.id != vaultId }
+                        else
+                            it.vaults.map { vaultShort ->
+                                if (vaultShort.id == vaultId) vault
+                                else vaultShort
+                            }
+                    )
+                }
+            }.onFailure { throwable ->
+                if (throwable is CancellationException) throw throwable
+            }
         }
     }
 
@@ -66,7 +101,8 @@ class VaultsListViewModel(
                         isDeletingVault = false,
                         vaults = it.vaults.filter { vault -> vault.id != vaultToDelete.id },
                         deletedVaultIds = it.deletedVaultIds + vaultToDelete.id,
-                        deletedVaultCategories = it.deletedVaultCategories + vaultToDelete.categoryId
+                        deletedVaultCategories = it.deletedVaultCategories + vaultToDelete.categoryId,
+                        updatedVaultIds = it.updatedVaultIds.filter { id -> id != vaultToDelete.id }
                     )
                 }
                 dismissDeleteDialog()

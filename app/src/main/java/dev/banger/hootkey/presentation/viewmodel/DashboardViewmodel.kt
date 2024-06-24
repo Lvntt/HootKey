@@ -42,21 +42,35 @@ class DashboardViewmodel(
             is DashboardIntent.OpenDeleteDialog -> openDeleteDialog(intent.vault)
             is DashboardIntent.AddNewVault -> addNewVault(intent.vaultId)
             is DashboardIntent.IncrementCategoryVaultsCount -> incrementCategoryVaultsCount(intent.categoryId)
-            is DashboardIntent.DecrementCategoriesVaultsCount -> decrementCategoriesVaultsCount(intent.categoryIds)
+            is DashboardIntent.ChangeCategoriesVaultsCount -> changeCategoriesVaultsCount(
+                intent.deletedCategoryIds,
+                intent.addedCategoryIds
+            )
+
             is DashboardIntent.RemoveDeletedVaults -> removeDeletedVaults(intent.vaultIds)
             is DashboardIntent.DecrementCategoryVaultsCount -> decrementCategoryVaultsCount(intent.categoryId)
             is DashboardIntent.UpdateVault -> updateVault(intent.vaultId)
+            is DashboardIntent.UpdateVaults -> updateVaults(intent.vaultIds)
         }
     }
 
-    private fun decrementCategoriesVaultsCount(categoryIds: List<String>) {
+    private fun changeCategoriesVaultsCount(
+        deletedCategoryIds: List<String>,
+        addedCategoryIds: List<String>
+    ) {
+        if (deletedCategoryIds.isEmpty() && addedCategoryIds.isEmpty()) return
         viewModelScope.launch(defaultDispatcher) {
             runCatching {
+                val newCategories =
+                    addedCategoryIds.toSet().minus(_state.value.categories.map { it.id }.toSet())
                 _state.update {
                     it.copy(
-                        categories = it.categories.map { category ->
-                            category.copy(
-                                vaultsAmount = category.vaultsAmount - categoryIds.count { categoryId -> categoryId == category.id }
+                        categories = it.categories.mapNotNull { category ->
+                            val newCount =
+                                category.vaultsAmount - deletedCategoryIds.count { categoryId -> categoryId == category.id } + addedCategoryIds.count { categoryId -> categoryId == category.id }
+                            if (newCount <= 0) null
+                            else category.copy(
+                                vaultsAmount = newCount
                             )
                         }.sortedWith(
                             compareByDescending<UiCategoryShort> { category -> category.vaultsAmount }
@@ -64,6 +78,20 @@ class DashboardViewmodel(
                         )
                     )
                 }
+                if (newCategories.isNotEmpty()) {
+                    val newCategoryShorts =
+                        newCategories.map { categoryRepository.getShortById(it)?.toUi() }
+                    _state.update {
+                        it.copy(
+                            categories = (it.categories + newCategoryShorts.mapNotNull { uiCategoryShort -> uiCategoryShort }).sortedWith(
+                                compareByDescending<UiCategoryShort> { category -> category.vaultsAmount }
+                                    .thenBy { category -> category.name }
+                            )
+                        )
+                    }
+                }
+            }.onFailure {
+                if (it is CancellationException) throw it
             }
         }
     }
@@ -74,6 +102,22 @@ class DashboardViewmodel(
                 _state.update {
                     it.copy(vaults = it.vaults.filter { vault -> vault.id !in vaultIds })
                 }
+            }
+        }
+    }
+
+    private fun updateVaults(vaultIds: List<String>) {
+        viewModelScope.launch(defaultDispatcher) {
+            runCatching {
+                vaultRepository.getShortByIds(vaultIds)
+            }.onSuccess { vaults ->
+                _state.update { state ->
+                    state.copy(vaults = state.vaults.map { vault ->
+                        vaults.firstOrNull { it.id == vault.id } ?: vault
+                    })
+                }
+            }.onFailure {
+                if (it is CancellationException) throw it
             }
         }
     }
@@ -96,10 +140,12 @@ class DashboardViewmodel(
             runCatching {
                 vaultRepository.getShortById(vaultId)
             }.onSuccess { vault ->
-                _state.update { it.copy(vaults = it.vaults.map { vaultShort ->
-                    if (vaultShort.id == vaultId) vault
-                    else vaultShort
-                }) }
+                _state.update {
+                    it.copy(vaults = it.vaults.map { vaultShort ->
+                        if (vaultShort.id == vaultId) vault
+                        else vaultShort
+                    })
+                }
             }.onFailure {
                 if (it is CancellationException) throw it
             }

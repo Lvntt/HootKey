@@ -18,6 +18,7 @@ import androidx.compose.material3.LocalMinimumInteractiveComponentEnforcement
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboardManager
@@ -25,7 +26,11 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import dev.banger.hootkey.Constants.EDITED_VAULT_KEY
+import dev.banger.hootkey.Constants.EDITED_VAULT_NEW_CATEGORY_KEY
+import dev.banger.hootkey.Constants.EDITED_VAULT_OLD_CATEGORY_KEY
 import dev.banger.hootkey.R
 import dev.banger.hootkey.presentation.entity.LceState
 import dev.banger.hootkey.presentation.entity.UiFilterType
@@ -49,23 +54,46 @@ import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 
 typealias DeletedVaultIds = List<String>
+typealias UpdatedVaultIds = List<String>
 typealias DeletedVaultCategories = List<String>
+typealias AddedVaultCategories = List<String>
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VaultsListScreen(
+    savedStateHandleProvider: () -> SavedStateHandle?,
     categoryName: String? = null,
     categoryId: String? = null,
     onEditClick: (String) -> Unit,
-    onNavigateBack: (DeletedVaultIds, DeletedVaultCategories) -> Unit,
+    onNavigateBack: (DeletedVaultIds, UpdatedVaultIds, DeletedVaultCategories, AddedVaultCategories) -> Unit,
     viewModel: VaultsListViewModel = koinViewModel(parameters = { parametersOf(categoryId ?: "") })
 ) {
     val query by viewModel.searchQuery.collectAsStateWithLifecycle()
     val state by viewModel.state.collectAsStateWithLifecycle()
     val clipboardManager = LocalClipboardManager.current
+    val savedStateHandle = savedStateHandleProvider()
+
+    val updatedVaultKeyFlow = savedStateHandle?.getStateFlow<String?>(EDITED_VAULT_KEY, null)
+        ?.collectAsStateWithLifecycle()
+    LaunchedEffect(updatedVaultKeyFlow?.value) {
+        val updatedVaultKey = updatedVaultKeyFlow?.value ?: return@LaunchedEffect
+        savedStateHandle.remove<String>(EDITED_VAULT_KEY)
+        viewModel.dispatch(
+            VaultsListIntent.UpdateVault(
+                updatedVaultKey,
+                savedStateHandle.remove<String>(EDITED_VAULT_NEW_CATEGORY_KEY),
+                savedStateHandle.remove<String>(EDITED_VAULT_OLD_CATEGORY_KEY),
+            )
+        )
+    }
 
     BackHandler {
-        onNavigateBack(state.deletedVaultIds, state.deletedVaultCategories)
+        onNavigateBack(
+            state.deletedVaultIds,
+            state.updatedVaultIds,
+            state.deletedVaultCategories,
+            state.addedVaultCategories
+        )
     }
 
     state.deleteDialogOpenedForVault?.let {
@@ -90,7 +118,12 @@ fun VaultsListScreen(
             }, topBar = {
             HootKeyTopBar(
                 onNavigateBack = {
-                    onNavigateBack(state.deletedVaultIds, state.deletedVaultCategories)
+                    onNavigateBack(
+                        state.deletedVaultIds,
+                        state.updatedVaultIds,
+                        state.deletedVaultCategories,
+                        state.addedVaultCategories
+                    )
                 },
                 title = categoryName ?: stringResource(id = R.string.my_vaults)
             )

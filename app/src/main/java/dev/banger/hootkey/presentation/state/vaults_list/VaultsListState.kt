@@ -16,5 +16,7 @@ data class VaultsListState(
     val deleteDialogOpenedForVault: VaultShort? = null,
     val isDeletingVault: Boolean = false,
     val deletedVaultIds: List<String> = emptyList(),
-    val deletedVaultCategories: List<String> = emptyList()
+    val deletedVaultCategories: List<String> = emptyList(),
+    val addedVaultCategories: List<String> = emptyList(),
+    val updatedVaultIds: List<String> = emptyList(),
 )
