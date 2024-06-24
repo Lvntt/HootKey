@@ -61,7 +61,9 @@ fun AppAlertDialog(
             shape = DialogShapeRegular
         ) {
             Column(
-                modifier = Modifier.padding(PaddingMedium)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(PaddingMedium)
             ) {
                 Text(
                     text = title, style = TypeB16, color = MainDark
@@ -75,11 +77,13 @@ fun AppAlertDialog(
 
                 Spacer(modifier = Modifier.height(PaddingMedium))
 
-                Row(modifier = modifier
-                    .noRippleClickable {
-                        onNegativeAction()
-                    }
-                    .align(Alignment.End), verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    modifier = modifier
+                        .noRippleClickable {
+                            onNegativeAction()
+                        }
+                        .align(Alignment.End),
+                    verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = negativeButtonText, style = TypeM14, color = Secondary60
                     )

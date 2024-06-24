@@ -31,6 +31,7 @@ import dev.banger.hootkey.presentation.ui.screen.new_category.CategoryIconsScree
 import dev.banger.hootkey.presentation.ui.screen.new_category.NewCategoryScreen
 import dev.banger.hootkey.presentation.ui.screen.new_template.NewTemplateScreen
 import dev.banger.hootkey.presentation.ui.screen.new_vault.NewVaultScreen
+import dev.banger.hootkey.presentation.ui.screen.settings.SettingsScreen
 import dev.banger.hootkey.presentation.ui.screen.templates.TemplatesScreen
 import dev.banger.hootkey.presentation.ui.screen.vaults_list.VaultsListScreen
 
@@ -42,28 +43,28 @@ fun AppNavigation(navHostController: NavHostController) {
     ) {
         composable(NavigationDestinations.LAUNCH) {
             LaunchScreen(onNavigateToAccountLogin = {
-                navHostController.navigate(NavigationDestinations.ACCOUNT_LOGIN)
+                navHostController.clearBackStackAndNavigate(NavigationDestinations.ACCOUNT_LOGIN)
             }, onNavigateToLogin = {
-                navHostController.navigate(NavigationDestinations.LOGIN)
+                navHostController.clearBackStackAndNavigate(NavigationDestinations.LOGIN)
             })
         }
         composable(NavigationDestinations.ACCOUNT_LOGIN) {
             AccountAuthScreen(isLogin = true, onNavigateFromBottomHint = {
                 navHostController.navigate(NavigationDestinations.ACCOUNT_REGISTRATION)
             }, onSuccess = {
-                navHostController.navigate(NavigationDestinations.DASHBOARD)
+                navHostController.clearBackStackAndNavigate(NavigationDestinations.DASHBOARD)
             })
         }
         composable(NavigationDestinations.ACCOUNT_REGISTRATION) {
             AccountAuthScreen(isLogin = false, onNavigateFromBottomHint = {
                 navHostController.navigate(NavigationDestinations.ACCOUNT_LOGIN)
             }, onSuccess = {
-                navHostController.navigate(NavigationDestinations.DASHBOARD)
+                navHostController.clearBackStackAndNavigate(NavigationDestinations.DASHBOARD)
             })
         }
         composable(NavigationDestinations.LOGIN) {
             AuthScreen(onSuccess = {
-                navHostController.navigate(NavigationDestinations.DASHBOARD)
+                navHostController.clearBackStackAndNavigate(NavigationDestinations.DASHBOARD)
             })
         }
         composable(NavigationDestinations.DASHBOARD) {
@@ -76,6 +77,8 @@ fun AppNavigation(navHostController: NavHostController) {
                     navHostController.navigate("${NavigationDestinations.VAULTS}/${id ?: NULL_ARG_VALUE}/${name ?: NULL_ARG_VALUE}")
                 }, onEditClick = { id ->
                     navHostController.navigate("${NavigationDestinations.EDIT_VAULT}/$id")
+                }, onSettingsClick = {
+                    navHostController.navigate(NavigationDestinations.SETTINGS)
                 })
         }
         composable("${NavigationDestinations.VAULTS}/{${NavigationDestinations.VAULT_CATEGORY_ID_ARG}}/{${NavigationDestinations.VAULT_CATEGORY_NAME_ARG}}",
@@ -275,10 +278,29 @@ fun AppNavigation(navHostController: NavHostController) {
             )
         }
 
+        composable(NavigationDestinations.SETTINGS) {
+            SettingsScreen(
+                onNavigateBack = {
+                    navHostController.popBackStack()
+                },
+                onLogout = {
+                    navHostController.clearBackStackAndNavigate(NavigationDestinations.ACCOUNT_LOGIN)
+                }
+            )
+        }
+
         //TODO FOR TESTING PURPOSES ONLY
         composable(NavigationDestinations.PASSWORD_GENERATOR) {
             TestScreen()
         }
         //-------------------------
+    }
+}
+
+fun NavHostController.clearBackStackAndNavigate(destination: String) {
+    navigate(destination) {
+        popUpTo(graph.id) {
+            inclusive = true
+        }
     }
 }

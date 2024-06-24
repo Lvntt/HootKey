@@ -61,6 +61,7 @@
     <string name="edit_vault_error">Error editing new vault</string>
     <string name="fetching_templates_error">Error fetching templates</string>
     <string name="fetching_categories_error">Error fetching categories</string>
+    <string name="request_error">Request error</string>
     <string name="invalid_email">Valid email is required</string>
     <string name="password_length_error">Password must be at least 6 characters long</string>
     <string name="view">View</string>
@@ -90,8 +91,14 @@
     <string name="enter_the_field">Enter the %1$s</string>
     <string name="enter_the_vault_name">Enter the Vault name</string>
     <string name="are_you_sure">Are you sure?</string>
+    <string name="confirm_logout">Confirm logout</string>
     <string name="delete_vault_message">You are about to delete a vault. This action cannot be undone.</string>
     <string name="delete">Delete</string>
     <string name="hootkey_autofill_service">HootKey Autofill Service</string>
     <string name="edit_vault">Edit vault</string>
+    <string name="settings">Settings</string>
+    <string name="biometry_auth_settings">Biometry Auth</string>
+    <string name="autofill_settings">Autofill</string>
+    <string name="enable_sync_settings">Enable Sync</string>
+    <string name="logout">Logout</string>
 </resources>

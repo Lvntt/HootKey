@@ -7,7 +7,8 @@ data class AuthState(
     val passwordIsValid: Boolean = true,
     val isLoading: Boolean = false,
     @StringRes val errorMessageResId: Int? = null,
-    val isPasswordVisible: Boolean = false
+    val isPasswordVisible: Boolean = false,
+    val isBiometryOn: Boolean = false
 ) {
     val isAuthAllowed: Boolean
         get() = passwordIsValid && password.isNotBlank()

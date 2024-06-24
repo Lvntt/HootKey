@@ -10,4 +10,6 @@ interface AuthRepository {
 
     suspend fun checkPassword(password: String): Boolean
 
+    suspend fun logout()
+
 }

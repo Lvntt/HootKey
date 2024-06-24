@@ -11,7 +11,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.input.KeyboardType
@@ -20,6 +22,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import dev.banger.hootkey.R
 import dev.banger.hootkey.presentation.ui.common.buttons.AlternativeButtonTiny
+import dev.banger.hootkey.presentation.ui.theme.LightGray
 import dev.banger.hootkey.presentation.ui.theme.Primary
 import dev.banger.hootkey.presentation.ui.theme.Secondary60
 import dev.banger.hootkey.presentation.ui.theme.Secondary80
@@ -43,6 +46,7 @@ fun RegularTextField(
     visualTransformation: VisualTransformation = VisualTransformation.None,
     leadingContent: @Composable (() -> Unit)? = null,
     trailingContent: @Composable (() -> Unit)? = null,
+    strokeBrushInactive: Brush = SolidColor(LightGray),
     onFocusChange: (Boolean) -> Unit = {},
     decorationBoxModifier: Modifier = Modifier
         .fillMaxWidth()
@@ -64,6 +68,7 @@ fun RegularTextField(
         visualTransformation = visualTransformation,
         leadingContent = leadingContent,
         trailingContent = trailingContent,
+        strokeBrushInactive = strokeBrushInactive,
         onFocusChange = onFocusChange
     )
 }

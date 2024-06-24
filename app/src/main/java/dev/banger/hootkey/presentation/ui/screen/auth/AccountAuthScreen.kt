@@ -3,9 +3,12 @@ package dev.banger.hootkey.presentation.ui.screen.auth
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
@@ -14,13 +17,18 @@ import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.paint
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
@@ -39,12 +47,16 @@ import dev.banger.hootkey.presentation.ui.common.buttons.PrimaryButton
 import dev.banger.hootkey.presentation.ui.common.buttons.PrimaryButtonTiny
 import dev.banger.hootkey.presentation.ui.common.textfields.RegularTextField
 import dev.banger.hootkey.presentation.ui.theme.Gray
+import dev.banger.hootkey.presentation.ui.theme.PaddingRegular
 import dev.banger.hootkey.presentation.ui.theme.Primary
 import dev.banger.hootkey.presentation.ui.theme.Primary20
+import dev.banger.hootkey.presentation.ui.theme.Secondary
+import dev.banger.hootkey.presentation.ui.theme.Secondary80
 import dev.banger.hootkey.presentation.ui.theme.TypeB14
 import dev.banger.hootkey.presentation.ui.theme.TypeB32
 import dev.banger.hootkey.presentation.ui.theme.TypeM14
 import dev.banger.hootkey.presentation.ui.theme.TypeM24
+import dev.banger.hootkey.presentation.ui.utils.noRippleClickable
 import dev.banger.hootkey.presentation.viewmodel.AccountAuthViewModel
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.qualifier.named
@@ -58,7 +70,11 @@ fun AccountAuthScreen(
     onSuccess: () -> Unit,
     viewModel: AccountAuthViewModel = koinViewModel(named(if (isLogin) Constants.LOGIN else Constants.REGISTER))
 ) {
+    val focusManager = LocalFocusManager.current
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val density = LocalDensity.current
+    val windowsInsetsIme = WindowInsets.ime
+    val bottomImePadding by derivedStateOf { windowsInsetsIme.getBottom(density) }
 
     ObserveAsEvents(viewModel.successEventFlow) {
         onSuccess()
@@ -97,10 +113,16 @@ fun AccountAuthScreen(
             .padding(horizontal = 20.dp)
             .systemBarsPadding()
             .verticalScroll(rememberScrollState())
+            .noRippleClickable { focusManager.clearFocus() }
+            .graphicsLayer {
+                translationY = -(bottomImePadding.toFloat())
+            }
     ) {
         Spacer(modifier = Modifier.weight(1f))
         Image(
-            modifier = Modifier.size(250.dp).align(Alignment.CenterHorizontally),
+            modifier = Modifier
+                .size(250.dp)
+                .align(Alignment.CenterHorizontally),
             imageVector = ImageVector.vectorResource(R.drawable.auth_logo),
             contentDescription = null
         )
@@ -126,6 +148,7 @@ fun AccountAuthScreen(
             isError = !state.emailIsValid,
             hint = stringResource(R.string.email_hint),
             hintColor = Gray,
+            strokeBrushInactive = SolidColor(Secondary),
             errorText = if (!state.emailIsValid) stringResource(R.string.invalid_email) else null
         )
         Spacer(modifier = Modifier.height(8.dp))
@@ -135,6 +158,7 @@ fun AccountAuthScreen(
             isError = !state.passwordIsValid,
             hint = stringResource(R.string.password_hint),
             hintColor = Gray,
+            strokeBrushInactive = SolidColor(Secondary),
             visualTransformation = if (state.isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
             errorText = if (!state.passwordIsValid) stringResource(R.string.password_length_error) else null,
             trailingContent = {
@@ -154,7 +178,10 @@ fun AccountAuthScreen(
             isLoading = state.isLoading
         )
         Spacer(modifier = Modifier.height(12.dp))
-        ClickableText(modifier = Modifier.align(Alignment.CenterHorizontally),
+        ClickableText(
+            modifier = Modifier
+                .align(Alignment.CenterHorizontally)
+                .padding(PaddingRegular),
             text = bottomHint,
             onClick = { offset ->
                 bottomHint.getStringAnnotations(tag = AUTH_TAG, start = offset, end = offset)

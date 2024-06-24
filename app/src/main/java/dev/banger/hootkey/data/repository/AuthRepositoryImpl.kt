@@ -3,8 +3,10 @@ package dev.banger.hootkey.data.repository
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
+import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.toObject
+import com.google.firebase.ktx.Firebase
 import dev.banger.hootkey.data.crypto.CryptoManager
 import dev.banger.hootkey.data.crypto.PasswordValidator
 import dev.banger.hootkey.data.crypto.SharedPrefsManager
@@ -62,5 +64,9 @@ class AuthRepositoryImpl(
 
     override suspend fun checkPassword(password: String): Boolean {
         return passwordValidator.validatePassword(password)
+    }
+
+    override suspend fun logout() {
+        Firebase.auth.signOut()
     }
 }

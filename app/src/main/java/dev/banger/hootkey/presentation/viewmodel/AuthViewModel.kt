@@ -1,5 +1,6 @@
 package dev.banger.hootkey.presentation.viewmodel
 
+import android.util.Log
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_STRONG
 import androidx.biometric.BiometricPrompt
@@ -7,6 +8,7 @@ import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.banger.hootkey.R
+import dev.banger.hootkey.domain.repository.SettingsRepository
 import dev.banger.hootkey.domain.usecase.CheckPasswordUseCase
 import dev.banger.hootkey.domain.usecase.ValidatePasswordUseCase
 import dev.banger.hootkey.presentation.state.auth.AuthState
@@ -21,8 +23,14 @@ import kotlinx.coroutines.launch
 
 class AuthViewModel(
     private val checkPasswordUseCase: CheckPasswordUseCase,
-    private val validatePasswordUseCase: ValidatePasswordUseCase
+    private val validatePasswordUseCase: ValidatePasswordUseCase,
+    private val settingsRepository: SettingsRepository
 ) : ViewModel() {
+
+    private companion object {
+        const val TAG = "AuthViewModel"
+    }
+
     private val _state = MutableStateFlow(AuthState())
     val state = _state.asStateFlow()
 
@@ -31,6 +39,25 @@ class AuthViewModel(
 
     private val _biometricErrorFlow = MutableSharedFlow<BiometricError>(extraBufferCapacity = 1)
     val biometricErrorFlow = _biometricErrorFlow.asSharedFlow()
+
+    init {
+        getBiometrySettings()
+    }
+
+    private fun getBiometrySettings() {
+        runCatching {
+            settingsRepository.isBiometryOn()
+        }.fold(
+            onSuccess = { isBiometryOn ->
+                _state.update {
+                    it.copy(isBiometryOn = isBiometryOn)
+                }
+            },
+            onFailure = { throwable ->
+                Log.e(TAG, "error getting biometry settings: \n ${throwable.stackTraceToString()}")
+            }
+        )
+    }
 
     fun onPasswordChanged(password: String) {
         _state.update {

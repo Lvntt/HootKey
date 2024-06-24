@@ -1,23 +1,31 @@
 package dev.banger.hootkey.domain.repository
 
+import dev.banger.hootkey.domain.entity.settings.UserSettings
+
 interface SettingsRepository {
 
-    suspend fun isOffline(): Boolean
+    fun getUserSettings(): UserSettings
 
-    suspend fun isUsingBiometry(): Boolean
+    fun clearUserSettings()
 
-    suspend fun isCompromisedPasswordDetectionEnabled(): Boolean
+    fun isOffline(): Boolean
+
+    fun isAutofillOn(): Boolean
+
+    fun isBiometryOn(): Boolean
+
+    fun isCompromiseDetectionOn(): Boolean
 
     suspend fun goOffline()
 
     suspend fun goOnline()
 
-    suspend fun enableBiometry()
+    fun enableBiometry()
 
-    suspend fun disableBiometry()
+    fun disableBiometry()
 
-    suspend fun enableCompromisedPasswordsDetection()
+    fun enableCompromiseDetection()
 
-    suspend fun disableCompromisedPasswordsDetection()
+    fun disableCompromiseDetection()
 
 }
