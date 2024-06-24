@@ -17,7 +17,9 @@ import dev.banger.hootkey.domain.repository.CategoryRepository
 import dev.banger.hootkey.domain.repository.TemplateRepository
 import dev.banger.hootkey.domain.repository.VaultRepository
 import dev.banger.hootkey.data.repository.PasswordRepositoryImpl
+import dev.banger.hootkey.data.repository.SettingsRepositoryImpl
 import dev.banger.hootkey.domain.repository.PasswordRepository
+import dev.banger.hootkey.domain.repository.SettingsRepository
 import dev.banger.hootkey.domain.usecase.CheckPasswordUseCase
 import org.koin.core.module.dsl.bind
 import org.koin.core.module.dsl.factoryOf
@@ -31,6 +33,7 @@ fun provideDomainModule() = module {
     singleOf(::TemplateRepositoryImpl) bind TemplateRepository::class
     singleOf(::CategoryRepositoryImpl) bind CategoryRepository::class
     singleOf(::VaultRepositoryImpl) bind VaultRepository::class
+    singleOf(::SettingsRepositoryImpl) bind SettingsRepository::class
 
     factoryOf(::RegisterUseCase) {
         named(Constants.REGISTER)

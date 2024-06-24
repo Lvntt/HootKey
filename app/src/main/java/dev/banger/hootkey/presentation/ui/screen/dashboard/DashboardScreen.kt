@@ -22,9 +22,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.paint
 import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.input.pointer.pointerInteropFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
@@ -62,13 +64,18 @@ import org.koin.androidx.compose.koinViewModel
 typealias Id = String?
 typealias Name = String?
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
+@OptIn(
+    ExperimentalFoundationApi::class,
+    ExperimentalMaterial3Api::class,
+    ExperimentalComposeUiApi::class
+)
 @Composable
 fun DashboardScreen(
     savedStateHandleProvider: () -> SavedStateHandle?,
     onAddNewVault: () -> Unit,
     onCategorySelected: (Id, Name) -> Unit,
     onEditClick: (String) -> Unit,
+    onSettingsClick: () -> Unit,
     viewModel: DashboardViewmodel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -116,16 +123,22 @@ fun DashboardScreen(
                 .paint(painterResource(R.drawable.auth_bg), contentScale = ContentScale.FillBounds)
         )
 
-        DashboardBackgroundContent(listStateProvider = { listState },
+        DashboardBackgroundContent(
+            listStateProvider = { listState },
             onSetNonBottomSheetContentHeight = {
                 nonBottomSheetContentHeight = it
-            })
+            },
+            onSettingsClick = onSettingsClick
+        )
 
         LazyColumn(
             state = listState,
             modifier = Modifier
                 .fillMaxSize()
-                .bottomSheetBackground({ bottomSheetBackgroundYOffset }, cornerRadius),
+                .bottomSheetBackground({ bottomSheetBackgroundYOffset }, cornerRadius)
+                .pointerInteropFilter {
+                    return@pointerInteropFilter false
+                },
             contentPadding = WindowInsets.systemBars.asPaddingValues(),
         ) {
             item(contentType = TOP_SPACER) {

@@ -39,7 +39,9 @@ import dev.banger.hootkey.presentation.ui.theme.White
 
 @Composable
 inline fun DashboardBackgroundContent(
-    crossinline listStateProvider: () -> LazyListState, crossinline onSetNonBottomSheetContentHeight: (Float) -> Unit
+    crossinline listStateProvider: () -> LazyListState,
+    crossinline onSetNonBottomSheetContentHeight: (Float) -> Unit,
+    noinline onSettingsClick: () -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -95,7 +97,7 @@ inline fun DashboardBackgroundContent(
                     .size(40.dp)
                     .clip(CircleShape)
                     .background(White),
-                onClick = {},
+                onClick = onSettingsClick,
                 colors = IconButtonDefaults.iconButtonColors(
                     contentColor = Secondary
                 )

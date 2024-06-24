@@ -13,6 +13,7 @@ import dev.banger.hootkey.presentation.viewmodel.NewTemplateFieldViewModel
 import dev.banger.hootkey.presentation.viewmodel.NewTemplateViewModel
 import dev.banger.hootkey.presentation.viewmodel.NewVaultViewModel
 import dev.banger.hootkey.presentation.viewmodel.PasswordGeneratorViewModel
+import dev.banger.hootkey.presentation.viewmodel.SettingsViewModel
 import dev.banger.hootkey.presentation.viewmodel.TemplatesViewModel
 import kotlinx.coroutines.Dispatchers
 import org.koin.androidx.viewmodel.dsl.viewModel
@@ -70,5 +71,9 @@ fun providePresentationModule() = module {
             vaultId = parameters.get(),
             get(), get(), Dispatchers.IO
         )
+    }
+
+    viewModel {
+        SettingsViewModel(get(), Dispatchers.IO)
     }
 }

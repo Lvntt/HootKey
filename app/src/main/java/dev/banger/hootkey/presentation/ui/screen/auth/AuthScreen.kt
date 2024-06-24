@@ -62,12 +62,14 @@ fun AuthScreen(onSuccess: () -> Unit, viewModel: AuthViewModel = koinViewModel()
     val context = LocalContext.current
     val biometricLauncher: () -> Unit = {
         context.findActivity()?.let { activity ->
-            viewModel.showBiometricPrompt(
-                activity,
-                activity.getString(R.string.biometric_title),
-                activity.getString(R.string.biometric_description),
-                activity.getString(R.string.biometric_cancel_text)
-            )
+            if (state.isBiometryOn) {
+                viewModel.showBiometricPrompt(
+                    activity,
+                    activity.getString(R.string.biometric_title),
+                    activity.getString(R.string.biometric_description),
+                    activity.getString(R.string.biometric_cancel_text)
+                )
+            }
         }
     }
 
@@ -157,22 +159,24 @@ fun AuthScreen(onSuccess: () -> Unit, viewModel: AuthViewModel = koinViewModel()
                 isLoading = state.isLoading
             )
             Spacer(modifier = Modifier.width(8.dp))
-            Button(
-                modifier = Modifier
-                    .size(52.dp),
-                onClick = biometricLauncher,
-                contentPadding = PaddingValues(0.dp),
-                shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Gray,
-                    contentColor = Secondary
-                )
-            ) {
-                Icon(
-                    modifier = Modifier.size(24.dp),
-                    imageVector = ImageVector.vectorResource(R.drawable.fingerprint_icon),
-                    contentDescription = null
-                )
+            if (state.isBiometryOn) {
+                Button(
+                    modifier = Modifier
+                        .size(52.dp),
+                    onClick = biometricLauncher,
+                    contentPadding = PaddingValues(0.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Gray,
+                        contentColor = Secondary
+                    )
+                ) {
+                    Icon(
+                        modifier = Modifier.size(24.dp),
+                        imageVector = ImageVector.vectorResource(R.drawable.fingerprint_icon),
+                        contentDescription = null
+                    )
+                }
             }
         }
     }

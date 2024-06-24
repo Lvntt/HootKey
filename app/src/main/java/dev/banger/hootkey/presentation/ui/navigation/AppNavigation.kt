@@ -24,6 +24,7 @@ import dev.banger.hootkey.presentation.ui.screen.new_category.CategoryIconsScree
 import dev.banger.hootkey.presentation.ui.screen.new_category.NewCategoryScreen
 import dev.banger.hootkey.presentation.ui.screen.new_template.NewTemplateScreen
 import dev.banger.hootkey.presentation.ui.screen.new_vault.NewVaultScreen
+import dev.banger.hootkey.presentation.ui.screen.settings.SettingsScreen
 import dev.banger.hootkey.presentation.ui.screen.templates.TemplatesScreen
 import dev.banger.hootkey.presentation.ui.screen.vaults_list.VaultsListScreen
 
@@ -69,6 +70,8 @@ fun AppNavigation(navHostController: NavHostController) {
                     navHostController.navigate("${NavigationDestinations.VAULTS}/${id ?: NULL_ARG_VALUE}/${name ?: NULL_ARG_VALUE}")
                 }, onEditClick = { id ->
                     navHostController.navigate("${NavigationDestinations.EDIT_VAULT}/$id")
+                }, onSettingsClick = {
+                    navHostController.navigate(NavigationDestinations.SETTINGS)
                 })
         }
         composable("${NavigationDestinations.VAULTS}/{${NavigationDestinations.VAULT_CATEGORY_ID_ARG}}/{${NavigationDestinations.VAULT_CATEGORY_NAME_ARG}}",
@@ -224,6 +227,14 @@ fun AppNavigation(navHostController: NavHostController) {
                 },
                 onNavigateToCategories = {
                     navHostController.navigate(NavigationDestinations.CATEGORIES)
+                }
+            )
+        }
+
+        composable(NavigationDestinations.SETTINGS) {
+            SettingsScreen(
+                onNavigateBack = {
+                    navHostController.popBackStack()
                 }
             )
         }

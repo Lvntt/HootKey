@@ -48,7 +48,7 @@ class SettingsViewModel(
                     stateFlow.update {
                         it.copy(
                             isLoading = false,
-                            isBiometryOn = userSettings.isBiometricsOn,
+                            isBiometryOn = userSettings.isBiometryOn,
                             isAutofillOn = userSettings.isAutofillOn,
                             isSyncOn = userSettings.isSyncOn
                         )
