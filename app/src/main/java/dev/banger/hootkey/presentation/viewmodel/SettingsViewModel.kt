@@ -1,15 +1,14 @@
 package dev.banger.hootkey.presentation.viewmodel
 
 import android.app.Activity
-import android.app.Application
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
 import android.util.Log
 import android.view.autofill.AutofillManager
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dev.banger.hootkey.domain.repository.AuthRepository
 import dev.banger.hootkey.domain.repository.SettingsRepository
 import dev.banger.hootkey.presentation.intent.SettingsIntent
 import dev.banger.hootkey.presentation.state.settings.SettingsEffect
@@ -24,6 +23,7 @@ import kotlinx.coroutines.launch
 
 class SettingsViewModel(
     private val settingsRepository: SettingsRepository,
+    private val authRepository: AuthRepository,
     private val defaultDispatcher: CoroutineDispatcher
 ) : ViewModel() {
 
@@ -47,7 +47,7 @@ class SettingsViewModel(
             is SettingsIntent.AutofillChanged -> onAutofillChanged(intent.isOn, intent.activityContext)
             is SettingsIntent.SyncChanged -> onSyncChanged(intent.isOn)
             is SettingsIntent.AutofillServiceChosen -> onAutofillServiceChosen(intent.activityContext)
-            SettingsIntent.Logout -> TODO()
+            SettingsIntent.Logout -> logout()
         }
     }
 
@@ -145,6 +145,14 @@ class SettingsViewModel(
                     effectsFlow.tryEmit(SettingsEffect.ShowError)
                 }
             )
+        }
+    }
+
+    private fun logout() {
+        viewModelScope.launch(defaultDispatcher) {
+            authRepository.logout()
+            settingsRepository.clearUserSettings()
+            effectsFlow.tryEmit(SettingsEffect.Logout)
         }
     }
 

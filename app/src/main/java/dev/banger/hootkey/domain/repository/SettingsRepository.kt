@@ -6,6 +6,8 @@ interface SettingsRepository {
 
     fun getUserSettings(): UserSettings
 
+    fun clearUserSettings()
+
     fun isOffline(): Boolean
 
     fun isAutofillOn(): Boolean

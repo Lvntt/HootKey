@@ -35,7 +35,10 @@ inline fun LazyListScope.vaultsContent(
         VaultShortItem(modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp),
-            iconModel = { "https://www.google.com/s2/favicons?domain=${vault.link}&sz=256" },
+            iconModel = {
+                "https://www.google.com/s2/favicons?domain=${vault.link}&sz=256"
+                    .takeIf { !vault.link.isNullOrBlank() }
+            },
             name = vault.name,
             login = vault.login ?: "",
             onClick = {},

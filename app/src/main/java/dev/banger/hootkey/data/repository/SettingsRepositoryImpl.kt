@@ -25,6 +25,10 @@ class SettingsRepositoryImpl(
         )
     }
 
+    override fun clearUserSettings() {
+        settingsManager.clearAllSettings()
+    }
+
     override fun isOffline(): Boolean = settingsManager.isOffline()
 
     override fun isAutofillOn(): Boolean = settingsManager.isAutofillOn()

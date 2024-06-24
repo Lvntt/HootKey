@@ -24,6 +24,12 @@ class SettingsManager(private val context: Context) {
         EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
     )
 
+    fun clearAllSettings() {
+        prefs.edit()
+            .clear()
+            .apply()
+    }
+
     fun isOffline() = prefs.getBoolean(IS_OFFLINE_KEY, false)
 
     fun isAutofillOn(): Boolean {

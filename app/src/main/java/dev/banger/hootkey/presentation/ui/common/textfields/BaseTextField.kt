@@ -27,6 +27,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.graphicsLayer
@@ -65,6 +66,7 @@ fun BaseTextField(
     visualTransformation: VisualTransformation = VisualTransformation.None,
     leadingContent: @Composable (() -> Unit)? = null,
     trailingContent: @Composable (() -> Unit)? = null,
+    strokeBrushInactive: Brush = SolidColor(LightGray),
     onFocusChange: (Boolean) -> Unit = {}
 ) {
     val interactionSource = remember { MutableInteractionSource() }
@@ -92,7 +94,7 @@ fun BaseTextField(
                 )
                 .border(
                     width = BorderWidthSmall,
-                    brush = if (isFocused) Primary else SolidColor(LightGray),
+                    brush = if (isFocused) Primary else strokeBrushInactive,
                     shape = TextFieldShapeVerySmall
                 )
                 .padding(horizontal = PaddingRegular),

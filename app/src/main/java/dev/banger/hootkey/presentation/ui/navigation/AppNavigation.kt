@@ -36,28 +36,28 @@ fun AppNavigation(navHostController: NavHostController) {
     ) {
         composable(NavigationDestinations.LAUNCH) {
             LaunchScreen(onNavigateToAccountLogin = {
-                navHostController.navigate(NavigationDestinations.ACCOUNT_LOGIN)
+                navHostController.clearBackStackAndNavigate(NavigationDestinations.ACCOUNT_LOGIN)
             }, onNavigateToLogin = {
-                navHostController.navigate(NavigationDestinations.LOGIN)
+                navHostController.clearBackStackAndNavigate(NavigationDestinations.LOGIN)
             })
         }
         composable(NavigationDestinations.ACCOUNT_LOGIN) {
             AccountAuthScreen(isLogin = true, onNavigateFromBottomHint = {
                 navHostController.navigate(NavigationDestinations.ACCOUNT_REGISTRATION)
             }, onSuccess = {
-                navHostController.navigate(NavigationDestinations.DASHBOARD)
+                navHostController.clearBackStackAndNavigate(NavigationDestinations.DASHBOARD)
             })
         }
         composable(NavigationDestinations.ACCOUNT_REGISTRATION) {
             AccountAuthScreen(isLogin = false, onNavigateFromBottomHint = {
                 navHostController.navigate(NavigationDestinations.ACCOUNT_LOGIN)
             }, onSuccess = {
-                navHostController.navigate(NavigationDestinations.DASHBOARD)
+                navHostController.clearBackStackAndNavigate(NavigationDestinations.DASHBOARD)
             })
         }
         composable(NavigationDestinations.LOGIN) {
             AuthScreen(onSuccess = {
-                navHostController.navigate(NavigationDestinations.DASHBOARD)
+                navHostController.clearBackStackAndNavigate(NavigationDestinations.DASHBOARD)
             })
         }
         composable(NavigationDestinations.DASHBOARD) {
@@ -235,6 +235,9 @@ fun AppNavigation(navHostController: NavHostController) {
             SettingsScreen(
                 onNavigateBack = {
                     navHostController.popBackStack()
+                },
+                onLogout = {
+                    navHostController.clearBackStackAndNavigate(NavigationDestinations.ACCOUNT_LOGIN)
                 }
             )
         }
@@ -244,5 +247,13 @@ fun AppNavigation(navHostController: NavHostController) {
             TestScreen()
         }
         //-------------------------
+    }
+}
+
+fun NavHostController.clearBackStackAndNavigate(destination: String) {
+    navigate(destination) {
+        popUpTo(graph.id) {
+            inclusive = true
+        }
     }
 }

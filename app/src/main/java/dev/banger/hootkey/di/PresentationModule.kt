@@ -75,6 +75,6 @@ fun providePresentationModule() = module {
     }
 
     viewModel {
-        SettingsViewModel(get(), Dispatchers.IO)
+        SettingsViewModel(get(), get(), Dispatchers.IO)
     }
 }

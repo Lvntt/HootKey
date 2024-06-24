@@ -1,9 +1,5 @@
 package dev.banger.hootkey.presentation.ui.screen.settings
 
-import android.app.Activity
-import android.content.Context
-import android.content.ContextWrapper
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -25,6 +21,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -50,15 +47,19 @@ import dev.banger.hootkey.presentation.ui.theme.Secondary
 import dev.banger.hootkey.presentation.ui.theme.TypeM16
 import dev.banger.hootkey.presentation.ui.theme.White
 import dev.banger.hootkey.presentation.viewmodel.SettingsViewModel
+import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun SettingsScreen(
     onNavigateBack: () -> Unit,
+    onLogout: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: SettingsViewModel = koinViewModel()
 ) {
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    val snackbarText = stringResource(id = R.string.request_error)
     val snackbarHostState = remember { SnackbarHostState() }
 
     val autofillLauncher = rememberLauncherForActivityResult(
@@ -72,8 +73,14 @@ fun SettingsScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     ObserveAsEvents(viewModel.effects) {
         when (it) {
-            SettingsEffect.RedirectToAuth -> TODO()
-            SettingsEffect.ShowError -> TODO()
+            SettingsEffect.Logout -> onLogout()
+            SettingsEffect.ShowError -> {
+                coroutineScope.launch {
+                    snackbarHostState.showSnackbar(
+                        message = snackbarText
+                    )
+                }
+            }
             is SettingsEffect.ShowAutofillSettings -> autofillLauncher.launch(it.intent)
         }
     }
@@ -177,5 +184,5 @@ private fun SettingsItem(
 @Preview
 @Composable
 private fun SettingsScreenPreview() {
-    SettingsScreen(onNavigateBack = { })
+    SettingsScreen({}, {})
 }

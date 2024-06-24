@@ -61,6 +61,7 @@
     <string name="edit_vault_error">Error editing new vault</string>
     <string name="fetching_templates_error">Error fetching templates</string>
     <string name="fetching_categories_error">Error fetching categories</string>
+    <string name="request_error">Request error</string>
     <string name="invalid_email">Valid email is required</string>
     <string name="password_length_error">Password must be at least 6 characters long</string>
     <string name="view">View</string>
