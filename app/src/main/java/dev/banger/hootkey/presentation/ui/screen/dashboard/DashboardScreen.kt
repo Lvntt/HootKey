@@ -51,6 +51,7 @@ import dev.banger.hootkey.presentation.intent.DashboardIntent
 import dev.banger.hootkey.presentation.ui.common.bottomSheetBackground
 import dev.banger.hootkey.presentation.ui.common.textfields.SearchTextField
 import dev.banger.hootkey.presentation.ui.dialog.AppAlertDialog
+import dev.banger.hootkey.presentation.ui.dialog.vault_details.VaultDetailsBottomSheet
 import dev.banger.hootkey.presentation.ui.screen.dashboard.DashboardListContentTypes.BOTTOM_SPACER
 import dev.banger.hootkey.presentation.ui.screen.dashboard.DashboardListContentTypes.FIRST_VAULT_HINT
 import dev.banger.hootkey.presentation.ui.screen.dashboard.DashboardListContentTypes.RECENTLY_USED_HEADER
@@ -139,6 +140,8 @@ fun DashboardScreen(
         savedStateHandle.remove<String>(EDITED_VAULT_KEY)
         viewModel.dispatch(DashboardIntent.UpdateVault(updatedVaultKey))
     }
+
+    VaultDetailsBottomSheet({}, {}, {})
 
     CompositionLocalProvider(
         LocalOverscrollConfiguration provides null,

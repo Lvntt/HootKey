@@ -94,4 +94,5 @@
     <string name="delete">Delete</string>
     <string name="hootkey_autofill_service">HootKey Autofill Service</string>
     <string name="edit_vault">Edit vault</string>
+    <string name="copy">Copy %1$s</string>
 </resources>
