@@ -1,6 +1,10 @@
 package dev.banger.hootkey.domain.repository
 
+import dev.banger.hootkey.domain.entity.settings.UserSettings
+
 interface SettingsRepository {
+
+    suspend fun getUserSettings(): UserSettings
 
     suspend fun isOffline(): Boolean
 
