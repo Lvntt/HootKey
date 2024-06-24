@@ -93,4 +93,5 @@
     <string name="delete_vault_message">You are about to delete a vault. This action cannot be undone.</string>
     <string name="delete">Delete</string>
     <string name="hootkey_autofill_service">HootKey Autofill Service</string>
+    <string name="edit_vault">Edit vault</string>
 </resources>

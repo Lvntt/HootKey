@@ -36,6 +36,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import dev.banger.hootkey.Constants.ADDED_VAULT_CATEGORIES_KEY
+import dev.banger.hootkey.Constants.DELETED_VAULT_CATEGORIES_KEY
+import dev.banger.hootkey.Constants.DELETED_VAULT_IDS_KEY
+import dev.banger.hootkey.Constants.EDITED_VAULT_KEY
+import dev.banger.hootkey.Constants.EDITED_VAULT_NEW_CATEGORY_KEY
+import dev.banger.hootkey.Constants.EDITED_VAULT_OLD_CATEGORY_KEY
+import dev.banger.hootkey.Constants.UPDATED_VAULT_IDS_KEY
 import dev.banger.hootkey.Constants.VAULT_CATEGORY_KEY
 import dev.banger.hootkey.Constants.VAULT_KEY
 import dev.banger.hootkey.R
@@ -74,15 +81,63 @@ fun DashboardScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     val savedStateHandle = savedStateHandleProvider()
-    val vaultKeyFlow =
+
+    //Handle changes after creating a new vault (vault + category)
+    val addedVaultKeyFlow =
         savedStateHandle?.getStateFlow<String?>(VAULT_KEY, null)?.collectAsStateWithLifecycle()
-    LaunchedEffect(vaultKeyFlow?.value) {
-        val vaultKey = vaultKeyFlow?.value ?: return@LaunchedEffect
+    LaunchedEffect(addedVaultKeyFlow?.value) {
+        val vaultKey = addedVaultKeyFlow?.value ?: return@LaunchedEffect
         val categoryKey =
             savedStateHandle.remove<String>(VAULT_CATEGORY_KEY) ?: return@LaunchedEffect
         savedStateHandle.remove<String>(VAULT_KEY)
         viewModel.dispatch(DashboardIntent.IncrementCategoryVaultsCount(categoryKey))
         viewModel.dispatch(DashboardIntent.AddNewVault(vaultKey))
+    }
+
+    //Handle changes after deleting vaults on another screen (vaults only)
+    val deletedVaultIdsFlow = savedStateHandle?.getStateFlow<List<String>>(DELETED_VAULT_IDS_KEY, emptyList())
+        ?.collectAsStateWithLifecycle()
+    LaunchedEffect(deletedVaultIdsFlow?.value) {
+        val deletedVaultIds = deletedVaultIdsFlow?.value ?: return@LaunchedEffect
+        savedStateHandle.remove<List<String>>(DELETED_VAULT_IDS_KEY)
+        viewModel.dispatch(DashboardIntent.RemoveDeletedVaults(deletedVaultIds))
+    }
+
+    //Handle changes after updating vaults on another screen (vaults only)
+    val updatedVaultIdsFlow = savedStateHandle?.getStateFlow<List<String>>(UPDATED_VAULT_IDS_KEY, emptyList())
+        ?.collectAsStateWithLifecycle()
+    LaunchedEffect(updatedVaultIdsFlow?.value) {
+        val updatedVaultIds = updatedVaultIdsFlow?.value ?: return@LaunchedEffect
+        savedStateHandle.remove<List<String>>(UPDATED_VAULT_IDS_KEY)
+        viewModel.dispatch(DashboardIntent.UpdateVaults(updatedVaultIds))
+    }
+
+    //Handle changes after deleting vaults or moving them between categories on another screen (categories)
+    val deletedVaultCategoriesFlow =
+        savedStateHandle?.getStateFlow<List<String>>(DELETED_VAULT_CATEGORIES_KEY, emptyList())?.collectAsStateWithLifecycle()
+    val addedVaultCategoriesFlow =
+        savedStateHandle?.getStateFlow<List<String>>(ADDED_VAULT_CATEGORIES_KEY, emptyList())?.collectAsStateWithLifecycle()
+    LaunchedEffect(deletedVaultCategoriesFlow?.value, addedVaultCategoriesFlow?.value) {
+        val deletedVaultCategories = deletedVaultCategoriesFlow?.value ?: emptyList()
+        val addedVaultCategories = addedVaultCategoriesFlow?.value ?: emptyList()
+        savedStateHandle?.remove<List<String>>(DELETED_VAULT_CATEGORIES_KEY)
+        savedStateHandle?.remove<List<String>>(ADDED_VAULT_CATEGORIES_KEY)
+        viewModel.dispatch(DashboardIntent.ChangeCategoriesVaultsCount(deletedVaultCategories, addedVaultCategories))
+    }
+
+    //Handle changes after editing a single vault (vault + categories)
+    val updatedVaultKeyFlow = savedStateHandle?.getStateFlow<String?>(EDITED_VAULT_KEY, null)
+        ?.collectAsStateWithLifecycle()
+    LaunchedEffect(updatedVaultKeyFlow?.value) {
+        val updatedVaultKey = updatedVaultKeyFlow?.value ?: return@LaunchedEffect
+        savedStateHandle.remove<String>(EDITED_VAULT_OLD_CATEGORY_KEY)?.let {
+            viewModel.dispatch(DashboardIntent.DecrementCategoryVaultsCount(it))
+        }
+        savedStateHandle.remove<String>(EDITED_VAULT_NEW_CATEGORY_KEY)?.let {
+            viewModel.dispatch(DashboardIntent.IncrementCategoryVaultsCount(it))
+        }
+        savedStateHandle.remove<String>(EDITED_VAULT_KEY)
+        viewModel.dispatch(DashboardIntent.UpdateVault(updatedVaultKey))
     }
 
     CompositionLocalProvider(

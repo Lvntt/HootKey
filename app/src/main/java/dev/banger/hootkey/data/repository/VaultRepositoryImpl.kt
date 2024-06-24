@@ -230,6 +230,34 @@ class VaultRepositoryImpl(
         )
     }
 
+    override suspend fun getShortById(id: String): VaultShort {
+        val userId = auth.currentUser?.uid ?: throw UnauthorizedException()
+
+        val vault =
+            fireStore.vaultCollection(userId).document(id).get().await().toObject<VaultModel>()
+                ?: throw VaultNotFoundException("Vault with id $id does not exist")
+
+        val customCategory = fireStore.categoryCollection(userId).document(vault.categoryId).get().await()
+        val category = if (customCategory.exists()) customCategory.toObject<CategoryModel>()
+        else fireStore.commonCategoryCollection().document(vault.categoryId).get().await().toObject<CategoryModel>()
+        val linkIndex = category?.linkIndex ?: -1
+        val loginIndex = category?.loginIndex ?: -1
+        val passwordIndex = category?.passwordIndex ?: -1
+        val login = fieldValue(userId, id, loginIndex) { it.isNotEmpty() }
+        val link = fieldValue(userId, id, linkIndex) { it.isNotEmpty() }
+        val password = fieldValue(userId, id, passwordIndex) { it.isNotEmpty() }
+
+        return VaultShort(
+            id = id,
+            name = vault.name,
+            isFavourite = vault.isFavourite,
+            login = login,
+            link = link,
+            password = password,
+            categoryId = vault.categoryId
+        )
+    }
+
     override suspend fun getById(id: String): Vault {
         val userId = auth.currentUser?.uid ?: throw UnauthorizedException()
         val vault =
@@ -300,16 +328,28 @@ class VaultRepositoryImpl(
 
     override suspend fun edit(vault: EditVaultRequest): Vault {
         val userId = auth.currentUser?.uid ?: throw UnauthorizedException()
+
+        val currentVaultSnapshot = fireStore.vaultCollection(userId).document(vault.vaultId).get().await().toObject<VaultModel>()
+            ?: throw VaultNotFoundException("Vault with id ${vault.vaultId} does not exist")
+
+        if (currentVaultSnapshot.categoryId != vault.categoryId) {
+            val oldCategory = categoryRepository.getById(currentVaultSnapshot.categoryId)
+                ?: throw CategoryDoesNotExistException("Category with id ${currentVaultSnapshot.categoryId} does not exist")
+            oldCategory.template.fields.forEach {
+                fireStore.fieldCollection(userId, vault.vaultId).document("${it.index}").delete().await()
+            }
+        }
+
         val category = categoryRepository.getById(vault.categoryId)
             ?: throw CategoryDoesNotExistException("Category with id ${vault.categoryId} does not exist")
         if (category.template.fields.size != vault.fieldValues.size) throw VaultCreationException("Invalid number of fields")
 
-        if (!fireStore.vaultCollection(userId).document(vault.vaultId).get().await()
-                .exists()
-        ) throw VaultNotFoundException("Vault with id ${vault.vaultId} does not exist")
-
         fireStore.vaultCollection(userId).document(vault.vaultId).update(
-            mapOf("name" to vault.name, "categoryId" to vault.categoryId)
+            mapOf(
+                "name" to vault.name,
+                "categoryId" to vault.categoryId,
+                "lastEditTime" to com.google.firebase.firestore.FieldValue.serverTimestamp()
+            )
         ).await()
 
         vault.fieldValues.forEach { (index, value) ->

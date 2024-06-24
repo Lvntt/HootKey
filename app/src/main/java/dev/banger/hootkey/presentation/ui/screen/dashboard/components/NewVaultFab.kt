@@ -21,6 +21,7 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import dev.banger.hootkey.R
 import dev.banger.hootkey.presentation.ui.theme.Primary
+import dev.banger.hootkey.presentation.ui.theme.PrimaryShadow
 import dev.banger.hootkey.presentation.ui.theme.White
 
 @Composable
@@ -34,7 +35,7 @@ fun NewVaultFab(onAddNewVault: () -> Unit) {
         FloatingActionButton(
             modifier = Modifier
                 .size(52.dp)
-                .shadow(6.dp, shape = CircleShape, spotColor = Color(0xFFF7556D))
+                .shadow(6.dp, shape = CircleShape, spotColor = PrimaryShadow)
                 .clip(CircleShape)
                 .background(Primary),
             containerColor = Color.Unspecified,

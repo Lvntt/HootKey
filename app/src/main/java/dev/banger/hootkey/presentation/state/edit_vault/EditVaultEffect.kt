@@ -5,5 +5,5 @@ sealed interface EditVaultEffect {
     data object ShowVaultLoadingError : EditVaultEffect
     data object ShowCategoryLoadingError : EditVaultEffect
     data object ShowVaultEditError : EditVaultEffect
-    data object HandleSuccess : EditVaultEffect
+    data class HandleSuccess(val vaultId: String, val categoryId: String) : EditVaultEffect
 }

@@ -11,6 +11,7 @@ data class EditVaultState(
     val isEditLoading: Boolean = false,
     val generatingPasswordForIndex: Int? = null,
     val pickingDateForIndex: Int? = null,
+    val oldCategoryId: String = "",
 ) {
     val isEditAllowed = name.isNotBlank() && !isVaultLoading && !isCategoryLoading && !isEditLoading
 }

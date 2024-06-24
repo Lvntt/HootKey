@@ -9,5 +9,10 @@ sealed interface DashboardIntent {
     data object DismissDeleteDialog : DashboardIntent
     data object DeleteVault : DashboardIntent
     data class AddNewVault(val vaultId: String) : DashboardIntent
+    data class UpdateVault(val vaultId: String) : DashboardIntent
     data class IncrementCategoryVaultsCount(val categoryId: String) : DashboardIntent
+    data class DecrementCategoryVaultsCount(val categoryId: String) : DashboardIntent
+    data class RemoveDeletedVaults(val vaultIds: List<String>) : DashboardIntent
+    data class UpdateVaults(val vaultIds: List<String>) : DashboardIntent
+    data class ChangeCategoriesVaultsCount(val deletedCategoryIds: List<String>, val addedCategoryIds: List<String>) : DashboardIntent
 }

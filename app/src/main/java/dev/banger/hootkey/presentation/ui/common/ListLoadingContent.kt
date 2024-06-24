@@ -1,4 +1,4 @@
-package dev.banger.hootkey.presentation.ui.screen.dashboard.components
+package dev.banger.hootkey.presentation.ui.common
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -12,7 +12,7 @@ import dev.banger.hootkey.presentation.ui.theme.Primary
 import dev.banger.hootkey.presentation.ui.utils.gradientTint
 
 @Composable
-fun DashboardLoadingContent() {
+fun ListLoadingContent() {
     Box(
         modifier = Modifier
             .fillMaxWidth()

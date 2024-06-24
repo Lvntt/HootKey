@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.dp
 import dev.banger.hootkey.R
 import dev.banger.hootkey.presentation.entity.LceState
 import dev.banger.hootkey.presentation.state.dashboard.DashboardState
+import dev.banger.hootkey.presentation.ui.common.ListLoadingContent
 import dev.banger.hootkey.presentation.ui.screen.dashboard.DashboardListContentTypes.CATEGORIES
 import dev.banger.hootkey.presentation.ui.screen.dashboard.DashboardListContentTypes.ERROR_CATEGORIES
 import dev.banger.hootkey.presentation.ui.screen.dashboard.DashboardListContentTypes.LOADING_CONTENT
@@ -28,7 +29,7 @@ inline fun LazyListScope.categoriesContent(
     noinline onLoadCategoriesRequested: () -> Unit
 ) {
     when (stateProvider().categoriesLoadingState) {
-        LceState.LOADING -> item(contentType = LOADING_CONTENT) { DashboardLoadingContent() }
+        LceState.LOADING -> item(contentType = LOADING_CONTENT) { ListLoadingContent() }
 
         LceState.CONTENT -> item(contentType = CATEGORIES) {
             LazyRow(
