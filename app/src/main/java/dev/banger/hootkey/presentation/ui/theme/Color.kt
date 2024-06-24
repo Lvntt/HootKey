@@ -59,3 +59,5 @@ val StrengthVeryStrongBrush = Brush.linearGradient(
 val DefaultBackgroundBrush = Brush.verticalGradient(
     listOf(PeachGray, Gray)
 )
+
+val BottomSheetDragHandle = Color(0xFF79747E)

@@ -41,6 +41,7 @@ import dev.banger.hootkey.presentation.ui.common.VaultShortItem
 import dev.banger.hootkey.presentation.ui.common.textfields.SearchTextField
 import dev.banger.hootkey.presentation.ui.common.topbar.HootKeyTopBar
 import dev.banger.hootkey.presentation.ui.dialog.AppAlertDialog
+import dev.banger.hootkey.presentation.ui.dialog.vault_details.VaultDetailsBottomSheet
 import dev.banger.hootkey.presentation.ui.screen.vaults_list.VaultsListContentTypes.ERROR_VAULTS
 import dev.banger.hootkey.presentation.ui.screen.vaults_list.VaultsListContentTypes.FILTER_CHIPS
 import dev.banger.hootkey.presentation.ui.screen.vaults_list.VaultsListContentTypes.LOADING_CONTENT
@@ -93,6 +94,23 @@ fun VaultsListScreen(
             state.updatedVaultIds,
             state.deletedVaultCategories,
             state.addedVaultCategories
+        )
+    }
+
+    state.vaultDetails?.let { vault ->
+        VaultDetailsBottomSheet(
+            vaultId = vault.id,
+            onDismissRequest = {
+                viewModel.dispatch(VaultsListIntent.DismissVaultDetails)
+            },
+            onEditClick = {
+                onEditClick(vault.id)
+                viewModel.dispatch(VaultsListIntent.DismissVaultDetails)
+            },
+            onDeleteClick = {
+                viewModel.dispatch(VaultsListIntent.OpenDeleteDialog(vault))
+                viewModel.dispatch(VaultsListIntent.DismissVaultDetails)
+            }
         )
     }
 
@@ -177,7 +195,9 @@ fun VaultsListScreen(
                         iconModel = { "https://www.google.com/s2/favicons?domain=${vault.link}&sz=256" },
                         name = vault.name,
                         login = vault.login ?: "",
-                        onClick = {},
+                        onClick = {
+                            viewModel.dispatch(VaultsListIntent.OpenVaultDetails(vault))
+                        },
                         onCopyClick = {
                             val clipData = if (!vault.password.isNullOrBlank()) vault.password
                             else if (!vault.login.isNullOrBlank()) vault.login

@@ -53,6 +53,7 @@ import dev.banger.hootkey.presentation.intent.DashboardIntent
 import dev.banger.hootkey.presentation.ui.common.bottomSheetBackground
 import dev.banger.hootkey.presentation.ui.common.textfields.SearchTextField
 import dev.banger.hootkey.presentation.ui.dialog.AppAlertDialog
+import dev.banger.hootkey.presentation.ui.dialog.vault_details.VaultDetailsBottomSheet
 import dev.banger.hootkey.presentation.ui.screen.dashboard.DashboardListContentTypes.BOTTOM_SPACER
 import dev.banger.hootkey.presentation.ui.screen.dashboard.DashboardListContentTypes.FIRST_VAULT_HINT
 import dev.banger.hootkey.presentation.ui.screen.dashboard.DashboardListContentTypes.RECENTLY_USED_HEADER
@@ -145,6 +146,23 @@ fun DashboardScreen(
         }
         savedStateHandle.remove<String>(EDITED_VAULT_KEY)
         viewModel.dispatch(DashboardIntent.UpdateVault(updatedVaultKey))
+    }
+
+    state.vaultDetails?.let { vault ->
+        VaultDetailsBottomSheet(
+            vaultId = vault.id,
+            onDismissRequest = {
+                viewModel.dispatch(DashboardIntent.DismissVaultDetails)
+            },
+            onEditClick = {
+                onEditClick(vault.id)
+                viewModel.dispatch(DashboardIntent.DismissVaultDetails)
+            },
+            onDeleteClick = {
+                viewModel.dispatch(DashboardIntent.OpenDeleteDialog(vault))
+                viewModel.dispatch(DashboardIntent.DismissVaultDetails)
+            }
+        )
     }
 
     CompositionLocalProvider(
@@ -245,6 +263,8 @@ fun DashboardScreen(
                 viewModel.dispatch(DashboardIntent.LoadNextVaultsPage)
             }, onDeleteVaultRequested = {
                 viewModel.dispatch(DashboardIntent.OpenDeleteDialog(it))
+            }, onClick = {
+                viewModel.dispatch(DashboardIntent.OpenVaultDetails(it))
             }, onEditClick = onEditClick, clipboardManager = clipboardManager)
 
             item(contentType = BOTTOM_SPACER) {

@@ -68,7 +68,7 @@
     <string name="hide">Hide</string>
     <string name="welcome_to">Welcome to</string>
     <string name="search_vaults">Search your vaults</string>
-    <string name="password_count">%1$d Passwords</string>
+    <string name="vault_count">%1$d Vaults</string>
     <string name="recently_used">Recently Used</string>
     <string name="see_more">See more</string>
     <string name="dashboard_title">Hello 👋</string>
@@ -96,6 +96,7 @@
     <string name="delete">Delete</string>
     <string name="hootkey_autofill_service">HootKey Autofill Service</string>
     <string name="edit_vault">Edit vault</string>
+    <string name="copy">Copy %1$s</string>
     <string name="settings">Settings</string>
     <string name="biometry_auth_settings">Biometry Auth</string>
     <string name="autofill_settings">Autofill</string>
