@@ -10,4 +10,7 @@ data class VaultModel(
     val isFavourite: Boolean = false,
     val lastEditTime: Timestamp = Timestamp.now(),
     val lastViewedTime: Timestamp = Timestamp.now(),
+    val login: String = EMPTY_STRING,
+    val password: String = EMPTY_STRING,
+    val link: String = EMPTY_STRING
 )

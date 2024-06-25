@@ -17,7 +17,7 @@ interface CategoryRepository {
 
     suspend fun getShortById(id: String): CategoryShort?
 
-    suspend fun getById(id: String, includeVaultCount: Boolean = true): Category?
+    suspend fun getById(id: String): Category?
 
     suspend fun getAutoSaveCategoryId(): String?
 
