@@ -210,9 +210,8 @@ class DashboardViewmodel(
                     _state.update {
                         it.copy(
                             categories = (it.categories + category.toUi()).sortedWith(
-                                compareBy(
-                                    { category -> category.vaultsAmount },
-                                    { category -> category.name })
+                                compareByDescending<UiCategoryShort> { category -> category.vaultsAmount }
+                                    .thenBy { category -> category.name }
                             )
                         )
                     }

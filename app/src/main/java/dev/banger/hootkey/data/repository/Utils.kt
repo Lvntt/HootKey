@@ -104,14 +104,14 @@ suspend fun getFieldRefs(
     return result
 }
 
-suspend fun getFieldRefs(vault: DocumentReference, batchSize: Long = 100): List<DocumentReference> {
+suspend fun getFieldRefs(vault: DocumentReference, batchSize: Long = 100, networkManager: NetworkManager): List<DocumentReference> {
     val result = mutableListOf<DocumentReference>()
     var read = batchSize
     var lastRef: DocumentSnapshot? = null
     while (read >= batchSize) {
         read = 0
         vault.collection(FIELDS).orderBy(FieldPath.documentId()).startAfterIfNotNull(lastRef)
-            .limit(batchSize).get().await().forEach { field ->
+            .limit(batchSize).get(networkManager).await().forEach { field ->
                 result.add(field.reference)
                 lastRef = field
                 read++
@@ -130,6 +130,9 @@ inline fun String.decryptWhen(cryptoManager: CryptoManager, predicate: (String) 
 
 suspend inline fun <T> Task<T>.awaitWhenNetworkAvailable(networkManager: NetworkManager): T? =
     if (networkManager.isNetworkAvailable) this.await() else null
+
+fun Query.get(networkManager: NetworkManager): Task<QuerySnapshot> =
+    if (networkManager.isNetworkAvailable) get() else get(Source.CACHE)
 
 fun CollectionReference.get(networkManager: NetworkManager): Task<QuerySnapshot> =
     if (networkManager.isNetworkAvailable) get() else get(Source.CACHE)

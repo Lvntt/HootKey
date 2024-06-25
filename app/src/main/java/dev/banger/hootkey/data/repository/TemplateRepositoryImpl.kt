@@ -142,7 +142,6 @@ class TemplateRepositoryImpl(
             categoryRefs.flatMap { categoryRef -> getVaultRefs(fireStore, categoryRef.id, userId) }
         val fieldRefs = getFieldRefs(vaultRefs)
 
-        //TODO add specific exception when internet is unavailable
         fireStore.runTransaction { transaction ->
             transaction.delete(fireStore.templateCollection(userId).document(id))
             categoryRefs.forEach { categoryRef ->

@@ -18,7 +18,6 @@ import dev.banger.hootkey.domain.entity.category.CategoryIcon
 import dev.banger.hootkey.domain.entity.category.CategoryShort
 import dev.banger.hootkey.domain.entity.category.CreateCategoryRequest
 import dev.banger.hootkey.domain.entity.category.EditCategoryRequest
-import dev.banger.hootkey.domain.entity.template.FieldType
 import dev.banger.hootkey.domain.entity.template.TemplateDoesNotExistException
 import dev.banger.hootkey.domain.repository.CategoryRepository
 import dev.banger.hootkey.domain.repository.TemplateRepository
@@ -148,21 +147,11 @@ class CategoryRepositoryImpl(
         val userId = auth.currentUser?.uid ?: throw UnauthorizedException()
         if (!templateRepository.templateExists(category.templateId))
             throw TemplateDoesNotExistException("Template with id ${category.templateId} does not exist")
-        val template = templateRepository.getById(category.templateId)!!
-        val loginIndex =
-            template.fields.firstOrNull { field -> field.type == FieldType.LOGIN }?.index ?: -1
-        val linkIndex =
-            template.fields.firstOrNull { field -> field.type == FieldType.LINK }?.index ?: -1
-        val passwordIndex =
-            template.fields.firstOrNull { field -> field.type == FieldType.PASSWORD }?.index ?: -1
 
         val categoryModel = CategoryModel(
             name = crypto.encryptBase64(category.name),
             icon = category.icon.ordinal,
             templateId = category.templateId,
-            loginIndex = loginIndex,
-            linkIndex = linkIndex,
-            passwordIndex = passwordIndex
         )
 
         val categoryId = UUID.randomUUID().toString()
@@ -209,7 +198,6 @@ class CategoryRepositoryImpl(
         val vaultRefs = getVaultRefs(fireStore, id, userId)
         val fieldRefs = getFieldRefs(vaultRefs)
 
-        //TODO add specific exception when internet is unavailable
         fireStore.runTransaction { transaction ->
             transaction.delete(fireStore.categoryCollection(userId).document(id))
             vaultRefs.forEach { vaultRef ->
