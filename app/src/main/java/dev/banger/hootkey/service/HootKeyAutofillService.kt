@@ -64,6 +64,14 @@ class HootKeyAutofillService : AutofillService() {
             return
         }
 
+        val saveInfo = SaveInfo.Builder(
+            SaveInfo.SAVE_DATA_TYPE_USERNAME or SaveInfo.SAVE_DATA_TYPE_PASSWORD,
+            arrayOf(
+                loginFieldsForAutofill.first().autofillId,
+                passwordFieldsForAutofill.first().autofillId
+            )
+        ).build()
+
         val vaultIdsForAutofill = mutableListOf<String>()
 
         runBlocking(exceptionHandler) {
@@ -79,6 +87,7 @@ class HootKeyAutofillService : AutofillService() {
                 }
             }
 
+            if (vaultIdsForAutofill.isEmpty()) return@runBlocking
             val vaults = vaultRepository.getShortByIds(vaultIdsForAutofill.distinct())
             vaults.forEach { vault ->
                 if (vault.login != null && vault.password != null) {
@@ -87,11 +96,36 @@ class HootKeyAutofillService : AutofillService() {
             }
         }
 
+        val datasetBuilder = Dataset.Builder()
+
         if (vaultsForAutofill.isEmpty()) {
+            val notUsed = RemoteViews(packageName, android.R.layout.simple_list_item_1)
+            val loginId = loginFieldsForAutofill.first().autofillId
+            val passwordId = passwordFieldsForAutofill.first().autofillId
+            if (loginId != null && passwordId != null) {
+                @Suppress("DEPRECATION")
+                datasetBuilder.setValue(
+                    loginId,
+                    null,
+                    notUsed
+                )
+                @Suppress("DEPRECATION")
+                datasetBuilder.setValue(
+                    passwordId,
+                    null,
+                    notUsed
+                )
+                val fillResponse = FillResponse.Builder()
+                    .addDataset(datasetBuilder.build())
+                    .setSaveInfo(saveInfo)
+                    .build()
+                callback.onSuccess(fillResponse)
+                return
+            }
             callback.onSuccess(null)
+            return
         }
 
-        val datasetBuilder = Dataset.Builder()
         loginFieldsForAutofill.forEach { loginField ->
             vaultsForAutofill.forEach vaultsLoop@{ vault ->
                 val autofillId = loginField.autofillId ?: return@vaultsLoop
@@ -158,13 +192,6 @@ class HootKeyAutofillService : AutofillService() {
         }
 
         val dataset = datasetBuilder.build()
-        val saveInfo = SaveInfo.Builder(
-            SaveInfo.SAVE_DATA_TYPE_USERNAME or SaveInfo.SAVE_DATA_TYPE_EMAIL_ADDRESS or SaveInfo.SAVE_DATA_TYPE_PASSWORD,
-            arrayOf(
-                loginFieldsForAutofill.first().autofillId,
-                passwordFieldsForAutofill.first().autofillId
-            )
-        ).build()
 
         val fillResponse = FillResponse.Builder()
             .addDataset(dataset)
@@ -299,7 +326,6 @@ class HootKeyAutofillService : AutofillService() {
             val applicationInfo = packageManager.getApplicationInfo(appPackageName, 0)
             appName = packageManager.getApplicationLabel(applicationInfo).toString()
         } catch (e: Exception) {
-            Log.e(TAG, "could not get application name")
             callback.onFailure("could not get application name")
             return
         }
@@ -318,28 +344,36 @@ class HootKeyAutofillService : AutofillService() {
             val passwordNode = passwordsForAutosave.first()
 
             if (
-                loginNode.autofillId != null && !loginNode.text?.toString().isNullOrBlank()
-                && passwordNode.autofillId != null && !passwordNode.text?.toString().isNullOrBlank()
+                loginNode.autofillId != null && loginNode.autofillValue?.textValue?.isNotBlank() == true
+                && passwordNode.autofillId != null && passwordNode.autofillValue?.textValue?.isNotBlank() == true
             ) {
-                val login = loginNode.text.toString()
-                val password = passwordNode.text.toString()
-
+                val login = loginNode.autofillValue?.textValue
+                val password = passwordNode.autofillValue?.textValue
+                if (login == null || password == null) {
+                    callback.onFailure("could not get login or password")
+                    return
+                }
                 runBlocking {
                     val autosaveCategoryId = categoryRepository.getAutoSaveCategoryId()
                     if (autosaveCategoryId == null) {
                         callback.onFailure("could not load autosave category")
                     } else {
-                        vaultRepository.create(
-                            CreateVaultRequest(
-                                categoryId = autosaveCategoryId,
-                                name = appName,
-                                fieldValues = mapOf(
-                                    0 to login,
-                                    1 to password
+                        runCatching {
+                            vaultRepository.create(
+                                CreateVaultRequest(
+                                    categoryId = autosaveCategoryId,
+                                    name = appName,
+                                    fieldValues = mapOf(
+                                        0 to login.toString(),
+                                        1 to password.toString()
+                                    )
                                 )
                             )
-                        )
-                        callback.onSuccess()
+                        }.onFailure {
+                            callback.onFailure("error saving")
+                        }.onSuccess {
+                            callback.onSuccess()
+                        }
                     }
                 }
             }

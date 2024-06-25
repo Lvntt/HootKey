@@ -39,7 +39,7 @@ class CategoryRepositoryImpl(
             ).await().count.toInt()
     }
 
-    private suspend inline fun DocumentSnapshot.toCategory(isCustom: Boolean): Category {
+    private suspend inline fun DocumentSnapshot.toCategory(isCustom: Boolean, includeVaultCount: Boolean = true): Category {
         val categoryModel = toObject<CategoryModel>()
             ?: throw CategoryDoesNotExistException("Category with id $id does not exist")
         return Category(
@@ -47,7 +47,7 @@ class CategoryRepositoryImpl(
             name = categoryModel.name.decryptWhen(crypto) { isCustom },
             icon = CategoryIcon.entries[categoryModel.icon],
             template = templateRepository.getById(categoryModel.templateId)!!,
-            vaultsAmount = getVaultCountInCategory(id),
+            vaultsAmount = if (includeVaultCount) getVaultCountInCategory(id) else 0,
             isCustom = isCustom
         )
     }
@@ -110,13 +110,13 @@ class CategoryRepositoryImpl(
         return null
     }
 
-    override suspend fun getById(id: String): Category? {
+    override suspend fun getById(id: String, includeVaultCount: Boolean): Category? {
         val userId = auth.currentUser?.uid ?: throw UnauthorizedException()
 
         val customCategory = fireStore.categoryCollection(userId).document(id).get().await()
-        if (customCategory.exists()) return customCategory.toCategory(isCustom = true)
+        if (customCategory.exists()) return customCategory.toCategory(isCustom = true, includeVaultCount = includeVaultCount)
         val commonCategory = fireStore.commonCategoryCollection().document(id).get().await()
-        if (commonCategory.exists()) return commonCategory.toCategory(isCustom = false)
+        if (commonCategory.exists()) return commonCategory.toCategory(isCustom = false, includeVaultCount = includeVaultCount)
         return null
     }
 

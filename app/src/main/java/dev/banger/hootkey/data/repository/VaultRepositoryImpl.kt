@@ -285,7 +285,7 @@ class VaultRepositoryImpl(
 
     override suspend fun create(vault: CreateVaultRequest): Vault {
         val userId = auth.currentUser?.uid ?: throw UnauthorizedException()
-        val category = categoryRepository.getById(vault.categoryId)
+        val category = categoryRepository.getById(vault.categoryId, includeVaultCount = false)
             ?: throw CategoryDoesNotExistException("Category with id ${vault.categoryId} does not exist")
         if (category.template.fields.size != vault.fieldValues.size) throw VaultCreationException("Invalid number of fields")
 
@@ -333,14 +333,14 @@ class VaultRepositoryImpl(
             ?: throw VaultNotFoundException("Vault with id ${vault.vaultId} does not exist")
 
         if (currentVaultSnapshot.categoryId != vault.categoryId) {
-            val oldCategory = categoryRepository.getById(currentVaultSnapshot.categoryId)
+            val oldCategory = categoryRepository.getById(currentVaultSnapshot.categoryId, includeVaultCount = false)
                 ?: throw CategoryDoesNotExistException("Category with id ${currentVaultSnapshot.categoryId} does not exist")
             oldCategory.template.fields.forEach {
                 fireStore.fieldCollection(userId, vault.vaultId).document("${it.index}").delete().await()
             }
         }
 
-        val category = categoryRepository.getById(vault.categoryId)
+        val category = categoryRepository.getById(vault.categoryId, includeVaultCount = false)
             ?: throw CategoryDoesNotExistException("Category with id ${vault.categoryId} does not exist")
         if (category.template.fields.size != vault.fieldValues.size) throw VaultCreationException("Invalid number of fields")
 
