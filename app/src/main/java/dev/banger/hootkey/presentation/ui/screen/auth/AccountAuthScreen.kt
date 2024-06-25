@@ -72,7 +72,7 @@ fun AccountAuthScreen(
     viewModel: AccountAuthViewModel = koinViewModel(named(if (isLogin) Constants.LOGIN else Constants.REGISTER))
 ) {
     val focusManager = LocalFocusManager.current
-    val state by viewModel.state.collectAsStateWithLifecycle()
+    val state by viewModel.state.collectAsStateWithLifecycle(lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current)
     val density = LocalDensity.current
     val windowsInsetsIme = WindowInsets.ime
     val windowInsetsNavBars = WindowInsets.navigationBars

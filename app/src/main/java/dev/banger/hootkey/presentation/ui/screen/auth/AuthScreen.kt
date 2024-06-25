@@ -78,7 +78,7 @@ fun AuthScreen(onSuccess: () -> Unit, viewModel: AuthViewModel = koinViewModel()
     val bottomImePadding by remember { derivedStateOf { windowsInsetsIme.getBottom(density) } }
     val bottomNavBarsPadding by remember { derivedStateOf { windowInsetsNavBars.getBottom(density) } }
 
-    val state by viewModel.state.collectAsStateWithLifecycle()
+    val state by viewModel.state.collectAsStateWithLifecycle(lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current)
     val context = LocalContext.current
     val biometricLauncher: () -> Unit = {
         context.findActivity()?.let { activity ->

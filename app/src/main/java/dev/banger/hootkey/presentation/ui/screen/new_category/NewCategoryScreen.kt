@@ -84,7 +84,7 @@ fun NewCategoryScreen(
     val snackbarText = stringResource(id = R.string.new_category_error)
     val snackbarHostState = remember { SnackbarHostState() }
 
-    val state by viewModel.state.collectAsStateWithLifecycle()
+    val state by viewModel.state.collectAsStateWithLifecycle(lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current)
     ObserveAsEvents(viewModel.effects) {
         when (it) {
             NewCategoryEffect.GoToTemplates -> onNavigateToTemplates()
@@ -102,7 +102,7 @@ fun NewCategoryScreen(
 
     val selectedIcon = savedStateHandle
         ?.getStateFlow(CATEGORY_ICON_KEY, state.icon.name)
-        ?.collectAsStateWithLifecycle()
+        ?.collectAsStateWithLifecycle(lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current)
         ?.value
 
     selectedIcon?.let {
@@ -113,7 +113,7 @@ fun NewCategoryScreen(
 
     val selectedTemplate = savedStateHandle
         ?.getStateFlow<UiTemplateShort?>(TEMPLATE_KEY, null)
-        ?.collectAsStateWithLifecycle()
+        ?.collectAsStateWithLifecycle(lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current)
         ?.value
 
     selectedTemplate?.let {

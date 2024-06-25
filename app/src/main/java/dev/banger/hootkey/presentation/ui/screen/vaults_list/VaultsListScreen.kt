@@ -69,13 +69,13 @@ fun VaultsListScreen(
     onNavigateBack: (DeletedVaultIds, UpdatedVaultIds, DeletedVaultCategories, AddedVaultCategories) -> Unit,
     viewModel: VaultsListViewModel = koinViewModel(parameters = { parametersOf(categoryId ?: "") })
 ) {
-    val query by viewModel.searchQuery.collectAsStateWithLifecycle()
-    val state by viewModel.state.collectAsStateWithLifecycle()
+    val query by viewModel.searchQuery.collectAsStateWithLifecycle(lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current)
+    val state by viewModel.state.collectAsStateWithLifecycle(lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current)
     val clipboardManager = LocalClipboardManager.current
     val savedStateHandle = savedStateHandleProvider()
 
     val updatedVaultKeyFlow = savedStateHandle?.getStateFlow<String?>(EDITED_VAULT_KEY, null)
-        ?.collectAsStateWithLifecycle()
+        ?.collectAsStateWithLifecycle(lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current)
     LaunchedEffect(updatedVaultKeyFlow?.value) {
         val updatedVaultKey = updatedVaultKeyFlow?.value ?: return@LaunchedEffect
         savedStateHandle.remove<String>(EDITED_VAULT_KEY)

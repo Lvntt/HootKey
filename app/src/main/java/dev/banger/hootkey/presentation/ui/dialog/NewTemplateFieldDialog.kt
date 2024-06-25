@@ -57,7 +57,7 @@ fun NewTemplateFieldDialog(
     modifier: Modifier = Modifier,
     viewModel: NewTemplateFieldViewModel = koinViewModel()
 ) {
-    val state by viewModel.state.collectAsStateWithLifecycle()
+    val state by viewModel.state.collectAsStateWithLifecycle(lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current)
     ObserveAsEvents(viewModel.effects) {
         when (it) {
             is NewTemplateFieldEffect.AddField -> onContinue(it.field)

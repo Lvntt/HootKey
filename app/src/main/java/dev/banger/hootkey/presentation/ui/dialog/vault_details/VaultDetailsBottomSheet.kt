@@ -52,7 +52,7 @@ fun VaultDetailsBottomSheet(
         parameters = { parametersOf(vaultId) },
     )
 ) {
-    val state by viewModel.state.collectAsStateWithLifecycle()
+    val state by viewModel.state.collectAsStateWithLifecycle(lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current)
     val uriHandler = LocalUriHandler.current
     val clipboardManager = LocalClipboardManager.current
     CompositionLocalProvider(
