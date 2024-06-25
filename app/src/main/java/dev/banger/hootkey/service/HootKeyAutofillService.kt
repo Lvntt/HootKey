@@ -12,12 +12,15 @@ import android.service.autofill.FillRequest
 import android.service.autofill.FillResponse
 import android.service.autofill.Presentations
 import android.service.autofill.SaveCallback
+import android.service.autofill.SaveInfo
 import android.service.autofill.SaveRequest
 import android.util.Log
 import android.view.autofill.AutofillValue
 import android.widget.RemoteViews
 import dev.banger.hootkey.R
+import dev.banger.hootkey.domain.entity.vault.CreateVaultRequest
 import dev.banger.hootkey.domain.entity.vault.VaultShort
+import dev.banger.hootkey.domain.repository.CategoryRepository
 import dev.banger.hootkey.domain.repository.VaultRepository
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.runBlocking
@@ -30,6 +33,7 @@ class HootKeyAutofillService : AutofillService() {
     }
 
     private val vaultRepository: VaultRepository = get()
+    private val categoryRepository: CategoryRepository = get()
 
     private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
         Log.e(TAG, "error fetching vaults\n ${throwable.stackTraceToString()}")
@@ -48,7 +52,7 @@ class HootKeyAutofillService : AutofillService() {
         val context = request.fillContexts
         val structure = context[context.lastIndex].structure
 
-        traverseStructure(
+        traverseStructureForFill(
             structure,
             loginFieldsForAutofill,
             passwordFieldsForAutofill,
@@ -89,7 +93,7 @@ class HootKeyAutofillService : AutofillService() {
 
         val datasetBuilder = Dataset.Builder()
         loginFieldsForAutofill.forEach { loginField ->
-            vaultsForAutofill.forEach vaultsLoop@ { vault ->
+            vaultsForAutofill.forEach vaultsLoop@{ vault ->
                 val autofillId = loginField.autofillId ?: return@vaultsLoop
 
                 val autofillValue = AutofillValue.forText(vault.login)
@@ -121,7 +125,7 @@ class HootKeyAutofillService : AutofillService() {
             }
         }
         passwordFieldsForAutofill.forEach { passwordField ->
-            vaultsForAutofill.forEach vaultsLoop@ { vault ->
+            vaultsForAutofill.forEach vaultsLoop@{ vault ->
                 val autofillId = passwordField.autofillId ?: return@vaultsLoop
 
                 val autofillValue = AutofillValue.forText(vault.password)
@@ -154,18 +158,23 @@ class HootKeyAutofillService : AutofillService() {
         }
 
         val dataset = datasetBuilder.build()
+        val saveInfo = SaveInfo.Builder(
+            SaveInfo.SAVE_DATA_TYPE_USERNAME or SaveInfo.SAVE_DATA_TYPE_EMAIL_ADDRESS or SaveInfo.SAVE_DATA_TYPE_PASSWORD,
+            arrayOf(
+                loginFieldsForAutofill.first().autofillId,
+                passwordFieldsForAutofill.first().autofillId
+            )
+        ).build()
 
         val fillResponse = FillResponse.Builder()
             .addDataset(dataset)
+            .setSaveInfo(saveInfo)
             .build()
 
         callback.onSuccess(fillResponse)
     }
 
-    override fun onSaveRequest(p0: SaveRequest, p1: SaveCallback) {
-    }
-
-    private fun traverseStructure(
+    private fun traverseStructureForFill(
         structure: AssistStructure,
         loginFieldsForAutofill: MutableList<ViewNode>,
         passwordFieldsForAutofill: MutableList<ViewNode>,
@@ -187,7 +196,7 @@ class HootKeyAutofillService : AutofillService() {
         }
         windowNodes.forEach {
             val viewNode = it.rootViewNode
-            traverseNode(
+            traverseNodeForFill(
                 viewNode,
                 loginFieldsForAutofill,
                 passwordFieldsForAutofill,
@@ -196,7 +205,7 @@ class HootKeyAutofillService : AutofillService() {
         }
     }
 
-    private fun traverseNode(
+    private fun traverseNodeForFill(
         viewNode: ViewNode?,
         loginFieldsForAutofill: MutableList<ViewNode>,
         passwordFieldsForAutofill: MutableList<ViewNode>,
@@ -207,16 +216,18 @@ class HootKeyAutofillService : AutofillService() {
 
         if (autofillHints?.isNotEmpty() == true) {
             autofillHints.forEach { autofillHint ->
-                val isLoginAutofillFieldCandidate = AutofillFieldCandidateHeuristics.loginHints.any {
-                    autofillHint?.contains(it) == true
-                }
+                val isLoginAutofillFieldCandidate =
+                    AutofillFieldCandidateHeuristics.loginHints.any {
+                        autofillHint?.contains(it) == true
+                    }
                 if (isLoginAutofillFieldCandidate) {
                     loginFieldsForAutofill.add(viewNode)
                     isAutofillFieldFound = true
                 } else {
-                    val isPasswordAutofillFieldCandidate = AutofillFieldCandidateHeuristics.passwordHints.any {
-                        autofillHint?.contains(it) == true
-                    }
+                    val isPasswordAutofillFieldCandidate =
+                        AutofillFieldCandidateHeuristics.passwordHints.any {
+                            autofillHint?.contains(it) == true
+                        }
                     if (isPasswordAutofillFieldCandidate) {
                         passwordFieldsForAutofill.add(viewNode)
                         isAutofillFieldFound = true
@@ -250,11 +261,12 @@ class HootKeyAutofillService : AutofillService() {
             if (isLoginAutofillFieldCandidate) {
                 loginFieldsForAutofill.add(viewNode)
             } else {
-                val isPasswordAutofillFieldCandidate = AutofillFieldCandidateHeuristics.passwordHints.any {
-                    hint?.contains(it) == true || text?.contains(it) == true
-                } || AutofillFieldCandidateHeuristics.passwordInputTypes.any {
-                    inputType == it
-                }
+                val isPasswordAutofillFieldCandidate =
+                    AutofillFieldCandidateHeuristics.passwordHints.any {
+                        hint?.contains(it) == true || text?.contains(it) == true
+                    } || AutofillFieldCandidateHeuristics.passwordInputTypes.any {
+                        inputType == it
+                    }
 
                 if (isPasswordAutofillFieldCandidate) {
                     passwordFieldsForAutofill.add(viewNode)
@@ -266,11 +278,157 @@ class HootKeyAutofillService : AutofillService() {
             (0 until childCount).map { getChildAt(it) }
         }
         nodeChildren?.forEach {
-            traverseNode(
+            traverseNodeForFill(
                 it,
                 loginFieldsForAutofill,
                 passwordFieldsForAutofill,
                 appNameCandidates
+            )
+        }
+    }
+
+    override fun onSaveRequest(request: SaveRequest, callback: SaveCallback) {
+        val context = request.fillContexts
+        val structure = context[context.lastIndex].structure
+
+        val appPackageName = structure.activityComponent.packageName
+        val packageManager = applicationContext.packageManager
+        val appName: String
+
+        try {
+            val applicationInfo = packageManager.getApplicationInfo(appPackageName, 0)
+            appName = packageManager.getApplicationLabel(applicationInfo).toString()
+        } catch (e: Exception) {
+            Log.e(TAG, "could not get application name")
+            callback.onFailure("could not get application name")
+            return
+        }
+
+        val loginsForAutosave = mutableListOf<ViewNode>()
+        val passwordsForAutosave = mutableListOf<ViewNode>()
+
+        traverseStructureForSave(
+            structure,
+            loginsForAutosave,
+            passwordsForAutosave
+        )
+
+        if (loginsForAutosave.isNotEmpty() && passwordsForAutosave.isNotEmpty()) {
+            val loginNode = loginsForAutosave.first()
+            val passwordNode = passwordsForAutosave.first()
+
+            if (
+                loginNode.autofillId != null && !loginNode.text?.toString().isNullOrBlank()
+                && passwordNode.autofillId != null && !passwordNode.text?.toString().isNullOrBlank()
+            ) {
+                val login = loginNode.text.toString()
+                val password = passwordNode.text.toString()
+
+                runBlocking {
+                    val autosaveCategoryId = categoryRepository.getAutoSaveCategoryId()
+                    if (autosaveCategoryId == null) {
+                        callback.onFailure("could not load autosave category")
+                    } else {
+                        vaultRepository.create(
+                            CreateVaultRequest(
+                                categoryId = autosaveCategoryId,
+                                name = appName,
+                                fieldValues = mapOf(
+                                    0 to login,
+                                    1 to password
+                                )
+                            )
+                        )
+                        callback.onSuccess()
+                    }
+                }
+            }
+        }
+    }
+
+    private fun traverseStructureForSave(
+        structure: AssistStructure,
+        loginsForAutosave: MutableList<ViewNode>,
+        passwordsForAutosave: MutableList<ViewNode>,
+    ) {
+        val windowNodes = structure.run {
+            (0 until windowNodeCount).map { getWindowNodeAt(it) }
+        }
+        windowNodes.forEach {
+            val viewNode = it.rootViewNode
+            traverseNodeForSave(
+                viewNode,
+                loginsForAutosave,
+                passwordsForAutosave
+            )
+        }
+    }
+
+    private fun traverseNodeForSave(
+        viewNode: ViewNode?,
+        loginsForAutosave: MutableList<ViewNode>,
+        passwordsForAutosave: MutableList<ViewNode>,
+    ) {
+        val autofillHints = viewNode?.autofillHints
+        var isAutofillFieldFound = false
+
+        if (autofillHints?.isNotEmpty() == true) {
+            autofillHints.forEach { autofillHint ->
+                val isLoginAutosaveCandidate = AutofillFieldCandidateHeuristics.loginHints.any {
+                    autofillHint?.contains(it) == true
+                }
+                val viewNodeText = viewNode.text?.toString()
+                if (isLoginAutosaveCandidate && viewNodeText != null) {
+                    loginsForAutosave.add(viewNode)
+                    isAutofillFieldFound = true
+                } else {
+                    val isPasswordAutosaveCandidate =
+                        AutofillFieldCandidateHeuristics.passwordHints.any {
+                            autofillHint?.contains(it) == true
+                        }
+                    if (isPasswordAutosaveCandidate && viewNodeText != null) {
+                        passwordsForAutosave.add(viewNode)
+                        isAutofillFieldFound = true
+                    }
+                }
+            }
+        }
+
+        if (viewNode != null && !isAutofillFieldFound) {
+            val hint = viewNode.hint?.lowercase()
+            val text = viewNode.text?.toString()?.lowercase()
+            val inputType = viewNode.inputType
+
+            val isLoginAutosaveCandidate = AutofillFieldCandidateHeuristics.loginHints.any {
+                hint?.contains(it) == true || text?.contains(it) == true
+            } || AutofillFieldCandidateHeuristics.loginInputTypes.any {
+                inputType == it
+            }
+
+            if (isLoginAutosaveCandidate) {
+                loginsForAutosave.add(viewNode)
+            } else {
+                val isPasswordAutosaveCandidate =
+                    AutofillFieldCandidateHeuristics.passwordHints.any {
+                        hint?.contains(it) == true || text?.contains(it) == true
+                    } || AutofillFieldCandidateHeuristics.passwordInputTypes.any {
+                        inputType == it
+                    }
+
+                if (isPasswordAutosaveCandidate) {
+                    passwordsForAutosave.add(viewNode)
+                }
+            }
+        }
+
+        val nodeChildren = viewNode?.run {
+            (0 until childCount).map { getChildAt(it) }
+        }
+        nodeChildren?.forEach {
+            traverseNodeForSave(
+                it,
+                loginsForAutosave,
+                passwordsForAutosave
             )
         }
     }
