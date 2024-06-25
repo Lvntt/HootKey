@@ -102,6 +102,11 @@ class VaultDetailsViewModel(
                         canFavorite = true
                     )
                 }
+                runCatching {
+                    vaultRepository.notifyViewed(vaultId)
+                }.onFailure {
+                    if (it is CancellationException) throw it
+                }
             }.onFailure {
                 if (it is CancellationException) throw it
                 _state.update { VaultDetailsState.Error }
