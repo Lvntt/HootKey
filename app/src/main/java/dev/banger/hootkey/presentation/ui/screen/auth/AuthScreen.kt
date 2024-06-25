@@ -194,8 +194,8 @@ fun AuthScreen(onSuccess: () -> Unit, viewModel: AuthViewModel = koinViewModel()
                 text = stringResource(R.string.login),
                 isLoading = state.isLoading
             )
-            Spacer(modifier = Modifier.width(8.dp))
             if (state.isBiometryOn) {
+                Spacer(modifier = Modifier.width(8.dp))
                 Button(
                     modifier = Modifier
                         .size(52.dp),

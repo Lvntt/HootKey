@@ -15,8 +15,8 @@ val PrimaryPink = Color(0xFFF2167B)
 val PrimaryOrange = Color(0xFFF86668)
 val PrimaryShadow = Color(0xFFF7556D)
 
-val PrimaryPinkDisabled = Color(0xFFBC3B61)
-val PrimaryOrangeDisabled = Color(0xFFBB525A)
+val PrimaryPinkDisabled = Color(0xFFDA6D9D)
+val PrimaryOrangeDisabled = Color(0xFFE28B8C)
 
 val Primary20 = Color(0xFFFFECE8)
 val Primary20Disabled = Color(0xFFFAEEED)
