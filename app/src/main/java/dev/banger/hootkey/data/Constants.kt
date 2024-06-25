@@ -7,4 +7,5 @@ object Constants {
     const val COMMON = "common"
     const val VAULTS = "vaults"
     const val FIELDS = "fields"
+    const val VAULT_COUNT = "vaultCount"
 }

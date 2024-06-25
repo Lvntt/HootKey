@@ -43,6 +43,9 @@ fun FirebaseFirestore.categoryCollection(userId: String) =
 fun FirebaseFirestore.commonCategoryCollection() =
     collection(COMMON).document(CATEGORIES).collection(CATEGORIES)
 
+fun FirebaseFirestore.commonTemplateVaultCountDocument(userId: String, templateId: String) =
+    templateCollection(userId).document(templateId)
+
 suspend fun getCategoryRefs(
     fireStore: FirebaseFirestore, templateId: String, userId: String, batchSize: Long = 100
 ): List<DocumentReference> {
