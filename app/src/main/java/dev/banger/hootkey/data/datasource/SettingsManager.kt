@@ -4,7 +4,7 @@ import android.content.Context
 import android.view.autofill.AutofillManager
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
-import dev.banger.hootkey.Constants.IS_AUTOFILL_ON_KEY
+import dev.banger.hootkey.Constants.AUTOSAVE_CATEGORY_ID_KEY
 import dev.banger.hootkey.Constants.IS_BIOMETRY_ON_KEY
 import dev.banger.hootkey.Constants.IS_COMPROMISE_DETECTION_ON_KEY
 import dev.banger.hootkey.Constants.IS_OFFLINE_KEY
@@ -41,6 +41,8 @@ class SettingsManager(private val context: Context) {
 
     fun isCompromiseDetectionOn() = prefs.getBoolean(IS_COMPROMISE_DETECTION_ON_KEY, false)
 
+    fun getAutoSaveCategoryId() = prefs.getString(AUTOSAVE_CATEGORY_ID_KEY, null)
+
     fun setOffline(isOffline: Boolean) {
         prefs.edit()
             .putBoolean(IS_OFFLINE_KEY, isOffline)
@@ -56,6 +58,12 @@ class SettingsManager(private val context: Context) {
     fun setCompromiseDetection(isOn: Boolean) {
         prefs.edit()
             .putBoolean(IS_COMPROMISE_DETECTION_ON_KEY, isOn)
+            .apply()
+    }
+
+    fun setAutoSaveCategoryId(categoryId: String) {
+        prefs.edit()
+            .putString(AUTOSAVE_CATEGORY_ID_KEY, categoryId)
             .apply()
     }
 

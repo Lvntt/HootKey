@@ -7,6 +7,7 @@ import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.toObject
 import dev.banger.hootkey.data.crypto.CryptoManager
+import dev.banger.hootkey.data.datasource.SettingsManager
 import dev.banger.hootkey.data.model.CategoryModel
 import dev.banger.hootkey.domain.entity.auth.exception.UnauthorizedException
 import dev.banger.hootkey.domain.entity.category.Category
@@ -25,7 +26,8 @@ class CategoryRepositoryImpl(
     private val auth: FirebaseAuth,
     private val fireStore: FirebaseFirestore,
     private val templateRepository: TemplateRepository,
-    private val crypto: CryptoManager
+    private val crypto: CryptoManager,
+    private val settingsManager: SettingsManager
 ) : CategoryRepository {
 
     private suspend fun getVaultCountInCategory(categoryId: String): Int {
@@ -116,6 +118,10 @@ class CategoryRepositoryImpl(
         val commonCategory = fireStore.commonCategoryCollection().document(id).get().await()
         if (commonCategory.exists()) return commonCategory.toCategory(isCustom = false)
         return null
+    }
+
+    override suspend fun getAutoSaveCategoryId(): String? {
+        return settingsManager.getAutoSaveCategoryId()
     }
 
     override suspend fun create(category: CreateCategoryRequest): Category {

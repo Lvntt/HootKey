@@ -10,10 +10,12 @@ import com.google.firebase.ktx.Firebase
 import dev.banger.hootkey.data.crypto.CryptoManager
 import dev.banger.hootkey.data.crypto.PasswordValidator
 import dev.banger.hootkey.data.crypto.SharedPrefsManager
+import dev.banger.hootkey.data.datasource.SettingsManager
 import dev.banger.hootkey.data.model.UserInfoModel
 import dev.banger.hootkey.domain.entity.auth.exception.InvalidCredentialsException
 import dev.banger.hootkey.domain.entity.auth.exception.RegistrationCollisionException
 import dev.banger.hootkey.domain.repository.AuthRepository
+import dev.banger.hootkey.domain.repository.CategoryRepository
 import kotlinx.coroutines.tasks.await
 
 class AuthRepositoryImpl(
@@ -21,7 +23,9 @@ class AuthRepositoryImpl(
     private val fireStore: FirebaseFirestore,
     private val cryptoManager: CryptoManager,
     private val passwordValidator: PasswordValidator,
-    private val sharedPrefsManager: SharedPrefsManager
+    private val sharedPrefsManager: SharedPrefsManager,
+    private val categoryRepository: CategoryRepository,
+    private val settingsManager: SettingsManager
 ) : AuthRepository {
 
     private fun userInfo(userId: String) = fireStore.collection(userId).document("info")
@@ -34,6 +38,7 @@ class AuthRepositoryImpl(
             ?: throw IllegalStateException("Salt is null after login")
 
         sharedPrefsManager.saveSaltBase64(salt)
+        setUpAutoSaveCategory()
     }.fold(onSuccess = {
         cryptoManager.setMasterPassword(password)
         passwordValidator.savePassword(password)
@@ -50,6 +55,7 @@ class AuthRepositoryImpl(
         val salt = cryptoManager.createSaltBase64()
         userInfo(userId).set(UserInfoModel(salt)).await()
         sharedPrefsManager.saveSaltBase64(salt)
+        setUpAutoSaveCategory()
     }.fold(onSuccess = {
         cryptoManager.setMasterPassword(password)
         passwordValidator.savePassword(password)
@@ -59,6 +65,18 @@ class AuthRepositoryImpl(
         if (throwable is FirebaseAuthUserCollisionException) throw RegistrationCollisionException()
         throw throwable
     })
+
+    private suspend fun setUpAutoSaveCategory() {
+        val autoSaveCategoryId =
+            fireStore.collection("common")
+                .document("autosave_category_id").get().await()
+        if (autoSaveCategoryId.exists()) {
+            autoSaveCategoryId.getString("id")?.let { id ->
+                categoryRepository.getById(id)
+                settingsManager.setAutoSaveCategoryId(id)
+            }
+        }
+    }
 
     override fun checkUserLoggedIn() = auth.currentUser != null
 

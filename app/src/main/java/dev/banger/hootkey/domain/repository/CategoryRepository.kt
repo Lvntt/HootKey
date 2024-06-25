@@ -19,6 +19,8 @@ interface CategoryRepository {
 
     suspend fun getById(id: String): Category?
 
+    suspend fun getAutoSaveCategoryId(): String?
+
     suspend fun create(category: CreateCategoryRequest): Category
 
     suspend fun edit(category: EditCategoryRequest): Category
