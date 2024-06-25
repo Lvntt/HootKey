@@ -64,12 +64,18 @@ class HootKeyAutofillService : AutofillService() {
             return
         }
 
+        val loginAutofillId = loginFieldsForAutofill.firstOrNull()?.autofillId
+        val passwordAutofillId = passwordFieldsForAutofill.firstOrNull()?.autofillId
         val saveInfo = SaveInfo.Builder(
             SaveInfo.SAVE_DATA_TYPE_USERNAME or SaveInfo.SAVE_DATA_TYPE_PASSWORD,
-            arrayOf(
-                loginFieldsForAutofill.first().autofillId,
-                passwordFieldsForAutofill.first().autofillId
-            )
+            if (loginAutofillId != null && passwordAutofillId != null)
+                arrayOf(loginAutofillId, passwordAutofillId)
+            else if (loginAutofillId != null)
+                arrayOf(loginAutofillId)
+            else if (passwordAutofillId != null)
+                arrayOf(passwordAutofillId)
+            else
+                emptyArray()
         ).build()
 
         val vaultIdsForAutofill = mutableListOf<String>()
@@ -100,8 +106,8 @@ class HootKeyAutofillService : AutofillService() {
 
         if (vaultsForAutofill.isEmpty()) {
             val notUsed = RemoteViews(packageName, android.R.layout.simple_list_item_1)
-            val loginId = loginFieldsForAutofill.first().autofillId
-            val passwordId = passwordFieldsForAutofill.first().autofillId
+            val loginId = loginFieldsForAutofill.firstOrNull()?.autofillId
+            val passwordId = passwordFieldsForAutofill.firstOrNull()?.autofillId
             if (loginId != null && passwordId != null) {
                 @Suppress("DEPRECATION")
                 datasetBuilder.setValue(
