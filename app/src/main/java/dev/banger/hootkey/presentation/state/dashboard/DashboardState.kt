@@ -14,5 +14,6 @@ data class DashboardState(
     val nextPageKey: String? = null,
     val isEndReached: Boolean = false,
     val deleteDialogOpenedForVault: VaultShort? = null,
-    val isDeletingVault: Boolean = false
+    val isDeletingVault: Boolean = false,
+    val vaultDetails: VaultShort? = null
 )

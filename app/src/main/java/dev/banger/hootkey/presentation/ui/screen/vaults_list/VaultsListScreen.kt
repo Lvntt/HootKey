@@ -41,6 +41,7 @@ import dev.banger.hootkey.presentation.ui.common.VaultShortItem
 import dev.banger.hootkey.presentation.ui.common.textfields.SearchTextField
 import dev.banger.hootkey.presentation.ui.common.topbar.HootKeyTopBar
 import dev.banger.hootkey.presentation.ui.dialog.AppAlertDialog
+import dev.banger.hootkey.presentation.ui.dialog.vault_details.VaultDetailsBottomSheet
 import dev.banger.hootkey.presentation.ui.screen.vaults_list.VaultsListContentTypes.ERROR_VAULTS
 import dev.banger.hootkey.presentation.ui.screen.vaults_list.VaultsListContentTypes.FILTER_CHIPS
 import dev.banger.hootkey.presentation.ui.screen.vaults_list.VaultsListContentTypes.LOADING_CONTENT
@@ -68,13 +69,13 @@ fun VaultsListScreen(
     onNavigateBack: (DeletedVaultIds, UpdatedVaultIds, DeletedVaultCategories, AddedVaultCategories) -> Unit,
     viewModel: VaultsListViewModel = koinViewModel(parameters = { parametersOf(categoryId ?: "") })
 ) {
-    val query by viewModel.searchQuery.collectAsStateWithLifecycle()
-    val state by viewModel.state.collectAsStateWithLifecycle()
+    val query by viewModel.searchQuery.collectAsStateWithLifecycle(lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current)
+    val state by viewModel.state.collectAsStateWithLifecycle(lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current)
     val clipboardManager = LocalClipboardManager.current
     val savedStateHandle = savedStateHandleProvider()
 
     val updatedVaultKeyFlow = savedStateHandle?.getStateFlow<String?>(EDITED_VAULT_KEY, null)
-        ?.collectAsStateWithLifecycle()
+        ?.collectAsStateWithLifecycle(lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current)
     LaunchedEffect(updatedVaultKeyFlow?.value) {
         val updatedVaultKey = updatedVaultKeyFlow?.value ?: return@LaunchedEffect
         savedStateHandle.remove<String>(EDITED_VAULT_KEY)
@@ -93,6 +94,23 @@ fun VaultsListScreen(
             state.updatedVaultIds,
             state.deletedVaultCategories,
             state.addedVaultCategories
+        )
+    }
+
+    state.vaultDetails?.let { vault ->
+        VaultDetailsBottomSheet(
+            vaultId = vault.id,
+            onDismissRequest = {
+                viewModel.dispatch(VaultsListIntent.DismissVaultDetails)
+            },
+            onEditClick = {
+                onEditClick(vault.id)
+                viewModel.dispatch(VaultsListIntent.DismissVaultDetails)
+            },
+            onDeleteClick = {
+                viewModel.dispatch(VaultsListIntent.OpenDeleteDialog(vault))
+                viewModel.dispatch(VaultsListIntent.DismissVaultDetails)
+            }
         )
     }
 
@@ -174,10 +192,15 @@ fun VaultsListScreen(
                     VaultShortItem(modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 20.dp),
-                        iconModel = { "https://www.google.com/s2/favicons?domain=${vault.link}&sz=256" },
+                        iconModel = {
+                            "https://www.google.com/s2/favicons?domain=${vault.link}&sz=256"
+                                .takeIf { !vault.link.isNullOrBlank() }
+                        },
                         name = vault.name,
                         login = vault.login ?: "",
-                        onClick = {},
+                        onClick = {
+                            viewModel.dispatch(VaultsListIntent.OpenVaultDetails(vault))
+                        },
                         onCopyClick = {
                             val clipData = if (!vault.password.isNullOrBlank()) vault.password
                             else if (!vault.login.isNullOrBlank()) vault.login

@@ -22,4 +22,5 @@ object Constants {
     const val IS_AUTOFILL_ON_KEY = "is_autofill_on_key"
     const val IS_BIOMETRY_ON_KEY = "is_biometry_on_key"
     const val IS_COMPROMISE_DETECTION_ON_KEY = "is_compromise_detection_on_key"
+    const val AUTOSAVE_CATEGORY_ID_KEY = "autosave_category_id_key"
 }

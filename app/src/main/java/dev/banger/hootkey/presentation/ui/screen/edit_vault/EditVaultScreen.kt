@@ -99,7 +99,7 @@ fun EditVaultScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val savedStateHandle = savedStateHandleProvider()
 
-    val state by viewModel.state.collectAsStateWithLifecycle()
+    val state by viewModel.state.collectAsStateWithLifecycle(lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current)
     ObserveAsEvents(viewModel.effects) {
         when (it) {
             EditVaultEffect.GoToCategories -> onNavigateToCategories()
@@ -147,7 +147,7 @@ fun EditVaultScreen(
 
     val selectedCategoryId = savedStateHandle
         ?.getStateFlow<String?>(CREATED_CATEGORY_ID_KEY, null)
-        ?.collectAsStateWithLifecycle()
+        ?.collectAsStateWithLifecycle(lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current)
         ?.value
 
     selectedCategoryId?.let {

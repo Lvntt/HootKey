@@ -53,6 +53,7 @@ import dev.banger.hootkey.presentation.intent.DashboardIntent
 import dev.banger.hootkey.presentation.ui.common.bottomSheetBackground
 import dev.banger.hootkey.presentation.ui.common.textfields.SearchTextField
 import dev.banger.hootkey.presentation.ui.dialog.AppAlertDialog
+import dev.banger.hootkey.presentation.ui.dialog.vault_details.VaultDetailsBottomSheet
 import dev.banger.hootkey.presentation.ui.screen.dashboard.DashboardListContentTypes.BOTTOM_SPACER
 import dev.banger.hootkey.presentation.ui.screen.dashboard.DashboardListContentTypes.FIRST_VAULT_HINT
 import dev.banger.hootkey.presentation.ui.screen.dashboard.DashboardListContentTypes.RECENTLY_USED_HEADER
@@ -85,13 +86,13 @@ fun DashboardScreen(
     onSettingsClick: () -> Unit,
     viewModel: DashboardViewmodel = koinViewModel()
 ) {
-    val state by viewModel.state.collectAsStateWithLifecycle()
+    val state by viewModel.state.collectAsStateWithLifecycle(lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current)
 
     val savedStateHandle = savedStateHandleProvider()
 
     //Handle changes after creating a new vault (vault + category)
     val addedVaultKeyFlow =
-        savedStateHandle?.getStateFlow<String?>(VAULT_KEY, null)?.collectAsStateWithLifecycle()
+        savedStateHandle?.getStateFlow<String?>(VAULT_KEY, null)?.collectAsStateWithLifecycle(lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current)
     LaunchedEffect(addedVaultKeyFlow?.value) {
         val vaultKey = addedVaultKeyFlow?.value ?: return@LaunchedEffect
         val categoryKey =
@@ -103,7 +104,7 @@ fun DashboardScreen(
 
     //Handle changes after deleting vaults on another screen (vaults only)
     val deletedVaultIdsFlow = savedStateHandle?.getStateFlow<List<String>>(DELETED_VAULT_IDS_KEY, emptyList())
-        ?.collectAsStateWithLifecycle()
+        ?.collectAsStateWithLifecycle(lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current)
     LaunchedEffect(deletedVaultIdsFlow?.value) {
         val deletedVaultIds = deletedVaultIdsFlow?.value ?: return@LaunchedEffect
         savedStateHandle.remove<List<String>>(DELETED_VAULT_IDS_KEY)
@@ -112,7 +113,7 @@ fun DashboardScreen(
 
     //Handle changes after updating vaults on another screen (vaults only)
     val updatedVaultIdsFlow = savedStateHandle?.getStateFlow<List<String>>(UPDATED_VAULT_IDS_KEY, emptyList())
-        ?.collectAsStateWithLifecycle()
+        ?.collectAsStateWithLifecycle(lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current)
     LaunchedEffect(updatedVaultIdsFlow?.value) {
         val updatedVaultIds = updatedVaultIdsFlow?.value ?: return@LaunchedEffect
         savedStateHandle.remove<List<String>>(UPDATED_VAULT_IDS_KEY)
@@ -121,9 +122,9 @@ fun DashboardScreen(
 
     //Handle changes after deleting vaults or moving them between categories on another screen (categories)
     val deletedVaultCategoriesFlow =
-        savedStateHandle?.getStateFlow<List<String>>(DELETED_VAULT_CATEGORIES_KEY, emptyList())?.collectAsStateWithLifecycle()
+        savedStateHandle?.getStateFlow<List<String>>(DELETED_VAULT_CATEGORIES_KEY, emptyList())?.collectAsStateWithLifecycle(lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current)
     val addedVaultCategoriesFlow =
-        savedStateHandle?.getStateFlow<List<String>>(ADDED_VAULT_CATEGORIES_KEY, emptyList())?.collectAsStateWithLifecycle()
+        savedStateHandle?.getStateFlow<List<String>>(ADDED_VAULT_CATEGORIES_KEY, emptyList())?.collectAsStateWithLifecycle(lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current)
     LaunchedEffect(deletedVaultCategoriesFlow?.value, addedVaultCategoriesFlow?.value) {
         val deletedVaultCategories = deletedVaultCategoriesFlow?.value ?: emptyList()
         val addedVaultCategories = addedVaultCategoriesFlow?.value ?: emptyList()
@@ -134,7 +135,7 @@ fun DashboardScreen(
 
     //Handle changes after editing a single vault (vault + categories)
     val updatedVaultKeyFlow = savedStateHandle?.getStateFlow<String?>(EDITED_VAULT_KEY, null)
-        ?.collectAsStateWithLifecycle()
+        ?.collectAsStateWithLifecycle(lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current)
     LaunchedEffect(updatedVaultKeyFlow?.value) {
         val updatedVaultKey = updatedVaultKeyFlow?.value ?: return@LaunchedEffect
         savedStateHandle.remove<String>(EDITED_VAULT_OLD_CATEGORY_KEY)?.let {
@@ -147,6 +148,23 @@ fun DashboardScreen(
         viewModel.dispatch(DashboardIntent.UpdateVault(updatedVaultKey))
     }
 
+    state.vaultDetails?.let { vault ->
+        VaultDetailsBottomSheet(
+            vaultId = vault.id,
+            onDismissRequest = {
+                viewModel.dispatch(DashboardIntent.DismissVaultDetails)
+            },
+            onEditClick = {
+                onEditClick(vault.id)
+                viewModel.dispatch(DashboardIntent.DismissVaultDetails)
+            },
+            onDeleteClick = {
+                viewModel.dispatch(DashboardIntent.OpenDeleteDialog(vault))
+                viewModel.dispatch(DashboardIntent.DismissVaultDetails)
+            }
+        )
+    }
+
     CompositionLocalProvider(
         LocalOverscrollConfiguration provides null,
         LocalMinimumInteractiveComponentEnforcement provides false
@@ -156,6 +174,7 @@ fun DashboardScreen(
         val defaultOffset = -with(LocalDensity.current) { 68.dp.toPx() }
         val cornerRadius = with(LocalDensity.current) { CornerRadius(40.dp.toPx(), 40.dp.toPx()) }
         var bottomSheetBackgroundYOffset by remember { mutableFloatStateOf(defaultOffset) }
+        //TODO The bottom spacer and the two properties below could potentially be causing lag since they change height and are updated VERY frequently
         var bottomSheetStartPosY by remember { mutableFloatStateOf(-Float.MAX_VALUE) }
         var bottomSheetEndPosY by remember { mutableFloatStateOf(0f) }
         var nonBottomSheetContentHeight by remember { mutableFloatStateOf(0f) }
@@ -245,6 +264,8 @@ fun DashboardScreen(
                 viewModel.dispatch(DashboardIntent.LoadNextVaultsPage)
             }, onDeleteVaultRequested = {
                 viewModel.dispatch(DashboardIntent.OpenDeleteDialog(it))
+            }, onClick = {
+                viewModel.dispatch(DashboardIntent.OpenVaultDetails(it))
             }, onEditClick = onEditClick, clipboardManager = clipboardManager)
 
             item(contentType = BOTTOM_SPACER) {

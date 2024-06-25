@@ -25,6 +25,7 @@ inline fun LazyListScope.vaultsContent(
     crossinline onLoadNextPageRequested: () -> Unit,
     crossinline onDeleteVaultRequested: (VaultShort) -> Unit,
     crossinline onEditClick: (String) -> Unit,
+    crossinline onClick: (VaultShort) -> Unit,
     clipboardManager: ClipboardManager
 ) {
     itemsIndexed(items = stateProvider().vaults,
@@ -42,7 +43,9 @@ inline fun LazyListScope.vaultsContent(
             },
             name = vault.name,
             login = vault.login ?: "",
-            onClick = {},
+            onClick = {
+                onClick(vault)
+            },
             onCopyClick = {
                 val clipData = if (!vault.password.isNullOrBlank()) vault.password
                 else if (!vault.login.isNullOrBlank()) vault.login

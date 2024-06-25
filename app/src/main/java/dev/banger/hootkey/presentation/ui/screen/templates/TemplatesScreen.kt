@@ -65,7 +65,7 @@ fun TemplatesScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val savedStateHandle = savedStateHandleProvider()
 
-    val state by viewModel.state.collectAsStateWithLifecycle()
+    val state by viewModel.state.collectAsStateWithLifecycle(lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current)
     ObserveAsEvents(viewModel.effects) {
         when (it) {
             TemplatesEffect.ShowError -> {
@@ -80,7 +80,7 @@ fun TemplatesScreen(
 
     val newTemplateId = savedStateHandle
         ?.getStateFlow<String?>(CREATED_TEMPLATE_ID_KEY, null)
-        ?.collectAsStateWithLifecycle()
+        ?.collectAsStateWithLifecycle(lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current)
         ?.value
 
     newTemplateId?.let {

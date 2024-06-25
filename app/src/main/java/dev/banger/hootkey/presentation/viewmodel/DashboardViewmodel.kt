@@ -51,7 +51,17 @@ class DashboardViewmodel(
             is DashboardIntent.DecrementCategoryVaultsCount -> decrementCategoryVaultsCount(intent.categoryId)
             is DashboardIntent.UpdateVault -> updateVault(intent.vaultId)
             is DashboardIntent.UpdateVaults -> updateVaults(intent.vaultIds)
+            DashboardIntent.DismissVaultDetails -> dismissVaultDetails()
+            is DashboardIntent.OpenVaultDetails -> openVaultDetails(intent.vault)
         }
+    }
+
+    private fun dismissVaultDetails() {
+        _state.update { it.copy(vaultDetails = null) }
+    }
+
+    private fun openVaultDetails(vault: VaultShort) {
+        _state.update { it.copy(vaultDetails = vault) }
     }
 
     private fun changeCategoriesVaultsCount(

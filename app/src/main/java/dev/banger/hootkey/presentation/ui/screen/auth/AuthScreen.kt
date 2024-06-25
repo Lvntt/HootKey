@@ -13,10 +13,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.ime
-import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -29,6 +30,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.paint
@@ -71,9 +73,12 @@ fun AuthScreen(onSuccess: () -> Unit, viewModel: AuthViewModel = koinViewModel()
     val focusManager = LocalFocusManager.current
     val density = LocalDensity.current
     val windowsInsetsIme = WindowInsets.ime
-    val bottomImePadding by derivedStateOf { windowsInsetsIme.getBottom(density) }
+    val windowInsetsNavBars = WindowInsets.navigationBars
+    val windowInsetsStatusBars = WindowInsets.statusBars
+    val bottomImePadding by remember { derivedStateOf { windowsInsetsIme.getBottom(density) } }
+    val bottomNavBarsPadding by remember { derivedStateOf { windowInsetsNavBars.getBottom(density) } }
 
-    val state by viewModel.state.collectAsStateWithLifecycle()
+    val state by viewModel.state.collectAsStateWithLifecycle(lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current)
     val context = LocalContext.current
     val biometricLauncher: () -> Unit = {
         context.findActivity()?.let { activity ->
@@ -122,13 +127,22 @@ fun AuthScreen(onSuccess: () -> Unit, viewModel: AuthViewModel = koinViewModel()
             .fillMaxSize()
             .paint(painterResource(R.drawable.auth_bg), contentScale = ContentScale.FillBounds)
             .padding(horizontal = 20.dp)
-            .systemBarsPadding()
+            .navigationBarsPadding()
             .verticalScroll(rememberScrollState())
             .noRippleClickable { focusManager.clearFocus() }
             .graphicsLayer {
-                translationY = -(bottomImePadding.toFloat())
+                translationY =
+                    if (bottomImePadding >= bottomNavBarsPadding) -bottomImePadding.toFloat() + bottomNavBarsPadding.toFloat()
+                    else 0f
             }
     ) {
+        Spacer(
+            modifier = Modifier.height(
+                with(LocalDensity.current) {
+                    windowInsetsStatusBars.getTop(this).toDp()
+                }
+            )
+        )
         Spacer(modifier = Modifier.weight(1f))
         Image(
             modifier = Modifier.size(250.dp).align(Alignment.CenterHorizontally),

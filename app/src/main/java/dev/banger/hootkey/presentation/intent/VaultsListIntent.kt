@@ -15,4 +15,6 @@ sealed interface VaultsListIntent {
         val newCategoryId: String?,
         val oldCategoryId: String?
     ) : VaultsListIntent
+    data class OpenVaultDetails(val vault: VaultShort) : VaultsListIntent
+    data object DismissVaultDetails : VaultsListIntent
 }

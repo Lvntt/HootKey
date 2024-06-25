@@ -71,7 +71,7 @@ fun SettingsScreen(
         }
     }
 
-    val state by viewModel.state.collectAsStateWithLifecycle()
+    val state by viewModel.state.collectAsStateWithLifecycle(lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current)
     ObserveAsEvents(viewModel.effects) {
         when (it) {
             SettingsEffect.Logout -> onLogout()
