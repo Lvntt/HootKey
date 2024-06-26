@@ -24,6 +24,9 @@ class PasswordRepositoryImpl(private val vaultRepository: VaultRepository) : Pas
 
     override suspend fun calculatePasswordHealthScore() {
         runCatching {
+            _passwordHealthScore.update {
+                PasswordHealthScore.Calculating
+            }
             var nextPageKey: String? = null
             var endReached = false
 

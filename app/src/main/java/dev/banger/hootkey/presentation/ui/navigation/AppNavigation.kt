@@ -292,9 +292,9 @@ fun AppNavigation(navHostController: NavHostController) {
         }
 
         composable(NavigationDestinations.STATISTICS) {
-            StatisticsScreen {
+            StatisticsScreen(onNavigateBack = {
                 navHostController.popBackStack()
-            }
+            })
         }
     }
 }

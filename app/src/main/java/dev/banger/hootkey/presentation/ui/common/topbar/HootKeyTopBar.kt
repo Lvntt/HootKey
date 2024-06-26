@@ -22,6 +22,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import dev.banger.hootkey.R
 import dev.banger.hootkey.presentation.ui.theme.Secondary
@@ -38,13 +39,16 @@ fun HootKeyTopBar(
     CenterAlignedTopAppBar(
         modifier = Modifier.padding(
             start = 20.dp,
+            end = 20.dp,
             top = 20.dp
         ),
         title = {
             Text(
                 text = title,
                 style = TypeM20,
-                color = titleColor
+                color = titleColor,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
         },
         navigationIcon = {
