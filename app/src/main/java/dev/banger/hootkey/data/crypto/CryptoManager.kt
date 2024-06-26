@@ -2,7 +2,6 @@ package dev.banger.hootkey.data.crypto
 
 import android.security.keystore.KeyProperties
 import android.security.keystore.KeyProtection
-import dev.banger.hootkey.domain.entity.auth.exception.UnauthorizedException
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.DataInputStream
@@ -19,7 +18,7 @@ import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
 
 @OptIn(ExperimentalEncodingApi::class)
-class CryptoManager(private val sharedPrefsManager: SharedPrefsManager) {
+class CryptoManager {
 
     private companion object {
         const val ALGORITHM = KeyProperties.KEY_ALGORITHM_AES
@@ -35,10 +34,6 @@ class CryptoManager(private val sharedPrefsManager: SharedPrefsManager) {
         const val SALT_LENGTH = 16
 
         const val SECURE_RANDOM_ALGORITHM = "SHA1PRNG"
-    }
-
-    private val salt by lazy {
-        sharedPrefsManager.getSalt() ?: throw UnauthorizedException("Salt is null")
     }
 
     private val keyStore = KeyStore.getInstance(KEYSTORE_TYPE).apply {
@@ -62,7 +57,7 @@ class CryptoManager(private val sharedPrefsManager: SharedPrefsManager) {
         return salt
     }
 
-    private fun createKey(password: String): SecretKey {
+    private fun createKey(password: String, salt: ByteArray): SecretKey {
         val secretKeyFactory = SecretKeyFactory.getInstance(KEY_DERIVATION_ALGORITHM)
         val keySpec = PBEKeySpec(password.toCharArray(), salt, PBKDF2_ITERATION_COUNT, KEY_LENGTH)
         val secret = secretKeyFactory.generateSecret(keySpec).encoded
@@ -82,8 +77,8 @@ class CryptoManager(private val sharedPrefsManager: SharedPrefsManager) {
         return keyStore.getKey(KEY_ALIAS, null) as? SecretKey
     }
 
-    fun setMasterPassword(password: String) {
-        val key = createKey(password)
+    fun setMasterPassword(password: String, salt: String) {
+        val key = createKey(password, Base64.decode(salt))
         saveKey(key)
     }
 

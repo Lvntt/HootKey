@@ -34,13 +34,15 @@ class AuthRepositoryImpl(
         val userId = auth.signInWithEmailAndPassword(email, password).await().user?.uid
             ?: throw IllegalStateException("User id is null after login")
 
-        val salt = userInfo(userId).get().await().toObject<UserInfoModel>()?.salt
+        val masterSalt = userInfo(userId).get().await().toObject<UserInfoModel>()?.salt
             ?: throw IllegalStateException("Salt is null after login")
+        val validationSalt = cryptoManager.createSaltBase64()
 
-        sharedPrefsManager.saveSaltBase64(salt)
+        sharedPrefsManager.saveSaltBase64(validationSalt)
         setUpAutoSaveCategory()
-    }.fold(onSuccess = {
-        cryptoManager.setMasterPassword(password)
+        masterSalt
+    }.fold(onSuccess = { masterSalt ->
+        cryptoManager.setMasterPassword(password, masterSalt)
         passwordValidator.savePassword(password)
     }, onFailure = { throwable ->
         auth.signOut()
@@ -52,12 +54,14 @@ class AuthRepositoryImpl(
         val userId = auth.createUserWithEmailAndPassword(email, password).await().user?.uid
             ?: throw IllegalStateException("User id is null after registration")
 
-        val salt = cryptoManager.createSaltBase64()
-        userInfo(userId).set(UserInfoModel(salt)).await()
-        sharedPrefsManager.saveSaltBase64(salt)
+        val masterSalt = cryptoManager.createSaltBase64()
+        userInfo(userId).set(UserInfoModel(masterSalt)).await()
+        val validationSalt = cryptoManager.createSaltBase64()
+        sharedPrefsManager.saveSaltBase64(validationSalt)
         setUpAutoSaveCategory()
-    }.fold(onSuccess = {
-        cryptoManager.setMasterPassword(password)
+        masterSalt
+    }.fold(onSuccess = { masterSalt ->
+        cryptoManager.setMasterPassword(password, masterSalt)
         passwordValidator.savePassword(password)
     }, onFailure = { throwable ->
         auth.currentUser?.delete()
