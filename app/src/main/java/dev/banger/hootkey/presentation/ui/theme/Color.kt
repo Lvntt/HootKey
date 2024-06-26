@@ -61,3 +61,10 @@ val DefaultBackgroundBrush = Brush.verticalGradient(
 )
 
 val BottomSheetDragHandle = Color(0xFF79747E)
+val StatsProgressTrack = Color(0xFFE0E5E3)
+val StatsProgress = Color(0xFFF3217B)
+val StatsBackgroundTop = Color(0xFFF21A7A)
+val StatsProgressBottom = Color(0xFFF97A7C)
+val StatsBackground = Brush.verticalGradient(
+    listOf(StatsBackgroundTop, StatsProgressBottom)
+)

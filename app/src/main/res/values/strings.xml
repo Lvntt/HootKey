@@ -102,4 +102,5 @@
     <string name="autofill_settings">Autofill</string>
     <string name="enable_sync_settings">Enable Sync</string>
     <string name="logout">Logout</string>
+    <string name="health_score">Health Score</string>
 </resources>
