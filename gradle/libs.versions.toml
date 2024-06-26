@@ -2,6 +2,7 @@
 agp = "8.4.1"
 biometric = "1.1.0"
 firebaseBom = "33.0.0"
+koinAndroidxWorkmanagerVersion = "3.1.4"
 kotlin = "1.9.0"
 coreKtx = "1.13.1"
 landscapistGlide = "2.3.4"
@@ -14,12 +15,14 @@ securityCrypto = "1.1.0-alpha06"
 serialization = "1.6.3"
 koin = "3.5.3"
 lifecycleRuntimeComposeAndroid = "2.8.2"
+workRuntimeKtx = "2.9.0"
 
 [libraries]
 androidx-biometric = { module = "androidx.biometric:biometric", version.ref = "biometric" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-security-crypto = { module = "androidx.security:security-crypto", version.ref = "securityCrypto" }
 androidx-ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
+androidx-work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version.ref = "workRuntimeKtx" }
 firebase-auth = { module = "com.google.firebase:firebase-auth" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
@@ -30,6 +33,7 @@ androidx-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
 androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
 androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
 firebase-firestore = { module = "com.google.firebase:firebase-firestore" }
+insert-koin-koin-androidx-workmanager = { module = "io.insert-koin:koin-androidx-workmanager", version.ref = "koinAndroidxWorkmanagerVersion" }
 landscapist-glide = { module = "com.github.skydoves:landscapist-glide", version.ref = "landscapistGlide" }
 navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "composeNavigation" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serialization"}

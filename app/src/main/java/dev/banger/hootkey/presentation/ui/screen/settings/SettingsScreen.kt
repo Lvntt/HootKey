@@ -39,6 +39,7 @@ import dev.banger.hootkey.presentation.ui.common.buttons.PrimaryButton
 import dev.banger.hootkey.presentation.ui.common.switches.HootKeySwitch
 import dev.banger.hootkey.presentation.ui.common.topbar.HootKeyTopBar
 import dev.banger.hootkey.presentation.ui.dialog.AppAlertDialog
+import dev.banger.hootkey.presentation.ui.dialog.DataCachingDialog
 import dev.banger.hootkey.presentation.ui.screen.auth.findActivity
 import dev.banger.hootkey.presentation.ui.theme.DefaultBackgroundBrush
 import dev.banger.hootkey.presentation.ui.theme.PaddingMedium
@@ -97,6 +98,14 @@ fun SettingsScreen(
             title = stringResource(id = R.string.are_you_sure),
             message = stringResource(id = R.string.confirm_logout),
             isLoading = state.isLogoutLoading
+        )
+    }
+
+    if (state.isDataCachingDialogShown) {
+        DataCachingDialog(
+            onDismissRequest = {
+                viewModel.dispatch(SettingsIntent.DismissDataCachingDialog)
+            }
         )
     }
 

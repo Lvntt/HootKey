@@ -108,4 +108,7 @@
     <string name="medium">Medium</string>
     <string name="weak">Weak</string>
     <string name="calculate_again">Calculate again</string>
+    <string name="wait">Wait…</string>
+    <string name="data_caching_text">Your data is being cached. Sync will be disabled when it finishes.</string>
+    <string name="got_it">Got it!</string>
 </resources>

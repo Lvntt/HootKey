@@ -93,13 +93,16 @@ class AuthViewModel(
                         )
                     }
                 }
-            }.fold(onSuccess = {}, onFailure = {
-                _state.update {
-                    it.copy(
-                        isLoading = false, errorMessageResId = R.string.unknown_error
-                    )
+            }.fold(
+                onSuccess = {},
+                onFailure = {
+                    _state.update {
+                        it.copy(
+                            isLoading = false, errorMessageResId = R.string.unknown_error
+                        )
+                    }
                 }
-            })
+            )
         }
     }
 

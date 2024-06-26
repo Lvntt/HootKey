@@ -28,4 +28,8 @@ interface SettingsRepository {
 
     fun disableCompromiseDetection()
 
+    fun isDataCached(): Boolean
+
+    fun setDataCached()
+
 }

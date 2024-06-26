@@ -1,8 +1,13 @@
 package dev.banger.hootkey.presentation.viewmodel
 
+import android.app.Application
 import android.util.Log
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.work.BackoffPolicy
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
+import androidx.work.WorkRequest
 import dev.banger.hootkey.R
 import dev.banger.hootkey.domain.entity.auth.exception.InvalidCredentialsException
 import dev.banger.hootkey.domain.entity.auth.exception.RegistrationCollisionException
@@ -10,6 +15,7 @@ import dev.banger.hootkey.domain.usecase.AuthUseCase
 import dev.banger.hootkey.domain.usecase.ValidateEmailUseCase
 import dev.banger.hootkey.domain.usecase.ValidatePasswordUseCase
 import dev.banger.hootkey.presentation.state.auth.AccountAuthState
+import dev.banger.hootkey.service.InitialCachingWorker
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,12 +23,14 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.util.concurrent.TimeUnit
 
 class AccountAuthViewModel(
+    private val application: Application,
     private val authUseCase: AuthUseCase,
     private val validateEmailUseCase: ValidateEmailUseCase,
     private val validatePasswordUseCase: ValidatePasswordUseCase
-) : ViewModel() {
+) : AndroidViewModel(application) {
     private val _state = MutableStateFlow(AccountAuthState())
     val state = _state.asStateFlow()
 
@@ -68,6 +76,9 @@ class AccountAuthViewModel(
                 onSuccess = {
                     _successEventFlow.emit(Unit)
                     _state.update { it.copy(isLoading = false) }
+
+                    val initialCachingWorkRequest = createInitialCachingWorkRequest()
+                    WorkManager.getInstance(application).enqueue(initialCachingWorkRequest)
                 },
                 onFailure = { throwable ->
                     Log.e("AccountAuthViewModel", throwable.stackTraceToString())
@@ -85,5 +96,16 @@ class AccountAuthViewModel(
             )
         }
     }
+
+    private fun createInitialCachingWorkRequest(): WorkRequest {
+        val workRequest = OneTimeWorkRequestBuilder<InitialCachingWorker>()
+            .setBackoffCriteria(
+                BackoffPolicy.EXPONENTIAL,
+                10, TimeUnit.SECONDS
+            )
+            .build()
+        return workRequest
+    }
+
 
 }
