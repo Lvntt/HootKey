@@ -1,17 +1,21 @@
 package dev.banger.hootkey.data.repository
 
+import com.google.android.gms.tasks.Task
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
+import com.google.firebase.firestore.QuerySnapshot
+import com.google.firebase.firestore.Source
 import dev.banger.hootkey.data.Constants.CATEGORIES
 import dev.banger.hootkey.data.Constants.COMMON
 import dev.banger.hootkey.data.Constants.FIELDS
 import dev.banger.hootkey.data.Constants.TEMPLATES
 import dev.banger.hootkey.data.Constants.VAULTS
 import dev.banger.hootkey.data.crypto.CryptoManager
+import dev.banger.hootkey.data.network.NetworkManager
 import kotlinx.coroutines.tasks.await
 
 
@@ -39,6 +43,9 @@ fun FirebaseFirestore.categoryCollection(userId: String) =
 fun FirebaseFirestore.commonCategoryCollection() =
     collection(COMMON).document(CATEGORIES).collection(CATEGORIES)
 
+fun FirebaseFirestore.commonTemplateVaultCountDocument(userId: String, templateId: String) =
+    collection(userId).document(COMMON).collection(CATEGORIES).document(templateId)
+
 suspend fun getCategoryRefs(
     fireStore: FirebaseFirestore, templateId: String, userId: String, batchSize: Long = 100
 ): List<DocumentReference> {
@@ -48,12 +55,12 @@ suspend fun getCategoryRefs(
     while (read >= batchSize) {
         read = 0
         fireStore.categoryCollection(userId).whereEqualTo("templateId", templateId).orderBy(
-                FieldPath.documentId()
-            ).startAfterIfNotNull(lastRef).limit(batchSize).get().await().forEach { category ->
-                result.add(category.reference)
-                lastRef = category
-                read++
-            }
+            FieldPath.documentId()
+        ).startAfterIfNotNull(lastRef).limit(batchSize).get().await().forEach { category ->
+            result.add(category.reference)
+            lastRef = category
+            read++
+        }
     }
     return result
 }
@@ -97,14 +104,14 @@ suspend fun getFieldRefs(
     return result
 }
 
-suspend fun getFieldRefs(vault: DocumentReference, batchSize: Long = 100): List<DocumentReference> {
+suspend fun getFieldRefs(vault: DocumentReference, batchSize: Long = 100, networkManager: NetworkManager): List<DocumentReference> {
     val result = mutableListOf<DocumentReference>()
     var read = batchSize
     var lastRef: DocumentSnapshot? = null
     while (read >= batchSize) {
         read = 0
         vault.collection(FIELDS).orderBy(FieldPath.documentId()).startAfterIfNotNull(lastRef)
-            .limit(batchSize).get().await().forEach { field ->
+            .limit(batchSize).get(networkManager).await().forEach { field ->
                 result.add(field.reference)
                 lastRef = field
                 read++
@@ -120,3 +127,15 @@ fun Query.startAfterIfNotNull(ref: DocumentSnapshot?): Query {
 
 inline fun String.decryptWhen(cryptoManager: CryptoManager, predicate: (String) -> Boolean) =
     if (predicate(this)) cryptoManager.decryptBase64(this) else this
+
+suspend inline fun <T> Task<T>.awaitWhenNetworkAvailable(networkManager: NetworkManager): T? =
+    if (networkManager.isNetworkAvailable) this.await() else null
+
+fun Query.get(networkManager: NetworkManager): Task<QuerySnapshot> =
+    if (networkManager.isNetworkAvailable) get() else get(Source.CACHE)
+
+fun CollectionReference.get(networkManager: NetworkManager): Task<QuerySnapshot> =
+    if (networkManager.isNetworkAvailable) get() else get(Source.CACHE)
+
+fun DocumentReference.get(networkManager: NetworkManager): Task<DocumentSnapshot> =
+    if (networkManager.isNetworkAvailable) get() else get(Source.CACHE)

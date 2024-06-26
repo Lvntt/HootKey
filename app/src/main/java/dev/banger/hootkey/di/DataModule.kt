@@ -7,6 +7,7 @@ import dev.banger.hootkey.data.crypto.CryptoManager
 import dev.banger.hootkey.data.crypto.PasswordValidator
 import dev.banger.hootkey.data.crypto.SharedPrefsManager
 import dev.banger.hootkey.data.datasource.SettingsManager
+import dev.banger.hootkey.data.network.NetworkManager
 import org.koin.android.ext.koin.androidApplication
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
@@ -22,4 +23,5 @@ fun provideDataModule() = module {
     singleOf(::PasswordValidator)
     single { SharedPrefsManager(androidApplication()) }
     single { SettingsManager(androidApplication().applicationContext) }
+    single { NetworkManager(androidApplication(), get()) }
 }
