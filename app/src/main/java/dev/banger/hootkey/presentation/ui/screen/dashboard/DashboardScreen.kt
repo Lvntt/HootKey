@@ -84,6 +84,7 @@ fun DashboardScreen(
     onCategorySelected: (Id, Name) -> Unit,
     onEditClick: (String) -> Unit,
     onSettingsClick: () -> Unit,
+    onStatisticsClick: () -> Unit,
     viewModel: DashboardViewmodel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle(lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current)
@@ -203,6 +204,7 @@ fun DashboardScreen(
                 nonBottomSheetContentHeight = it
             },
             onSettingsClick = onSettingsClick,
+            onStatisticsClick = onStatisticsClick,
             passwordHealthScoreProvider = {
                 passwordHealthScore
             }

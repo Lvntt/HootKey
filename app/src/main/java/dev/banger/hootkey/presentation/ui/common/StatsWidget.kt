@@ -31,6 +31,8 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import dev.banger.hootkey.R
 import dev.banger.hootkey.domain.entity.password.PasswordHealthScore
@@ -103,7 +105,10 @@ fun StatsWidget(
                     Text(
                         text = stringResource(R.string.health_score),
                         style = TypeM14,
-                        color = White
+                        color = White,
+                        textAlign = TextAlign.Center,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                     AnimatedContent(
                         targetState = scoreText,
@@ -114,7 +119,10 @@ fun StatsWidget(
                         Text(
                             text = scoreText,
                             style = TypeSB58,
-                            color = White
+                            color = White,
+                            textAlign = TextAlign.Center,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                 }

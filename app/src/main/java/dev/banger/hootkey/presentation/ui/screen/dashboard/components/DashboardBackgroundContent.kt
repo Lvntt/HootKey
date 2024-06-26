@@ -43,6 +43,7 @@ inline fun DashboardBackgroundContent(
     crossinline onSetNonBottomSheetContentHeight: (Float) -> Unit,
     noinline passwordHealthScoreProvider: () -> PasswordHealthScore,
     noinline onSettingsClick: () -> Unit,
+    noinline onStatisticsClick: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -82,7 +83,7 @@ inline fun DashboardBackgroundContent(
                     .size(40.dp)
                     .clip(CircleShape)
                     .background(White),
-                onClick = {},
+                onClick = onStatisticsClick,
                 colors = IconButtonDefaults.iconButtonColors(
                     contentColor = Secondary
                 )

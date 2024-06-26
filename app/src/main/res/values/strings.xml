@@ -103,4 +103,8 @@
     <string name="enable_sync_settings">Enable Sync</string>
     <string name="logout">Logout</string>
     <string name="health_score">Health Score</string>
+    <string name="stats_title">Your Vaults Statistics</string>
+    <string name="total">Total</string>
+    <string name="medium">Medium</string>
+    <string name="weak">Weak</string>
 </resources>
