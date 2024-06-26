@@ -1,6 +1,5 @@
 package dev.banger.hootkey.presentation.ui.screen.dashboard.components
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -25,13 +24,14 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import dev.banger.hootkey.R
+import dev.banger.hootkey.domain.entity.password.PasswordHealthScore
+import dev.banger.hootkey.presentation.ui.common.StatsWidget
 import dev.banger.hootkey.presentation.ui.theme.Secondary
 import dev.banger.hootkey.presentation.ui.theme.TypeM20
 import dev.banger.hootkey.presentation.ui.theme.TypeR14
@@ -41,7 +41,9 @@ import dev.banger.hootkey.presentation.ui.theme.White
 inline fun DashboardBackgroundContent(
     crossinline listStateProvider: () -> LazyListState,
     crossinline onSetNonBottomSheetContentHeight: (Float) -> Unit,
+    noinline passwordHealthScoreProvider: () -> PasswordHealthScore,
     noinline onSettingsClick: () -> Unit,
+    noinline onStatisticsClick: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -81,7 +83,7 @@ inline fun DashboardBackgroundContent(
                     .size(40.dp)
                     .clip(CircleShape)
                     .background(White),
-                onClick = {},
+                onClick = onStatisticsClick,
                 colors = IconButtonDefaults.iconButtonColors(
                     contentColor = Secondary
                 )
@@ -109,15 +111,12 @@ inline fun DashboardBackgroundContent(
             }
         }
         Spacer(modifier = Modifier.height(24.dp))
-        Image(
-            modifier = Modifier
-                .size(239.dp)
-                .graphicsLayer {
-                    scaleX = 1f + listStateProvider().firstVisibleItemScrollOffset * 0.0003f
-                    scaleY = 1f + listStateProvider().firstVisibleItemScrollOffset * 0.0003f
-                },
-            painter = painterResource(R.drawable.health_score_placeholder),
-            contentDescription = null
+        StatsWidget(
+            modifier = Modifier.graphicsLayer {
+                scaleX = 1f + listStateProvider().firstVisibleItemScrollOffset * 0.0003f
+                scaleY = 1f + listStateProvider().firstVisibleItemScrollOffset * 0.0003f
+            },
+            scoreProvider = passwordHealthScoreProvider
         )
         Spacer(modifier = Modifier
             .height(17.dp)

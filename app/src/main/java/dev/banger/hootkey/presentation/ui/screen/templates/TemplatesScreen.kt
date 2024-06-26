@@ -103,7 +103,7 @@ fun TemplatesScreen(
         }
     ) { contentPadding ->
         if (state.isLoading) {
-            LoadingContent()
+            LoadingContent(modifier = modifier.background(DefaultBackgroundBrush))
         } else {
             TemplatesContent(
                 modifier = modifier

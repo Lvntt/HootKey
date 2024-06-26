@@ -14,6 +14,7 @@ import dev.banger.hootkey.presentation.viewmodel.NewTemplateViewModel
 import dev.banger.hootkey.presentation.viewmodel.NewVaultViewModel
 import dev.banger.hootkey.presentation.viewmodel.PasswordGeneratorViewModel
 import dev.banger.hootkey.presentation.viewmodel.SettingsViewModel
+import dev.banger.hootkey.presentation.viewmodel.StatisticsViewModel
 import dev.banger.hootkey.presentation.viewmodel.TemplatesViewModel
 import dev.banger.hootkey.presentation.viewmodel.VaultDetailsViewModel
 import dev.banger.hootkey.presentation.viewmodel.VaultsListViewModel
@@ -65,7 +66,7 @@ fun providePresentationModule() = module {
     }
 
     viewModel {
-        DashboardViewmodel(get(), get(), Dispatchers.IO)
+        DashboardViewmodel(get(), get(), get(), Dispatchers.IO)
     }
 
     viewModel { parameters ->
@@ -81,6 +82,10 @@ fun providePresentationModule() = module {
 
     viewModel {
         SettingsViewModel(get(), get(), Dispatchers.IO)
+    }
+
+    viewModel {
+        StatisticsViewModel(get(), Dispatchers.IO)
     }
 
     factory { params ->
