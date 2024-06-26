@@ -143,8 +143,8 @@ fun Template.toUi(fieldValues: Map<Index, FieldValue>) = with(this) {
         var valueMillis: Long? = null
 
         if (field.type == FieldType.DATE) {
-            valueMillis = value.toLong()
-            value = formatDate(valueMillis)
+            valueMillis = value.toLongOrNull()
+            value = valueMillis?.let { formatDate(it) } ?: EMPTY_STRING
         }
 
         val uiEditableTemplateFieldShort = UiEditableTemplateFieldShort(

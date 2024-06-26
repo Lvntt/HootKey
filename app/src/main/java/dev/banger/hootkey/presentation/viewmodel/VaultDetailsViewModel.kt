@@ -92,10 +92,10 @@ class VaultDetailsViewModel(
                         categoryName = vault.category.name,
                         fields = vault.fieldValues.map { (index, field) ->
                             index to UiField(
-                                value = if (field.type == FieldType.DATE) formatDate(field.value.toLong()) else field.value,
+                                value = if (field.type == FieldType.DATE) field.value.toLongOrNull()?.let { formatDate(it) } ?: "" else field.value,
                                 name = field.name,
                                 type = field.type.toUi(),
-                                valueMillis = if (field.type == FieldType.DATE) field.value.toLong() else null
+                                valueMillis = if (field.type == FieldType.DATE) field.value.toLongOrNull() else null
                             )
                         }.sortedBy { it.first }.map { it.second },
                         isFavorite = vault.isFavourite,

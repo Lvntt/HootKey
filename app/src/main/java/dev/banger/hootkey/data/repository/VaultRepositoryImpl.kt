@@ -71,11 +71,13 @@ class VaultRepositoryImpl(
         query: String?, filter: FilterType
     ) = this.map { vaultSnapshot -> vaultSnapshot.id to vaultSnapshot.toObject<VaultModel>() }
         .filter { (_, vault) ->
-            if (!query.isNullOrBlank() && filter == FilterType.FAVOURITE) vault.name.contains(
-                query, ignoreCase = true
-            ) && vault.isFavourite
+            if (!query.isNullOrBlank() && filter == FilterType.FAVOURITE) vault.name
+                .decryptWhen(crypto) { it.isNotEmpty() }
+                .contains(query, ignoreCase = true) && vault.isFavourite
             else if (filter == FilterType.FAVOURITE) vault.isFavourite
-            else if (!query.isNullOrBlank()) vault.name.contains(query, ignoreCase = true)
+            else if (!query.isNullOrBlank())
+                vault.name.decryptWhen(crypto) { it.isNotEmpty() }
+                    .contains(query, ignoreCase = true)
             else true
         }
 
@@ -91,7 +93,10 @@ class VaultRepositoryImpl(
         val userId = auth.currentUser?.uid ?: throw UnauthorizedException()
 
         return fireStore.vaultCollection(userId).get(network).await().map { vaultSnapshot ->
-            VaultNameWithId(vaultSnapshot.toObject<VaultModel>().name, vaultSnapshot.id)
+            VaultNameWithId(
+                vaultSnapshot.toObject<VaultModel>().name.decryptWhen(crypto) { it.isNotEmpty() },
+                vaultSnapshot.id
+            )
         }
     }
 
@@ -114,7 +119,7 @@ class VaultRepositoryImpl(
 
             VaultShort(
                 id = id,
-                name = vault.name,
+                name = vault.name.decryptWhen(crypto) { it.isNotEmpty() },
                 isFavourite = vault.isFavourite,
                 login = login,
                 link = link,
@@ -149,7 +154,7 @@ class VaultRepositoryImpl(
 
             VaultShort(
                 id = id,
-                name = vault.name,
+                name = vault.name.decryptWhen(crypto) { it.isNotEmpty() },
                 isFavourite = vault.isFavourite,
                 login = login,
                 link = link,
@@ -192,7 +197,7 @@ class VaultRepositoryImpl(
 
             VaultShort(
                 id = id,
-                name = vault.name,
+                name = vault.name.decryptWhen(crypto) { it.isNotEmpty() },
                 isFavourite = vault.isFavourite,
                 login = login,
                 link = link,
@@ -223,7 +228,7 @@ class VaultRepositoryImpl(
 
         return VaultShort(
             id = id,
-            name = vault.name,
+            name = vault.name.decryptWhen(crypto) { it.isNotEmpty() },
             isFavourite = vault.isFavourite,
             login = login,
             link = link,
@@ -279,7 +284,7 @@ class VaultRepositoryImpl(
 
         return Vault(
             id = id,
-            name = vault.name,
+            name = vault.name.decryptWhen(crypto) { it.isNotEmpty() },
             category = category,
             isFavourite = vault.isFavourite,
             lastEditTimeMillis = vault.lastEditTime.toInstant().toEpochMilli(),
@@ -308,7 +313,9 @@ class VaultRepositoryImpl(
                 ?: EMPTY_STRING else EMPTY_STRING
 
             val vaultModel = VaultModel(
-                name = vault.name,
+                name =
+                if (vault.name.isNotEmpty()) crypto.encryptBase64(vault.name)
+                else vault.name,
                 categoryId = vault.categoryId,
                 isFavourite = false,
                 lastEditTime = Timestamp.now(),
@@ -396,7 +403,7 @@ class VaultRepositoryImpl(
 
         fireStore.vaultCollection(userId).document(vault.vaultId).update(
             mapOf(
-                "name" to vault.name,
+                "name" to if (vault.name.isNotEmpty()) crypto.encryptBase64(vault.name) else vault.name,
                 "categoryId" to vault.categoryId,
                 "lastEditTime" to Timestamp.now(),
                 "login" to if (login.isNotEmpty()) crypto.encryptBase64(login) else login,
