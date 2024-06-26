@@ -73,6 +73,7 @@ dependencies {
     implementation(libs.koin.core)
     implementation(libs.koin.android)
     implementation(libs.koin.androidx.compose)
+    implementation(libs.insert.koin.koin.androidx.workmanager)
 
     implementation(libs.sh.reorderable)
 
@@ -84,4 +85,6 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
 
     implementation(libs.landscapist.glide)
+
+    implementation(libs.androidx.work.runtime.ktx)
 }

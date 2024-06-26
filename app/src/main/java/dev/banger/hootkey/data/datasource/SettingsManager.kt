@@ -7,6 +7,7 @@ import androidx.security.crypto.MasterKey
 import dev.banger.hootkey.Constants.AUTOSAVE_CATEGORY_ID_KEY
 import dev.banger.hootkey.Constants.IS_BIOMETRY_ON_KEY
 import dev.banger.hootkey.Constants.IS_COMPROMISE_DETECTION_ON_KEY
+import dev.banger.hootkey.Constants.IS_DATA_CACHED_KEY
 import dev.banger.hootkey.Constants.IS_OFFLINE_KEY
 import dev.banger.hootkey.Constants.SETTINGS_PREFERENCES_KEY
 
@@ -41,6 +42,8 @@ class SettingsManager(private val context: Context) {
 
     fun isCompromiseDetectionOn() = prefs.getBoolean(IS_COMPROMISE_DETECTION_ON_KEY, false)
 
+    fun isDataCached() = prefs.getBoolean(IS_DATA_CACHED_KEY, false)
+
     fun getAutoSaveCategoryId() = prefs.getString(AUTOSAVE_CATEGORY_ID_KEY, null)
 
     fun setOffline(isOffline: Boolean) {
@@ -64,6 +67,12 @@ class SettingsManager(private val context: Context) {
     fun setAutoSaveCategoryId(categoryId: String) {
         prefs.edit()
             .putString(AUTOSAVE_CATEGORY_ID_KEY, categoryId)
+            .apply()
+    }
+
+    fun setDataCached() {
+        prefs.edit()
+            .putBoolean(IS_DATA_CACHED_KEY, true)
             .apply()
     }
 

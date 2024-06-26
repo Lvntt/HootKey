@@ -14,6 +14,7 @@ import dev.banger.hootkey.presentation.intent.SettingsIntent
 import dev.banger.hootkey.presentation.state.settings.SettingsEffect
 import dev.banger.hootkey.presentation.state.settings.SettingsState
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -29,6 +30,7 @@ class SettingsViewModel(
 
     private companion object {
         const val TAG = "SettingsViewModel"
+        const val CHECK_DATA_CACHED_DELAY_MS = 2000L
     }
 
     private val stateFlow = MutableStateFlow(SettingsState())
@@ -45,10 +47,11 @@ class SettingsViewModel(
         when (intent) {
             is SettingsIntent.BiometryChanged -> onBiometryChanged(intent.isOn)
             is SettingsIntent.AutofillChanged -> onAutofillChanged(intent.isOn, intent.activityContext)
-            is SettingsIntent.SyncChanged -> onSyncChanged(intent.isOn)
+            is SettingsIntent.SyncChanged -> onRequestSyncChange(intent.isOn)
             is SettingsIntent.AutofillServiceChosen -> onAutofillServiceChosen(intent.activityContext)
             SettingsIntent.ShowLogoutDialog -> showLogoutDialog()
             SettingsIntent.DismissLogoutDialog -> dismissLogoutDialog()
+            SettingsIntent.DismissDataCachingDialog -> onDismissDataCachingDialog()
             SettingsIntent.Logout -> logout()
         }
     }
@@ -130,7 +133,33 @@ class SettingsViewModel(
         stateFlow.update { it.copy(isAutofillOn = autofillEnabled) }
     }
 
-    private fun onSyncChanged(isOn: Boolean) {
+    private fun onRequestSyncChange(isOn: Boolean) {
+        var isDataCached = settingsRepository.isDataCached()
+        stateFlow.update { it.copy(isDataCached = isDataCached) }
+
+        if (!isOn && !isDataCached) {
+            stateFlow.update { it.copy(isDataCachingDialogShown = true) }
+
+            viewModelScope.launch {
+                while (!isDataCached) {
+                    delay(CHECK_DATA_CACHED_DELAY_MS)
+
+                    isDataCached = settingsRepository.isDataCached()
+                    stateFlow.update { it.copy(isDataCached = isDataCached) }
+                }
+                stateFlow.update { it.copy(isDataCachingDialogShown = false) }
+                changeSyncOn(isOn)
+            }
+        } else {
+            changeSyncOn(isOn)
+        }
+    }
+
+    private fun onDismissDataCachingDialog() {
+        stateFlow.update { it.copy(isDataCachingDialogShown = false) }
+    }
+
+    private fun changeSyncOn(isOn: Boolean) {
         val isSyncOnInitial = stateFlow.value.isSyncOn
         stateFlow.update { it.copy(isSyncOn = isOn) }
         viewModelScope.launch(defaultDispatcher) {

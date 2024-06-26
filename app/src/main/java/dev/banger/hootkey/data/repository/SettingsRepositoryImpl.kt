@@ -37,6 +37,8 @@ class SettingsRepositoryImpl(
 
     override fun isCompromiseDetectionOn(): Boolean = settingsManager.isCompromiseDetectionOn()
 
+    override fun isDataCached(): Boolean = settingsManager.isDataCached()
+
     override suspend fun goOffline() {
         firestore.disableNetwork().await()
         settingsManager.setOffline(true)
@@ -61,6 +63,10 @@ class SettingsRepositoryImpl(
 
     override fun disableCompromiseDetection() {
         settingsManager.setCompromiseDetection(false)
+    }
+
+    override fun setDataCached() {
+        settingsManager.setDataCached()
     }
 
 }

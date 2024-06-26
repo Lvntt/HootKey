@@ -9,5 +9,6 @@ sealed interface SettingsIntent {
     data class SyncChanged(val isOn: Boolean) : SettingsIntent
     data object ShowLogoutDialog : SettingsIntent
     data object DismissLogoutDialog : SettingsIntent
+    data object DismissDataCachingDialog : SettingsIntent
     data object Logout : SettingsIntent
 }

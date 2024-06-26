@@ -102,4 +102,7 @@
     <string name="autofill_settings">Autofill</string>
     <string name="enable_sync_settings">Enable Sync</string>
     <string name="logout">Logout</string>
+    <string name="wait">Wait…</string>
+    <string name="data_caching_text">Your data is being cached. Sync will be disabled when it finishes.</string>
+    <string name="got_it">Got it!</string>
 </resources>

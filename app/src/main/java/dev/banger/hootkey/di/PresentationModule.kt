@@ -18,6 +18,7 @@ import dev.banger.hootkey.presentation.viewmodel.TemplatesViewModel
 import dev.banger.hootkey.presentation.viewmodel.VaultDetailsViewModel
 import dev.banger.hootkey.presentation.viewmodel.VaultsListViewModel
 import kotlinx.coroutines.Dispatchers
+import org.koin.android.ext.koin.androidApplication
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.androidx.viewmodel.dsl.viewModelOf
 import org.koin.core.qualifier.named
@@ -25,11 +26,11 @@ import org.koin.dsl.module
 
 fun providePresentationModule() = module {
     viewModel(named(Constants.REGISTER)) {
-        AccountAuthViewModel(get(named(Constants.REGISTER)), get(), get())
+        AccountAuthViewModel(androidApplication(), get(named(Constants.REGISTER)), get(), get())
     }
 
     viewModel(named(Constants.LOGIN)) {
-        AccountAuthViewModel(get(named(Constants.LOGIN)), get(), get())
+        AccountAuthViewModel(androidApplication(), get(named(Constants.LOGIN)), get(), get())
     }
 
     viewModelOf(::AuthViewModel)

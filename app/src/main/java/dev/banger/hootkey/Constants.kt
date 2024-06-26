@@ -19,8 +19,8 @@ object Constants {
 
     const val SETTINGS_PREFERENCES_KEY = "settings_preferences_key"
     const val IS_OFFLINE_KEY = "is_offline_key"
-    const val IS_AUTOFILL_ON_KEY = "is_autofill_on_key"
     const val IS_BIOMETRY_ON_KEY = "is_biometry_on_key"
     const val IS_COMPROMISE_DETECTION_ON_KEY = "is_compromise_detection_on_key"
     const val AUTOSAVE_CATEGORY_ID_KEY = "autosave_category_id_key"
+    const val IS_DATA_CACHED_KEY = "is_data_cached_key"
 }
