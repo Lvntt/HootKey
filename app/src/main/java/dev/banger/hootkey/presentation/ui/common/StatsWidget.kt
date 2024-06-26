@@ -5,6 +5,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -93,38 +94,37 @@ fun StatsWidget(
                     },
                 progressProvider = { progress }
             )
-            Box(
+            Column(
                 modifier = Modifier
                     .padding(all = 23.dp)
                     .fillMaxSize()
                     .clip(CircleShape)
                     .background(brush = StatsBackground),
-                contentAlignment = Alignment.Center
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
             ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    text = stringResource(R.string.health_score),
+                    style = TypeM14,
+                    color = White,
+                    textAlign = TextAlign.Center,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                AnimatedContent(
+                    targetState = scoreText,
+                    transitionSpec = {
+                        fadeIn() togetherWith fadeOut()
+                    }, label = "scoreSwitchAnimation"
+                ) { scoreText ->
                     Text(
-                        text = stringResource(R.string.health_score),
-                        style = TypeM14,
+                        text = scoreText,
+                        style = TypeSB58,
                         color = White,
                         textAlign = TextAlign.Center,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
-                    AnimatedContent(
-                        targetState = scoreText,
-                        transitionSpec = {
-                            fadeIn() togetherWith fadeOut()
-                        }, label = "scoreSwitchAnimation"
-                    ) { scoreText ->
-                        Text(
-                            text = scoreText,
-                            style = TypeSB58,
-                            color = White,
-                            textAlign = TextAlign.Center,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
                 }
             }
             Box(
