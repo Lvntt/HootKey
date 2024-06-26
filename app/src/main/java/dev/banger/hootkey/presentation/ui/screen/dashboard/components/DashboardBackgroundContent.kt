@@ -17,11 +17,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -41,12 +36,12 @@ import dev.banger.hootkey.presentation.ui.theme.Secondary
 import dev.banger.hootkey.presentation.ui.theme.TypeM20
 import dev.banger.hootkey.presentation.ui.theme.TypeR14
 import dev.banger.hootkey.presentation.ui.theme.White
-import kotlinx.coroutines.delay
 
 @Composable
 inline fun DashboardBackgroundContent(
     crossinline listStateProvider: () -> LazyListState,
     crossinline onSetNonBottomSheetContentHeight: (Float) -> Unit,
+    noinline passwordHealthScoreProvider: () -> PasswordHealthScore,
     noinline onSettingsClick: () -> Unit,
 ) {
     Column(
@@ -115,28 +110,12 @@ inline fun DashboardBackgroundContent(
             }
         }
         Spacer(modifier = Modifier.height(24.dp))
-        var score by remember { mutableStateOf<PasswordHealthScore>(PasswordHealthScore.Unknown) }
-        LaunchedEffect(Unit) {
-            while (true) {
-                score = PasswordHealthScore.Unknown
-                delay(5000)
-                score = PasswordHealthScore.Calculating
-                delay(5000)
-                score = PasswordHealthScore.Score(0.75f)
-                delay(5000)
-                score = PasswordHealthScore.Calculating
-                delay(5000)
-                score = PasswordHealthScore.Score(1f)
-                delay(5000)
-                score = PasswordHealthScore.Calculating
-            }
-        }
         StatsWidget(
             modifier = Modifier.graphicsLayer {
                 scaleX = 1f + listStateProvider().firstVisibleItemScrollOffset * 0.0003f
                 scaleY = 1f + listStateProvider().firstVisibleItemScrollOffset * 0.0003f
             },
-            scoreProvider = { score }
+            scoreProvider = passwordHealthScoreProvider
         )
         Spacer(modifier = Modifier
             .height(17.dp)

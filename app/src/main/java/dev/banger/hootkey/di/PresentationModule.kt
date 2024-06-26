@@ -65,7 +65,7 @@ fun providePresentationModule() = module {
     }
 
     viewModel {
-        DashboardViewmodel(get(), get(), Dispatchers.IO)
+        DashboardViewmodel(get(), get(), get(), Dispatchers.IO)
     }
 
     viewModel { parameters ->

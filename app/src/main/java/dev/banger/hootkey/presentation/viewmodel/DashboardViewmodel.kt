@@ -6,6 +6,7 @@ import dev.banger.hootkey.domain.entity.category.CategoryShort
 import dev.banger.hootkey.domain.entity.vault.FilterType
 import dev.banger.hootkey.domain.entity.vault.VaultShort
 import dev.banger.hootkey.domain.repository.CategoryRepository
+import dev.banger.hootkey.domain.repository.PasswordRepository
 import dev.banger.hootkey.domain.repository.VaultRepository
 import dev.banger.hootkey.presentation.entity.LceState
 import dev.banger.hootkey.presentation.entity.UiCategoryShort
@@ -22,8 +23,11 @@ import kotlinx.coroutines.launch
 class DashboardViewmodel(
     private val categoryRepository: CategoryRepository,
     private val vaultRepository: VaultRepository,
+    private val passwordRepository: PasswordRepository,
     private val defaultDispatcher: CoroutineDispatcher
 ) : ViewModel() {
+
+    val passwordHealthScore = passwordRepository.passwordHealthScore
 
     private val _state = MutableStateFlow(DashboardState())
     val state = _state.asStateFlow()
@@ -31,6 +35,9 @@ class DashboardViewmodel(
     init {
         loadCategories()
         loadNextVaultsPage()
+        viewModelScope.launch(defaultDispatcher) {
+            passwordRepository.calculatePasswordHealthScore()
+        }
     }
 
     fun dispatch(intent: DashboardIntent) {

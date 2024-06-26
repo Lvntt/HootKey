@@ -87,6 +87,7 @@ fun DashboardScreen(
     viewModel: DashboardViewmodel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle(lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current)
+    val passwordHealthScore by viewModel.passwordHealthScore.collectAsStateWithLifecycle(lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current)
 
     val savedStateHandle = savedStateHandleProvider()
 
@@ -174,7 +175,6 @@ fun DashboardScreen(
         val defaultOffset = -with(LocalDensity.current) { 68.dp.toPx() }
         val cornerRadius = with(LocalDensity.current) { CornerRadius(40.dp.toPx(), 40.dp.toPx()) }
         var bottomSheetBackgroundYOffset by remember { mutableFloatStateOf(defaultOffset) }
-        //TODO The bottom spacer and the two properties below could potentially be causing lag since they change height and are updated VERY frequently
         var bottomSheetStartPosY by remember { mutableFloatStateOf(-Float.MAX_VALUE) }
         var bottomSheetEndPosY by remember { mutableFloatStateOf(0f) }
         var nonBottomSheetContentHeight by remember { mutableFloatStateOf(0f) }
@@ -202,7 +202,10 @@ fun DashboardScreen(
             onSetNonBottomSheetContentHeight = {
                 nonBottomSheetContentHeight = it
             },
-            onSettingsClick = onSettingsClick
+            onSettingsClick = onSettingsClick,
+            passwordHealthScoreProvider = {
+                passwordHealthScore
+            }
         )
 
         LazyColumn(
