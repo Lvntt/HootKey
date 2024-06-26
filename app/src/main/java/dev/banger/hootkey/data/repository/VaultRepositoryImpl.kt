@@ -7,6 +7,7 @@ import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.QuerySnapshot
+import com.google.firebase.firestore.Source
 import com.google.firebase.firestore.toObject
 import dev.banger.hootkey.data.Constants.EMPTY_STRING
 import dev.banger.hootkey.data.Constants.VAULT_COUNT
@@ -99,14 +100,17 @@ class VaultRepositoryImpl(
 
         val userId = auth.currentUser?.uid ?: throw UnauthorizedException()
         val vaults =
-            fireStore.vaultCollection(userId).whereIn(FieldPath.documentId(), ids.take(30)).get(network).await()
+            fireStore.vaultCollection(userId).whereIn(FieldPath.documentId(), ids.take(30))
+                .get(network).await()
         val vaultModels =
             vaults.map { vaultSnapshot -> vaultSnapshot.id to vaultSnapshot.toObject<VaultModel>() }
 
         val convertedVaults = vaultModels.map { (id, vault) ->
-            val login = vault.login.decryptWhen(crypto) { it.isNotEmpty() }.takeIf { it.isNotBlank() }
+            val login =
+                vault.login.decryptWhen(crypto) { it.isNotEmpty() }.takeIf { it.isNotBlank() }
             val link = vault.link.decryptWhen(crypto) { it.isNotEmpty() }.takeIf { it.isNotBlank() }
-            val password = vault.password.decryptWhen(crypto) { it.isNotEmpty() }.takeIf { it.isNotBlank() }
+            val password =
+                vault.password.decryptWhen(crypto) { it.isNotEmpty() }.takeIf { it.isNotBlank() }
 
             VaultShort(
                 id = id,
@@ -126,19 +130,22 @@ class VaultRepositoryImpl(
         val userId = auth.currentUser?.uid ?: throw UnauthorizedException()
 
         val pageStartVault =
-            if (pageKey != null) fireStore.vaultCollection(userId).document(pageKey).get(network).await()
+            if (pageKey != null) fireStore.vaultCollection(userId).document(pageKey).get(network)
+                .await()
             else null
         val vaults = queryVaults(userId, filter, query, pageStartVault)
 
-        val endReached = vaults.size() < PAGE_SIZE
+        val endReached = vaults.size() < determinePageSize(filter, query)
         val nextPageKey = if (endReached) null else vaults.documents.last().id
 
         val vaultModels = vaults.toVaultModels(query, filter)
 
         val convertedVaults = vaultModels.map { (id, vault) ->
-            val login = vault.login.decryptWhen(crypto) { it.isNotEmpty() }.takeIf { it.isNotBlank() }
+            val login =
+                vault.login.decryptWhen(crypto) { it.isNotEmpty() }.takeIf { it.isNotBlank() }
             val link = vault.link.decryptWhen(crypto) { it.isNotEmpty() }.takeIf { it.isNotBlank() }
-            val password = vault.password.decryptWhen(crypto) { it.isNotEmpty() }.takeIf { it.isNotBlank() }
+            val password =
+                vault.password.decryptWhen(crypto) { it.isNotEmpty() }.takeIf { it.isNotBlank() }
 
             VaultShort(
                 id = id,
@@ -164,21 +171,24 @@ class VaultRepositoryImpl(
         val userId = auth.currentUser?.uid ?: throw UnauthorizedException()
 
         val pageStartVault =
-            if (pageKey != null) fireStore.vaultCollection(userId).document(pageKey).get(network).await()
+            if (pageKey != null) fireStore.vaultCollection(userId).document(pageKey).get(network)
+                .await()
             else null
         val vaults = queryVaults(userId, filter, query, pageStartVault) {
             whereEqualTo("categoryId", categoryId)
         }
 
-        val endReached = vaults.size() < PAGE_SIZE
+        val endReached = vaults.size() < determinePageSize(filter, query)
         val nextPageKey = if (endReached) null else vaults.documents.last().id
 
         val vaultModels = vaults.toVaultModels(query, filter)
 
         val convertedVaults = vaultModels.map { (id, vault) ->
-            val login = vault.login.decryptWhen(crypto) { it.isNotEmpty() }.takeIf { it.isNotBlank() }
+            val login =
+                vault.login.decryptWhen(crypto) { it.isNotEmpty() }.takeIf { it.isNotBlank() }
             val link = vault.link.decryptWhen(crypto) { it.isNotEmpty() }.takeIf { it.isNotBlank() }
-            val password = vault.password.decryptWhen(crypto) { it.isNotEmpty() }.takeIf { it.isNotBlank() }
+            val password =
+                vault.password.decryptWhen(crypto) { it.isNotEmpty() }.takeIf { it.isNotBlank() }
 
             VaultShort(
                 id = id,
@@ -202,12 +212,14 @@ class VaultRepositoryImpl(
         val userId = auth.currentUser?.uid ?: throw UnauthorizedException()
 
         val vault =
-            fireStore.vaultCollection(userId).document(id).get(network).await().toObject<VaultModel>()
+            fireStore.vaultCollection(userId).document(id).get(network).await()
+                .toObject<VaultModel>()
                 ?: throw VaultNotFoundException("Vault with id $id does not exist")
 
         val login = vault.login.decryptWhen(crypto) { it.isNotEmpty() }.takeIf { it.isNotBlank() }
         val link = vault.link.decryptWhen(crypto) { it.isNotEmpty() }.takeIf { it.isNotBlank() }
-        val password = vault.password.decryptWhen(crypto) { it.isNotEmpty() }.takeIf { it.isNotBlank() }
+        val password =
+            vault.password.decryptWhen(crypto) { it.isNotEmpty() }.takeIf { it.isNotBlank() }
 
         return VaultShort(
             id = id,
@@ -220,10 +232,41 @@ class VaultRepositoryImpl(
         )
     }
 
+    override suspend fun getAllFull() {
+        val userId = auth.currentUser?.uid ?: throw UnauthorizedException()
+
+        var pageStartVault: DocumentSnapshot? = null
+        var endReached = false
+
+        while (!endReached) {
+            val vaultSnapshots = fireStore
+                .vaultCollection(userId)
+                .orderBy(
+                    "name",
+                    Query.Direction.ASCENDING
+                )
+                .startAfterIfNotNull(pageStartVault)
+                .limit(PAGE_SIZE).get(Source.SERVER).await()
+
+            if (vaultSnapshots.isEmpty) return
+            pageStartVault = vaultSnapshots.documents.last()
+
+            val vaults =
+                vaultSnapshots.map { vaultSnapshot -> vaultSnapshot.id to vaultSnapshot.toObject<VaultModel>() }
+            if (vaults.isEmpty()) return
+
+            vaults.forEach {
+                fireStore.fieldCollection(userId, it.first).get(Source.SERVER).await()
+            }
+            if (vaults.size < PAGE_SIZE) endReached = true
+        }
+    }
+
     override suspend fun getById(id: String): Vault {
         val userId = auth.currentUser?.uid ?: throw UnauthorizedException()
         val vault =
-            fireStore.vaultCollection(userId).document(id).get(network).await().toObject<VaultModel>()
+            fireStore.vaultCollection(userId).document(id).get(network).await()
+                .toObject<VaultModel>()
                 ?: throw VaultNotFoundException("Vault with id $id does not exist")
         val category = categoryRepository.getById(vault.categoryId)
             ?: throw CategoryDoesNotExistException("Category with id ${vault.categoryId} does not exist")
@@ -255,10 +298,14 @@ class VaultRepositoryImpl(
         return runCatching {
             val loginIndex = category.template.fields.indexOfFirst { it.type == FieldType.LOGIN }
             val linkIndex = category.template.fields.indexOfFirst { it.type == FieldType.LINK }
-            val passwordIndex = category.template.fields.indexOfFirst { it.type == FieldType.PASSWORD }
-            val login = if (loginIndex >= 0) vault.fieldValues[loginIndex] ?: EMPTY_STRING else EMPTY_STRING
-            val link = if (linkIndex >= 0) vault.fieldValues[linkIndex] ?: EMPTY_STRING else EMPTY_STRING
-            val password = if (passwordIndex >= 0) vault.fieldValues[passwordIndex] ?: EMPTY_STRING else EMPTY_STRING
+            val passwordIndex =
+                category.template.fields.indexOfFirst { it.type == FieldType.PASSWORD }
+            val login =
+                if (loginIndex >= 0) vault.fieldValues[loginIndex] ?: EMPTY_STRING else EMPTY_STRING
+            val link =
+                if (linkIndex >= 0) vault.fieldValues[linkIndex] ?: EMPTY_STRING else EMPTY_STRING
+            val password = if (passwordIndex >= 0) vault.fieldValues[passwordIndex]
+                ?: EMPTY_STRING else EMPTY_STRING
 
             val vaultModel = VaultModel(
                 name = vault.name,
@@ -271,7 +318,8 @@ class VaultRepositoryImpl(
                 password = if (password.isNotEmpty()) crypto.encryptBase64(password) else password
             )
 
-            fireStore.vaultCollection(userId).document(vaultId).set(vaultModel).awaitWhenNetworkAvailable(network)
+            fireStore.vaultCollection(userId).document(vaultId).set(vaultModel)
+                .awaitWhenNetworkAvailable(network)
 
             vault.fieldValues.forEach { (index, value) ->
                 fireStore.fieldCollection(userId, vaultId).document("$index").set(
@@ -286,7 +334,9 @@ class VaultRepositoryImpl(
                     mapOf(VAULT_COUNT to com.google.firebase.firestore.FieldValue.increment(1))
                 ).awaitWhenNetworkAvailable(network)
             } else {
-                if (fireStore.commonTemplateVaultCountDocument(userId, vault.categoryId).get(network).await().exists()) {
+                if (fireStore.commonTemplateVaultCountDocument(userId, vault.categoryId)
+                        .get(network).await().exists()
+                ) {
                     fireStore.commonTemplateVaultCountDocument(userId, vault.categoryId).update(
                         mapOf(VAULT_COUNT to com.google.firebase.firestore.FieldValue.increment(1))
                     ).awaitWhenNetworkAvailable(network)
@@ -307,7 +357,8 @@ class VaultRepositoryImpl(
                 fieldValues = mergeVaultFields(vault.fieldValues, category)
             )
         }.onFailure { throwable ->
-            fireStore.vaultCollection(userId).document(vaultId).delete().awaitWhenNetworkAvailable(network)
+            fireStore.vaultCollection(userId).document(vaultId).delete()
+                .awaitWhenNetworkAvailable(network)
             throw VaultCreationException("Failed to create vault: ${throwable.stackTraceToString()}")
         }.getOrThrow()
     }
@@ -315,14 +366,17 @@ class VaultRepositoryImpl(
     override suspend fun edit(vault: EditVaultRequest): Vault {
         val userId = auth.currentUser?.uid ?: throw UnauthorizedException()
 
-        val currentVaultSnapshot = fireStore.vaultCollection(userId).document(vault.vaultId).get(network).await().toObject<VaultModel>()
-            ?: throw VaultNotFoundException("Vault with id ${vault.vaultId} does not exist")
+        val currentVaultSnapshot =
+            fireStore.vaultCollection(userId).document(vault.vaultId).get(network).await()
+                .toObject<VaultModel>()
+                ?: throw VaultNotFoundException("Vault with id ${vault.vaultId} does not exist")
 
         if (currentVaultSnapshot.categoryId != vault.categoryId) {
             val oldCategory = categoryRepository.getById(currentVaultSnapshot.categoryId)
                 ?: throw CategoryDoesNotExistException("Category with id ${currentVaultSnapshot.categoryId} does not exist")
             oldCategory.template.fields.forEach {
-                fireStore.fieldCollection(userId, vault.vaultId).document("${it.index}").delete().awaitWhenNetworkAvailable(network)
+                fireStore.fieldCollection(userId, vault.vaultId).document("${it.index}").delete()
+                    .awaitWhenNetworkAvailable(network)
             }
         }
 
@@ -333,9 +387,12 @@ class VaultRepositoryImpl(
         val loginIndex = category.template.fields.indexOfFirst { it.type == FieldType.LOGIN }
         val linkIndex = category.template.fields.indexOfFirst { it.type == FieldType.LINK }
         val passwordIndex = category.template.fields.indexOfFirst { it.type == FieldType.PASSWORD }
-        val login = if (loginIndex >= 0) vault.fieldValues[loginIndex] ?: EMPTY_STRING else EMPTY_STRING
-        val link = if (linkIndex >= 0) vault.fieldValues[linkIndex] ?: EMPTY_STRING else EMPTY_STRING
-        val password = if (passwordIndex >= 0) vault.fieldValues[passwordIndex] ?: EMPTY_STRING else EMPTY_STRING
+        val login =
+            if (loginIndex >= 0) vault.fieldValues[loginIndex] ?: EMPTY_STRING else EMPTY_STRING
+        val link =
+            if (linkIndex >= 0) vault.fieldValues[linkIndex] ?: EMPTY_STRING else EMPTY_STRING
+        val password = if (passwordIndex >= 0) vault.fieldValues[passwordIndex]
+            ?: EMPTY_STRING else EMPTY_STRING
 
         fireStore.vaultCollection(userId).document(vault.vaultId).update(
             mapOf(
@@ -381,7 +438,9 @@ class VaultRepositoryImpl(
                 mapOf(VAULT_COUNT to com.google.firebase.firestore.FieldValue.increment(-1))
             ).awaitWhenNetworkAvailable(network)
         } else {
-            if (fireStore.commonTemplateVaultCountDocument(userId, vaultSnapshot.categoryId).get(network).await().exists()) {
+            if (fireStore.commonTemplateVaultCountDocument(userId, vaultSnapshot.categoryId)
+                    .get(network).await().exists()
+            ) {
                 fireStore.commonTemplateVaultCountDocument(userId, vaultSnapshot.categoryId).update(
                     mapOf(VAULT_COUNT to com.google.firebase.firestore.FieldValue.increment(-1))
                 ).awaitWhenNetworkAvailable(network)

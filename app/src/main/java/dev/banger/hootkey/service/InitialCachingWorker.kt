@@ -25,8 +25,8 @@ class InitialCachingWorker(
     override suspend fun doWork(): Result {
         return try {
             templateRepository.getAllFull()
-            categoryRepository.getAllFull()
-            // TODO vaultRepository.getAllFull()
+            categoryRepository.getAllShort()
+            vaultRepository.getAllFull()
             settingsRepository.setDataCached()
             Result.success()
         } catch (e: Exception) {

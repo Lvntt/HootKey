@@ -14,6 +14,11 @@ interface VaultRepository {
 
     suspend fun getShortByIds(ids: List<String>): List<VaultShort>
 
+    /**
+     * Intended for caching only (it does NOT return anything), most likely will take a while to load
+     */
+    suspend fun getAllFull()
+
     suspend fun getAll(filter: FilterType, query: String?, pageKey: String?): VaultsPage
 
     suspend fun getAllByCategory(
