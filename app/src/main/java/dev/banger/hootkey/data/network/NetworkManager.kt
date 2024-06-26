@@ -24,6 +24,11 @@ class NetworkManager(context: Context, private val settingsManager: SettingsMana
             _isNetworkAvailable = true
         }
 
+        override fun onUnavailable() {
+            super.onUnavailable()
+            _isNetworkAvailable = false
+        }
+
         override fun onLost(network: Network) {
             super.onLost(network)
             _isNetworkAvailable = false
@@ -31,7 +36,12 @@ class NetworkManager(context: Context, private val settingsManager: SettingsMana
     }
 
     init {
-        val connectivityManager = getSystemService(context, ConnectivityManager::class.java) as ConnectivityManager
+        val connectivityManager =
+            getSystemService(context, ConnectivityManager::class.java) as ConnectivityManager
+        val currentNetwork = connectivityManager.activeNetwork
+        _isNetworkAvailable =
+            connectivityManager.getNetworkCapabilities(currentNetwork)
+                ?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) ?: false
         connectivityManager.requestNetwork(networkRequest, networkCallback)
     }
 
