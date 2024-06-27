@@ -82,9 +82,14 @@ dependencies {
     implementation(libs.androidx.biometric)
     implementation(libs.androidx.lifecycle.runtime.compose.android)
 
-    debugImplementation(libs.androidx.ui.tooling)
-
     implementation(libs.landscapist.glide)
 
     implementation(libs.androidx.work.runtime.ktx)
+
+    debugImplementation(libs.androidx.ui.tooling)
+
+    testImplementation(libs.junit)
+    testImplementation(libs.junit.jupiter)
+    testImplementation(libs.mockito.core)
+
 }

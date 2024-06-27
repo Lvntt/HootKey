@@ -10,12 +10,15 @@ lifecycleRuntimeKtx = "2.8.2"
 activityCompose = "1.9.0"
 composeBom = "2024.06.00"
 composeNavigation = "2.7.7"
+mockitoCore = "3.11.2"
 reorderableVersion = "2.1.1"
 securityCrypto = "1.1.0-alpha06"
 serialization = "1.6.3"
 koin = "3.5.3"
 lifecycleRuntimeComposeAndroid = "2.8.2"
 workRuntimeKtx = "2.9.0"
+junit = "4.13.2"
+junitJupiter = "5.8.1"
 
 [libraries]
 androidx-biometric = { module = "androidx.biometric:biometric", version.ref = "biometric" }
@@ -35,6 +38,7 @@ androidx-material3 = { group = "androidx.compose.material3", name = "material3" 
 firebase-firestore = { module = "com.google.firebase:firebase-firestore" }
 insert-koin-koin-androidx-workmanager = { module = "io.insert-koin:koin-androidx-workmanager", version.ref = "koinAndroidxWorkmanagerVersion" }
 landscapist-glide = { module = "com.github.skydoves:landscapist-glide", version.ref = "landscapistGlide" }
+mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockitoCore" }
 navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "composeNavigation" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serialization"}
 koin-android = { module = "io.insert-koin:koin-android", version.ref = "koin" }
@@ -42,6 +46,8 @@ koin-androidx-compose = { module = "io.insert-koin:koin-androidx-compose", versi
 koin-core = { module = "io.insert-koin:koin-core", version.ref = "koin" }
 sh-reorderable = { module = "sh.calvin.reorderable:reorderable", version.ref = "reorderableVersion" }
 androidx-lifecycle-runtime-compose-android = { group = "androidx.lifecycle", name = "lifecycle-runtime-compose-android", version.ref = "lifecycleRuntimeComposeAndroid" }
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+junit-jupiter = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "junitJupiter" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
