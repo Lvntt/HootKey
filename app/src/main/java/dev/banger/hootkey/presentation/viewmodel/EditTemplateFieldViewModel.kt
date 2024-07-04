@@ -1,6 +1,10 @@
 package dev.banger.hootkey.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dev.banger.hootkey.presentation.entity.UiFieldType
 import dev.banger.hootkey.presentation.entity.UiTemplateField
 import dev.banger.hootkey.presentation.intent.EditTemplateFieldIntent
@@ -12,7 +16,9 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
-class EditTemplateFieldViewModel(field: UiTemplateField) : ViewModel() {
+class EditTemplateFieldViewModel @AssistedInject constructor(
+    @Assisted field: UiTemplateField
+) : ViewModel() {
 
     private val stateFlow = MutableStateFlow(EditTemplateFieldState(field = field))
     val state = stateFlow.asStateFlow()
@@ -67,6 +73,25 @@ class EditTemplateFieldViewModel(field: UiTemplateField) : ViewModel() {
         effectsFlow.tryEmit(EditTemplateFieldEffect.EditField(processedField))
 
         stateFlow.update { EditTemplateFieldState() }
+    }
+
+    @AssistedFactory
+    interface Factory {
+        fun create(field: UiTemplateField): EditTemplateFieldViewModel
+    }
+
+    companion object {
+        fun factory(
+            factory: Factory,
+            field: UiTemplateField
+        ) : ViewModelProvider.Factory {
+            return object : ViewModelProvider.Factory {
+                @Suppress("UNCHECKED_CAST")
+                override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                    return factory.create(field) as T
+                }
+            }
+        }
     }
 
 }

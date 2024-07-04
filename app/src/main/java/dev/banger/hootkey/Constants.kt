@@ -23,4 +23,7 @@ object Constants {
     const val IS_COMPROMISE_DETECTION_ON_KEY = "is_compromise_detection_on_key"
     const val AUTOSAVE_CATEGORY_ID_KEY = "autosave_category_id_key"
     const val IS_DATA_CACHED_KEY = "is_data_cached_key"
+
+    const val REGISTER_VM = "RegisterVM"
+    const val LOGIN_VM = "LoginVM"
 }

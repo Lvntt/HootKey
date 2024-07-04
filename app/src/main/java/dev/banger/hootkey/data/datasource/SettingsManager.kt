@@ -10,8 +10,11 @@ import dev.banger.hootkey.Constants.IS_COMPROMISE_DETECTION_ON_KEY
 import dev.banger.hootkey.Constants.IS_DATA_CACHED_KEY
 import dev.banger.hootkey.Constants.IS_OFFLINE_KEY
 import dev.banger.hootkey.Constants.SETTINGS_PREFERENCES_KEY
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class SettingsManager(private val context: Context) {
+@Singleton
+class SettingsManager @Inject constructor(private val context: Context) {
 
     private val masterKeyAlias = MasterKey.Builder(context)
         .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)

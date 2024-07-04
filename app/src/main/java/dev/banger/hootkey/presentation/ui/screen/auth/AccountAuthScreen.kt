@@ -40,8 +40,9 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import dev.banger.hootkey.Constants
+import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.banger.hootkey.R
 import dev.banger.hootkey.presentation.ui.common.ObserveAsEvents
 import dev.banger.hootkey.presentation.ui.common.TextAlertDialog
@@ -59,17 +60,47 @@ import dev.banger.hootkey.presentation.ui.theme.TypeM14
 import dev.banger.hootkey.presentation.ui.theme.TypeM24
 import dev.banger.hootkey.presentation.ui.utils.noRippleClickable
 import dev.banger.hootkey.presentation.viewmodel.AccountAuthViewModel
-import org.koin.androidx.compose.koinViewModel
-import org.koin.core.qualifier.named
+import dev.banger.hootkey.presentation.viewmodel.LoginViewModel
+import dev.banger.hootkey.presentation.viewmodel.RegisterViewModel
 
 private const val AUTH_TAG = "AUTH_TAG"
 
 @Composable
-fun AccountAuthScreen(
+fun RegisterScreen(
+    viewModelFactory: ViewModelProvider.Factory,
+    onNavigateFromBottomHint: () -> Unit,
+    onSuccess: () -> Unit,
+    viewModel: RegisterViewModel = viewModel(factory = viewModelFactory)
+) {
+    AccountAuthScreen(
+        isLogin = false,
+        onNavigateFromBottomHint = onNavigateFromBottomHint,
+        onSuccess = onSuccess,
+        viewModel = viewModel
+    )
+}
+
+@Composable
+fun LoginScreen(
+    viewModelFactory: ViewModelProvider.Factory,
+    onNavigateFromBottomHint: () -> Unit,
+    onSuccess: () -> Unit,
+    viewModel: LoginViewModel = viewModel(factory = viewModelFactory)
+) {
+    AccountAuthScreen(
+        isLogin = true,
+        onNavigateFromBottomHint = onNavigateFromBottomHint,
+        onSuccess = onSuccess,
+        viewModel = viewModel
+    )
+}
+
+@Composable
+private fun AccountAuthScreen(
     isLogin: Boolean,
     onNavigateFromBottomHint: () -> Unit,
     onSuccess: () -> Unit,
-    viewModel: AccountAuthViewModel = koinViewModel(named(if (isLogin) Constants.LOGIN else Constants.REGISTER))
+    viewModel: AccountAuthViewModel
 ) {
     val focusManager = LocalFocusManager.current
     val state by viewModel.state.collectAsStateWithLifecycle(lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current)

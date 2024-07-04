@@ -14,8 +14,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class PasswordRepositoryImpl(private val vaultRepository: VaultRepository) : PasswordRepository {
+@Singleton
+class PasswordRepositoryImpl @Inject constructor(
+    private val vaultRepository: VaultRepository
+) : PasswordRepository {
 
     private val _passwordHealthScore =
         MutableStateFlow<PasswordHealthScore>(PasswordHealthScore.Calculating)

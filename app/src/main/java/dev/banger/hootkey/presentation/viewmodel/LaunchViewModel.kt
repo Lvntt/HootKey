@@ -8,8 +8,9 @@ import dev.banger.hootkey.presentation.state.auth.LaunchEvent
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class LaunchViewModel(
+class LaunchViewModel @Inject constructor(
     private val checkUserLoggedInUseCase: CheckUserLoggedInUseCase,
     private val settingsRepository: SettingsRepository
 ) : ViewModel() {

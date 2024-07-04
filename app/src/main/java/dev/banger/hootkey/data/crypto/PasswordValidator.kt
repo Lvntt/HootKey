@@ -3,11 +3,14 @@ package dev.banger.hootkey.data.crypto
 import dev.banger.hootkey.domain.entity.auth.exception.UnauthorizedException
 import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.PBEKeySpec
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
 
+@Singleton
 @OptIn(ExperimentalEncodingApi::class)
-class PasswordValidator(private val sharedPrefsManager: SharedPrefsManager) {
+class PasswordValidator @Inject constructor(private val sharedPrefsManager: SharedPrefsManager) {
 
     private companion object {
         const val KEY_DERIVATION_ALGORITHM = "PBKDF2WithHmacSHA512"

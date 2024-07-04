@@ -50,7 +50,9 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.banger.hootkey.R
 import dev.banger.hootkey.presentation.state.auth.BiometricError
 import dev.banger.hootkey.presentation.ui.common.ObserveAsEvents
@@ -66,10 +68,13 @@ import dev.banger.hootkey.presentation.ui.theme.TypeB32
 import dev.banger.hootkey.presentation.ui.theme.TypeM24
 import dev.banger.hootkey.presentation.ui.utils.noRippleClickable
 import dev.banger.hootkey.presentation.viewmodel.AuthViewModel
-import org.koin.androidx.compose.koinViewModel
 
 @Composable
-fun AuthScreen(onSuccess: () -> Unit, viewModel: AuthViewModel = koinViewModel()) {
+fun AuthScreen(
+    viewModelFactory: ViewModelProvider.Factory,
+    onSuccess: () -> Unit,
+    viewModel: AuthViewModel = viewModel(factory = viewModelFactory)
+) {
     val focusManager = LocalFocusManager.current
     val density = LocalDensity.current
     val windowsInsetsIme = WindowInsets.ime

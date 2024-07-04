@@ -2,6 +2,7 @@ package dev.banger.hootkey.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dev.banger.hootkey.di.qualifiers.IoDispatcher
 import dev.banger.hootkey.domain.entity.category.CategoryShort
 import dev.banger.hootkey.domain.entity.vault.FilterType
 import dev.banger.hootkey.domain.entity.vault.VaultShort
@@ -19,12 +20,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class DashboardViewmodel(
+class DashboardViewModel @Inject constructor(
     private val categoryRepository: CategoryRepository,
     private val vaultRepository: VaultRepository,
     private val passwordRepository: PasswordRepository,
-    private val defaultDispatcher: CoroutineDispatcher
+    @IoDispatcher private val defaultDispatcher: CoroutineDispatcher
 ) : ViewModel() {
 
     val passwordHealthScore = passwordRepository.passwordHealthScore

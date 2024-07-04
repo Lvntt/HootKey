@@ -17,6 +17,7 @@ import android.service.autofill.SaveRequest
 import android.util.Log
 import android.view.autofill.AutofillValue
 import android.widget.RemoteViews
+import dev.banger.hootkey.HootKeyApp
 import dev.banger.hootkey.R
 import dev.banger.hootkey.domain.entity.vault.CreateVaultRequest
 import dev.banger.hootkey.domain.entity.vault.VaultShort
@@ -24,7 +25,7 @@ import dev.banger.hootkey.domain.repository.CategoryRepository
 import dev.banger.hootkey.domain.repository.VaultRepository
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.runBlocking
-import org.koin.android.ext.android.get
+import javax.inject.Inject
 
 class HootKeyAutofillService : AutofillService() {
 
@@ -32,11 +33,20 @@ class HootKeyAutofillService : AutofillService() {
         const val TAG = "HootKeyAutofillService"
     }
 
-    private val vaultRepository: VaultRepository = get()
-    private val categoryRepository: CategoryRepository = get()
+    @Inject
+    lateinit var vaultRepository: VaultRepository
+
+    @Inject
+    lateinit var categoryRepository: CategoryRepository
 
     private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
         Log.e(TAG, "error fetching vaults\n ${throwable.stackTraceToString()}")
+    }
+
+    override fun onCreate() {
+        super.onCreate()
+
+        (application as HootKeyApp).appComponent.autofillComponent().create().inject(this)
     }
 
     override fun onFillRequest(

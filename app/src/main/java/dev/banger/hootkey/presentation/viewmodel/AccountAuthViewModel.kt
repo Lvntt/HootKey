@@ -25,7 +25,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 
-class AccountAuthViewModel(
+open class AccountAuthViewModel(
     private val application: Application,
     private val authUseCase: AuthUseCase,
     private val validateEmailUseCase: ValidateEmailUseCase,

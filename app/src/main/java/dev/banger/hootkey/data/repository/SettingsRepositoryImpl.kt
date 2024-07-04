@@ -5,8 +5,11 @@ import dev.banger.hootkey.data.datasource.SettingsManager
 import dev.banger.hootkey.domain.entity.settings.UserSettings
 import dev.banger.hootkey.domain.repository.SettingsRepository
 import kotlinx.coroutines.tasks.await
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class SettingsRepositoryImpl(
+@Singleton
+class SettingsRepositoryImpl @Inject constructor(
     private val firestore: FirebaseFirestore,
     private val settingsManager: SettingsManager
 ) : SettingsRepository {
