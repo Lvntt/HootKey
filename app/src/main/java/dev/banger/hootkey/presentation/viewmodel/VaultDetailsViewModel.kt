@@ -1,7 +1,12 @@
 package dev.banger.hootkey.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
+import dev.banger.hootkey.di.qualifiers.IoDispatcher
 import dev.banger.hootkey.domain.entity.template.FieldType
 import dev.banger.hootkey.domain.repository.VaultRepository
 import dev.banger.hootkey.presentation.entity.UiField
@@ -16,10 +21,10 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class VaultDetailsViewModel(
-    private val vaultId: String,
+class VaultDetailsViewModel @AssistedInject constructor(
+    @Assisted private val vaultId: String,
     private val vaultRepository: VaultRepository,
-    private val defaultDispatcher: CoroutineDispatcher
+    @IoDispatcher private val defaultDispatcher: CoroutineDispatcher
 ) : ViewModel() {
 
     private val _state = MutableStateFlow<VaultDetailsState>(VaultDetailsState.Loading)
@@ -110,6 +115,25 @@ class VaultDetailsViewModel(
             }.onFailure {
                 if (it is CancellationException) throw it
                 _state.update { VaultDetailsState.Error }
+            }
+        }
+    }
+
+    @AssistedFactory
+    interface Factory {
+        fun create(vaultId: String): VaultDetailsViewModel
+    }
+
+    companion object {
+        fun factory(
+            factory: Factory,
+            vaultId: String
+        ) : ViewModelProvider.Factory {
+            return object : ViewModelProvider.Factory {
+                @Suppress("UNCHECKED_CAST")
+                override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                    return factory.create(vaultId) as T
+                }
             }
         }
     }

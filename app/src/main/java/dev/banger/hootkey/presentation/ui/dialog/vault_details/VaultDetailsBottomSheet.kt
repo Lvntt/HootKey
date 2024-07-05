@@ -23,7 +23,10 @@ import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
+import dev.banger.hootkey.domain.entity.vault.VaultShort
 import dev.banger.hootkey.presentation.intent.VaultDetailsIntent
 import dev.banger.hootkey.presentation.state.vault_details.VaultDetailsState
 import dev.banger.hootkey.presentation.ui.common.ListLoadingContent
@@ -38,19 +41,17 @@ import dev.banger.hootkey.presentation.ui.dialog.vault_details.components.VaultD
 import dev.banger.hootkey.presentation.ui.theme.BottomSheetDragHandle
 import dev.banger.hootkey.presentation.ui.theme.Gray
 import dev.banger.hootkey.presentation.viewmodel.VaultDetailsViewModel
-import org.koin.compose.koinInject
-import org.koin.core.parameter.parametersOf
+import javax.inject.Provider
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VaultDetailsBottomSheet(
     vaultId: String,
+    viewModelFactory: VaultDetailsViewModel.Factory,
     onDismissRequest: () -> Unit,
     onEditClick: () -> Unit,
     onDeleteClick: () -> Unit,
-    viewModel: VaultDetailsViewModel = koinInject<VaultDetailsViewModel>(
-        parameters = { parametersOf(vaultId) },
-    )
+    viewModel: VaultDetailsViewModel = viewModelFactory.create(vaultId)
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle(lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current)
     val uriHandler = LocalUriHandler.current

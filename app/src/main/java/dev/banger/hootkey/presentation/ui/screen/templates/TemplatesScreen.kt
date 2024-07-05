@@ -30,7 +30,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.banger.hootkey.Constants.CREATED_TEMPLATE_ID_KEY
 import dev.banger.hootkey.R
 import dev.banger.hootkey.presentation.entity.UiTemplateShort
@@ -49,16 +51,16 @@ import dev.banger.hootkey.presentation.ui.theme.White
 import dev.banger.hootkey.presentation.ui.utils.noRippleClickable
 import dev.banger.hootkey.presentation.viewmodel.TemplatesViewModel
 import kotlinx.coroutines.launch
-import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun TemplatesScreen(
+    viewModelFactory: ViewModelProvider.Factory,
     savedStateHandleProvider: () -> SavedStateHandle?,
     onNavigateBack: () -> Unit,
     onChooseTemplate: (UiTemplateShort) -> Unit,
     onCreateTemplateClick: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: TemplatesViewModel = koinViewModel()
+    viewModel: TemplatesViewModel = viewModel(factory = viewModelFactory)
 ) {
     val coroutineScope = rememberCoroutineScope()
     val snackbarText = stringResource(id = R.string.fetching_templates_error)

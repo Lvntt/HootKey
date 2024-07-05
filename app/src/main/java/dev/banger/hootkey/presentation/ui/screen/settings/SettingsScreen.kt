@@ -27,9 +27,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.banger.hootkey.R
 import dev.banger.hootkey.presentation.AutofillServiceContract
 import dev.banger.hootkey.presentation.intent.SettingsIntent
@@ -50,14 +51,14 @@ import dev.banger.hootkey.presentation.ui.theme.TypeM16
 import dev.banger.hootkey.presentation.ui.theme.White
 import dev.banger.hootkey.presentation.viewmodel.SettingsViewModel
 import kotlinx.coroutines.launch
-import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun SettingsScreen(
+    viewModelFactory: ViewModelProvider.Factory,
     onNavigateBack: () -> Unit,
     onLogout: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: SettingsViewModel = koinViewModel()
+    viewModel: SettingsViewModel = viewModel(factory = viewModelFactory)
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
@@ -204,10 +205,4 @@ private fun SettingsItem(
             )
         }
     }
-}
-
-@Preview
-@Composable
-private fun SettingsScreenPreview() {
-    SettingsScreen({}, {})
 }

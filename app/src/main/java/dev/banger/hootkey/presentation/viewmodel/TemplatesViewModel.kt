@@ -3,6 +3,7 @@ package dev.banger.hootkey.presentation.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dev.banger.hootkey.di.qualifiers.IoDispatcher
 import dev.banger.hootkey.domain.repository.TemplateRepository
 import dev.banger.hootkey.presentation.intent.TemplatesIntent
 import dev.banger.hootkey.presentation.state.templates.TemplatesEffect
@@ -15,10 +16,11 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class TemplatesViewModel(
+class TemplatesViewModel @Inject constructor(
     private val templateRepository: TemplateRepository,
-    private val defaultDispatcher: CoroutineDispatcher
+    @IoDispatcher private val defaultDispatcher: CoroutineDispatcher
 ) : ViewModel() {
 
     private companion object {

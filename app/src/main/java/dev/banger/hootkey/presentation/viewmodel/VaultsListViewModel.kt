@@ -1,7 +1,12 @@
 package dev.banger.hootkey.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
+import dev.banger.hootkey.di.qualifiers.IoDispatcher
 import dev.banger.hootkey.domain.entity.vault.VaultShort
 import dev.banger.hootkey.domain.repository.VaultRepository
 import dev.banger.hootkey.presentation.entity.LceState
@@ -22,10 +27,10 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 @OptIn(FlowPreview::class)
-class VaultsListViewModel(
+class VaultsListViewModel @AssistedInject constructor(
     private val vaultRepository: VaultRepository,
-    private val defaultDispatcher: CoroutineDispatcher,
-    private val categoryId: String?
+    @IoDispatcher private val defaultDispatcher: CoroutineDispatcher,
+    @Assisted private val categoryId: String?
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(VaultsListState())
@@ -197,6 +202,25 @@ class VaultsListViewModel(
                 )
             }
             loadVaultsNextPage()
+        }
+    }
+
+    @AssistedFactory
+    interface Factory {
+        fun create(categoryId: String?): VaultsListViewModel
+    }
+
+    companion object {
+        fun factory(
+            factory: Factory,
+            categoryId: String?
+        ) : ViewModelProvider.Factory {
+            return object : ViewModelProvider.Factory {
+                @Suppress("UNCHECKED_CAST")
+                override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                    return factory.create(categoryId) as T
+                }
+            }
         }
     }
 

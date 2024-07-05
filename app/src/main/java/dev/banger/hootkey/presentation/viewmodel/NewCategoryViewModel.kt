@@ -3,6 +3,7 @@ package dev.banger.hootkey.presentation.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dev.banger.hootkey.di.qualifiers.IoDispatcher
 import dev.banger.hootkey.domain.repository.CategoryRepository
 import dev.banger.hootkey.presentation.entity.UiCategoryIcon
 import dev.banger.hootkey.presentation.entity.UiTemplateShort
@@ -17,10 +18,11 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class NewCategoryViewModel(
+class NewCategoryViewModel @Inject constructor(
     private val categoryRepository: CategoryRepository,
-    private val defaultDispatcher: CoroutineDispatcher
+    @IoDispatcher private val defaultDispatcher: CoroutineDispatcher
 ) : ViewModel() {
 
     private companion object {

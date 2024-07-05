@@ -34,10 +34,11 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.banger.hootkey.Constants.CATEGORY_ICON_KEY
 import dev.banger.hootkey.Constants.TEMPLATE_KEY
 import dev.banger.hootkey.R
@@ -66,17 +67,17 @@ import dev.banger.hootkey.presentation.ui.utils.gradientTint
 import dev.banger.hootkey.presentation.ui.utils.noRippleClickable
 import dev.banger.hootkey.presentation.viewmodel.NewCategoryViewModel
 import kotlinx.coroutines.launch
-import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun NewCategoryScreen(
+    viewModelFactory: ViewModelProvider.Factory,
     savedStateHandleProvider: () -> SavedStateHandle?,
     onNavigateBack: () -> Unit,
     onNavigateToTemplates: () -> Unit,
     onNavigateToIcons: () -> Unit,
     onSuccess: (String) -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: NewCategoryViewModel = koinViewModel()
+    viewModel: NewCategoryViewModel = viewModel(factory = viewModelFactory)
 ) {
     val focusManager = LocalFocusManager.current
     val savedStateHandle = savedStateHandleProvider()
@@ -272,12 +273,4 @@ fun NewCategoryScreen(
             )
         }
     }
-}
-
-@Preview
-@Composable
-private fun NewCategoryScreenPreview() {
-    NewCategoryScreen(
-        { null }, {}, {}, {}, {}
-    )
 }

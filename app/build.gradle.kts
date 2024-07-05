@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.jetbrains.kotlin.android)
     alias(libs.plugins.google.services)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.devtools.ksp)
 }
 
 android {
@@ -70,10 +71,10 @@ dependencies {
     implementation(libs.navigation.compose)
     implementation(libs.kotlinx.serialization.json)
 
-    implementation(libs.koin.core)
-    implementation(libs.koin.android)
-    implementation(libs.koin.androidx.compose)
-    implementation(libs.insert.koin.koin.androidx.workmanager)
+    implementation(libs.dagger)
+    ksp(libs.dagger.compiler)
+
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
 
     implementation(libs.sh.reorderable)
 

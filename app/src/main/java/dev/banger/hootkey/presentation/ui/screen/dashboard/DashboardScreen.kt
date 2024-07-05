@@ -37,7 +37,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.banger.hootkey.Constants.ADDED_VAULT_CATEGORIES_KEY
 import dev.banger.hootkey.Constants.DELETED_VAULT_CATEGORIES_KEY
 import dev.banger.hootkey.Constants.DELETED_VAULT_IDS_KEY
@@ -66,8 +68,8 @@ import dev.banger.hootkey.presentation.ui.screen.dashboard.components.RecentlyUs
 import dev.banger.hootkey.presentation.ui.screen.dashboard.components.categoriesContent
 import dev.banger.hootkey.presentation.ui.screen.dashboard.components.vaultsContent
 import dev.banger.hootkey.presentation.ui.utils.noRippleClickable
-import dev.banger.hootkey.presentation.viewmodel.DashboardViewmodel
-import org.koin.androidx.compose.koinViewModel
+import dev.banger.hootkey.presentation.viewmodel.DashboardViewModel
+import dev.banger.hootkey.presentation.viewmodel.VaultDetailsViewModel
 
 typealias Id = String?
 typealias Name = String?
@@ -79,13 +81,15 @@ typealias Name = String?
 )
 @Composable
 fun DashboardScreen(
+    viewModelFactory: ViewModelProvider.Factory,
+    vaultDetailsViewModelFactory: VaultDetailsViewModel.Factory,
     savedStateHandleProvider: () -> SavedStateHandle?,
     onAddNewVault: () -> Unit,
     onCategorySelected: (Id, Name) -> Unit,
     onEditClick: (String) -> Unit,
     onSettingsClick: () -> Unit,
     onStatisticsClick: () -> Unit,
-    viewModel: DashboardViewmodel = koinViewModel()
+    viewModel: DashboardViewModel = viewModel(factory = viewModelFactory)
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle(lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current)
     val passwordHealthScore by viewModel.passwordHealthScore.collectAsStateWithLifecycle(lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current)
@@ -153,6 +157,7 @@ fun DashboardScreen(
     state.vaultDetails?.let { vault ->
         VaultDetailsBottomSheet(
             vaultId = vault.id,
+            viewModelFactory = vaultDetailsViewModelFactory,
             onDismissRequest = {
                 viewModel.dispatch(DashboardIntent.DismissVaultDetails)
             },

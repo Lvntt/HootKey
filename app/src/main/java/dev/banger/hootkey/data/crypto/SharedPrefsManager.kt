@@ -3,11 +3,14 @@ package dev.banger.hootkey.data.crypto
 import android.content.Context
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
 
+@Singleton
 @OptIn(ExperimentalEncodingApi::class)
-class SharedPrefsManager(context: Context) {
+class SharedPrefsManager @Inject constructor(context: Context) {
 
     private companion object {
         const val HOOTKEY_PREFS = "hootkey_prefs"

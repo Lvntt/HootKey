@@ -3,6 +3,7 @@ package dev.banger.hootkey.presentation.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dev.banger.hootkey.di.qualifiers.IoDispatcher
 import dev.banger.hootkey.domain.repository.CategoryRepository
 import dev.banger.hootkey.domain.repository.VaultRepository
 import dev.banger.hootkey.presentation.intent.NewVaultIntent
@@ -20,11 +21,12 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import javax.inject.Inject
 
-class NewVaultViewModel(
+class NewVaultViewModel @Inject constructor(
     private val categoryRepository: CategoryRepository,
     private val vaultRepository: VaultRepository,
-    private val defaultDispatcher: CoroutineDispatcher
+    @IoDispatcher private val defaultDispatcher: CoroutineDispatcher
 ) : ViewModel() {
 
     private companion object {

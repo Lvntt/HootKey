@@ -29,7 +29,9 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.banger.hootkey.R
 import dev.banger.hootkey.presentation.entity.UiFieldType
 import dev.banger.hootkey.presentation.entity.UiTemplateField
@@ -48,14 +50,14 @@ import dev.banger.hootkey.presentation.ui.theme.TypeM14
 import dev.banger.hootkey.presentation.ui.theme.White
 import dev.banger.hootkey.presentation.ui.utils.noRippleClickable
 import dev.banger.hootkey.presentation.viewmodel.NewTemplateFieldViewModel
-import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun NewTemplateFieldDialog(
+    viewModelFactory: ViewModelProvider.Factory,
     onDismissRequest: () -> Unit,
     onContinue: (UiTemplateField) -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: NewTemplateFieldViewModel = koinViewModel()
+    viewModel: NewTemplateFieldViewModel = viewModel(factory = viewModelFactory)
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle(lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current)
     ObserveAsEvents(viewModel.effects) {
