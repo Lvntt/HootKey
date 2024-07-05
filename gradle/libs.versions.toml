@@ -1,13 +1,12 @@
 [versions]
-agp = "8.4.1"
+agp = "8.5.0"
 biometric = "1.1.0"
-firebaseBom = "33.0.0"
-koinAndroidxWorkmanagerVersion = "3.1.4"
-kotlin = "1.9.0"
+firebaseBom = "33.1.1"
+kotlin = "1.9.24"
 coreKtx = "1.13.1"
 kotlinxCoroutinesTest = "1.9.0-RC"
 landscapistGlide = "2.3.4"
-lifecycleRuntimeKtx = "2.8.2"
+lifecycleRuntimeKtx = "2.8.3"
 activityCompose = "1.9.0"
 composeBom = "2024.06.00"
 composeNavigation = "2.7.7"
@@ -16,10 +15,9 @@ mockitoKotlin = "5.3.1"
 reorderableVersion = "2.1.1"
 securityCrypto = "1.1.0-alpha06"
 serialization = "1.6.3"
-koin = "3.5.3"
-lifecycleRuntimeComposeAndroid = "2.8.2"
+lifecycleRuntimeComposeAndroid = "2.8.3"
 workRuntimeKtx = "2.9.0"
-ksp = "1.9.0-1.0.12"
+ksp = "1.9.24-1.0.20"
 dagger = "2.51.1"
 lifecycleViewmodelCompose = "2.8.3"
 junit = "4.13.2"
@@ -41,7 +39,6 @@ androidx-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
 androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
 androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
 firebase-firestore = { module = "com.google.firebase:firebase-firestore" }
-insert-koin-koin-androidx-workmanager = { module = "io.insert-koin:koin-androidx-workmanager", version.ref = "koinAndroidxWorkmanagerVersion" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinxCoroutinesTest" }
 landscapist-glide = { module = "com.github.skydoves:landscapist-glide", version.ref = "landscapistGlide" }
 mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockitoCore" }
@@ -60,5 +57,5 @@ junit-jupiter = { group = "org.junit.jupiter", name = "junit-jupiter", version.r
 android-application = { id = "com.android.application", version.ref = "agp" }
 jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
-google-services = { id = "com.google.gms.google-services", version = "4.4.1" }
+google-services = { id = "com.google.gms.google-services", version = "4.4.2" }
 devtools-ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
