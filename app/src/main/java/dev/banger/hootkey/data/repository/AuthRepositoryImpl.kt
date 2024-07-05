@@ -17,8 +17,11 @@ import dev.banger.hootkey.domain.entity.auth.exception.RegistrationCollisionExce
 import dev.banger.hootkey.domain.repository.AuthRepository
 import dev.banger.hootkey.domain.repository.CategoryRepository
 import kotlinx.coroutines.tasks.await
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class AuthRepositoryImpl(
+@Singleton
+class AuthRepositoryImpl @Inject constructor(
     private val auth: FirebaseAuth,
     private val fireStore: FirebaseFirestore,
     private val cryptoManager: CryptoManager,

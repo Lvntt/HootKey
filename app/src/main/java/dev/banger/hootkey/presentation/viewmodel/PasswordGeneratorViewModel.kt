@@ -13,9 +13,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import org.koin.core.KoinApplication.Companion.init
+import javax.inject.Inject
 
-class PasswordGeneratorViewModel(
+class PasswordGeneratorViewModel @Inject constructor(
     private val passwordRepository: PasswordRepository
 ) : ViewModel() {
 

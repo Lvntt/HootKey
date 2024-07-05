@@ -14,11 +14,14 @@ import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.PBEKeySpec
 import javax.crypto.spec.SecretKeySpec
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
 
+@Singleton
 @OptIn(ExperimentalEncodingApi::class)
-class CryptoManager {
+class CryptoManager @Inject constructor() {
 
     private companion object {
         const val ALGORITHM = KeyProperties.KEY_ALGORITHM_AES

@@ -38,10 +38,11 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.banger.hootkey.Constants.CREATED_CATEGORY_ID_KEY
 import dev.banger.hootkey.R
 import dev.banger.hootkey.presentation.entity.UiCategory
@@ -76,19 +77,19 @@ import dev.banger.hootkey.presentation.ui.utils.gradientTint
 import dev.banger.hootkey.presentation.ui.utils.noRippleClickable
 import dev.banger.hootkey.presentation.viewmodel.NewVaultViewModel
 import kotlinx.coroutines.launch
-import org.koin.androidx.compose.koinViewModel
 
 typealias VaultId = String
 typealias CategoryId = String
 
 @Composable
 fun NewVaultScreen(
+    viewModelFactory: ViewModelProvider.Factory,
     savedStateHandleProvider: () -> SavedStateHandle?,
     onNavigateBack: () -> Unit,
     onSuccess: (VaultId, CategoryId) -> Unit,
     onNavigateToCategories: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: NewVaultViewModel = koinViewModel()
+    viewModel: NewVaultViewModel = viewModel(factory = viewModelFactory)
 ) {
     val focusManager = LocalFocusManager.current
     val coroutineScope = rememberCoroutineScope()
@@ -131,6 +132,7 @@ fun NewVaultScreen(
 
     state.generatingPasswordForIndex?.let { index ->
         PasswordGeneratorDialog(
+            viewModelFactory = viewModelFactory,
             onDismissRequest = {
                 viewModel.dispatch(NewVaultIntent.DismissPasswordGenerator)
             },
@@ -438,10 +440,4 @@ private fun NewVaultContent(
             Spacer(modifier = Modifier.height(PaddingLarge))
         }
     }
-}
-
-@Preview
-@Composable
-private fun NewVaultScreenPreview() {
-    NewVaultScreen({ null }, {}, { _, _ -> }, {})
 }

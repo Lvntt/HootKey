@@ -46,9 +46,10 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.banger.hootkey.R
 import dev.banger.hootkey.presentation.intent.NewTemplateIntent
 import dev.banger.hootkey.presentation.state.new_template.NewTemplateEffect
@@ -75,19 +76,21 @@ import dev.banger.hootkey.presentation.ui.theme.TypeB16
 import dev.banger.hootkey.presentation.ui.theme.TypeM14
 import dev.banger.hootkey.presentation.ui.theme.White
 import dev.banger.hootkey.presentation.ui.utils.noRippleClickable
+import dev.banger.hootkey.presentation.viewmodel.EditTemplateFieldViewModel
 import dev.banger.hootkey.presentation.viewmodel.NewTemplateViewModel
 import kotlinx.coroutines.launch
-import org.koin.androidx.compose.koinViewModel
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun NewTemplateScreen(
+    viewModelFactory: ViewModelProvider.Factory,
     onNavigateBack: () -> Unit,
     onSuccess: (String) -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: NewTemplateViewModel = koinViewModel()
+    editTemplateFieldViewModelFactory: EditTemplateFieldViewModel.Factory,
+    viewModel: NewTemplateViewModel = viewModel(factory = viewModelFactory)
 ) {
     val focusManager = LocalFocusManager.current
     val coroutineScope = rememberCoroutineScope()
@@ -106,6 +109,7 @@ fun NewTemplateScreen(
             is NewTemplateEffect.HandleSuccess -> {
                 onSuccess(it.templateId)
             }
+
             NewTemplateEffect.ShowError -> {
                 coroutineScope.launch {
                     snackbarHostState.showSnackbar(
@@ -117,27 +121,36 @@ fun NewTemplateScreen(
     }
 
     if (state.isNewFieldDialogShown) {
-        NewTemplateFieldDialog(onDismissRequest = {
-            viewModel.dispatch(NewTemplateIntent.DismissDialog)
-        }, onContinue = {
-            viewModel.dispatch(NewTemplateIntent.AddField(it))
-            viewModel.dispatch(NewTemplateIntent.DismissDialog)
-        })
+        NewTemplateFieldDialog(
+            viewModelFactory = viewModelFactory,
+            onDismissRequest = {
+                viewModel.dispatch(NewTemplateIntent.DismissDialog)
+            },
+            onContinue = {
+                viewModel.dispatch(NewTemplateIntent.AddField(it))
+                viewModel.dispatch(NewTemplateIntent.DismissDialog)
+            }
+        )
     }
 
     if (state.isEditFieldDialogShown) {
         state.fieldToEdit?.let { field ->
-            val editFieldKey = "editField${field.name}${field.type}"
-
-            EditTemplateFieldDialog(fieldKey = editFieldKey, field = field, onDismissRequest = {
-                viewModel.dispatch(NewTemplateIntent.DismissDialog)
-            }, onContinue = {
-                viewModel.dispatch(NewTemplateIntent.EditField(it))
-                viewModel.dispatch(NewTemplateIntent.DismissDialog)
-            }, onDeleteField = {
-                viewModel.dispatch(NewTemplateIntent.DeleteField(field))
-                viewModel.dispatch(NewTemplateIntent.DismissDialog)
-            })
+            EditTemplateFieldDialog(
+                viewModelFactory = EditTemplateFieldViewModel.factory(
+                    editTemplateFieldViewModelFactory, field
+                ),
+                onDismissRequest = {
+                    viewModel.dispatch(NewTemplateIntent.DismissDialog)
+                },
+                onContinue = {
+                    viewModel.dispatch(NewTemplateIntent.EditField(it))
+                    viewModel.dispatch(NewTemplateIntent.DismissDialog)
+                },
+                onDeleteField = {
+                    viewModel.dispatch(NewTemplateIntent.DeleteField(field))
+                    viewModel.dispatch(NewTemplateIntent.DismissDialog)
+                }
+            )
         }
     }
 
@@ -326,10 +339,4 @@ fun NewTemplateScreen(
             }
         }
     }
-}
-
-@Preview
-@Composable
-private fun NewTemplateScreenPreview() {
-    NewTemplateScreen({}, {})
 }

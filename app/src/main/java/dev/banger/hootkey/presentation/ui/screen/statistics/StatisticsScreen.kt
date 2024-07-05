@@ -28,7 +28,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.banger.hootkey.R
 import dev.banger.hootkey.domain.entity.password.PasswordHealthScore
 import dev.banger.hootkey.presentation.ui.common.StatsWidget
@@ -43,10 +45,13 @@ import dev.banger.hootkey.presentation.ui.theme.TypeM16
 import dev.banger.hootkey.presentation.ui.theme.White
 import dev.banger.hootkey.presentation.ui.utils.noRippleClickable
 import dev.banger.hootkey.presentation.viewmodel.StatisticsViewModel
-import org.koin.androidx.compose.koinViewModel
 
 @Composable
-fun StatisticsScreen(onNavigateBack: () -> Unit, viewModel: StatisticsViewModel = koinViewModel()) {
+fun StatisticsScreen(
+    viewModelFactory: ViewModelProvider.Factory,
+    onNavigateBack: () -> Unit,
+    viewModel: StatisticsViewModel = viewModel(factory = viewModelFactory)
+) {
     val healthScore by viewModel.passwordHealthScore.collectAsStateWithLifecycle(lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current)
 
     Scaffold(

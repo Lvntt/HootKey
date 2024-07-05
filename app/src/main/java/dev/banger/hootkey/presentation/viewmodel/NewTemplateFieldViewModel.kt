@@ -10,8 +10,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import javax.inject.Inject
 
-class NewTemplateFieldViewModel : ViewModel() {
+class NewTemplateFieldViewModel @Inject constructor() : ViewModel() {
 
     private val stateFlow = MutableStateFlow(NewTemplateFieldState())
     val state = stateFlow.asStateFlow()

@@ -8,11 +8,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import dev.banger.hootkey.presentation.entity.UiPasswordStrength
 import dev.banger.hootkey.presentation.ui.theme.DarkGray
 import dev.banger.hootkey.presentation.ui.theme.LinearProgressIndicatorHeight
 import dev.banger.hootkey.presentation.ui.theme.LinearProgressIndicatorRegular
 import dev.banger.hootkey.presentation.ui.theme.PaddingMedium
-import dev.banger.hootkey.presentation.entity.UiPasswordStrength
 
 @Composable
 fun PasswordStrengthIndicator(

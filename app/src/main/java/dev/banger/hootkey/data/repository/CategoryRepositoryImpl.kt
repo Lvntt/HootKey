@@ -23,8 +23,11 @@ import dev.banger.hootkey.domain.repository.CategoryRepository
 import dev.banger.hootkey.domain.repository.TemplateRepository
 import kotlinx.coroutines.tasks.await
 import java.util.UUID
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class CategoryRepositoryImpl(
+@Singleton
+class CategoryRepositoryImpl @Inject constructor(
     private val auth: FirebaseAuth,
     private val fireStore: FirebaseFirestore,
     private val templateRepository: TemplateRepository,

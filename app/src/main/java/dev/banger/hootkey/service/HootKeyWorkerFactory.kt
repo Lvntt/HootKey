@@ -8,8 +8,9 @@ import dev.banger.hootkey.domain.repository.CategoryRepository
 import dev.banger.hootkey.domain.repository.SettingsRepository
 import dev.banger.hootkey.domain.repository.TemplateRepository
 import dev.banger.hootkey.domain.repository.VaultRepository
+import javax.inject.Inject
 
-class HootKeyWorkerFactory(
+class HootKeyWorkerFactory @Inject constructor(
     private val templateRepository: TemplateRepository,
     private val categoryRepository: CategoryRepository,
     private val vaultRepository: VaultRepository,

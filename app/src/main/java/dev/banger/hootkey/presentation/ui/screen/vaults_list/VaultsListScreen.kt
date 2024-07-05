@@ -27,7 +27,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.banger.hootkey.Constants.EDITED_VAULT_KEY
 import dev.banger.hootkey.Constants.EDITED_VAULT_NEW_CATEGORY_KEY
 import dev.banger.hootkey.Constants.EDITED_VAULT_OLD_CATEGORY_KEY
@@ -50,9 +52,8 @@ import dev.banger.hootkey.presentation.ui.screen.vaults_list.VaultsListContentTy
 import dev.banger.hootkey.presentation.ui.screen.vaults_list.components.FilterChip
 import dev.banger.hootkey.presentation.ui.theme.DefaultBackgroundBrush
 import dev.banger.hootkey.presentation.ui.utils.noRippleClickable
+import dev.banger.hootkey.presentation.viewmodel.VaultDetailsViewModel
 import dev.banger.hootkey.presentation.viewmodel.VaultsListViewModel
-import org.koin.androidx.compose.koinViewModel
-import org.koin.core.parameter.parametersOf
 
 typealias DeletedVaultIds = List<String>
 typealias UpdatedVaultIds = List<String>
@@ -62,15 +63,16 @@ typealias AddedVaultCategories = List<String>
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VaultsListScreen(
+    vaultListViewModelFactory: ViewModelProvider.Factory,
+    vaultDetailsViewModelFactory: VaultDetailsViewModel.Factory,
     savedStateHandleProvider: () -> SavedStateHandle?,
     categoryName: String? = null,
-    categoryId: String? = null,
     onEditClick: (String) -> Unit,
     onNavigateBack: (DeletedVaultIds, UpdatedVaultIds, DeletedVaultCategories, AddedVaultCategories) -> Unit,
-    viewModel: VaultsListViewModel = koinViewModel(parameters = { parametersOf(categoryId ?: "") })
+    vaultsListViewModel: VaultsListViewModel = viewModel(factory = vaultListViewModelFactory)
 ) {
-    val query by viewModel.searchQuery.collectAsStateWithLifecycle(lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current)
-    val state by viewModel.state.collectAsStateWithLifecycle(lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current)
+    val query by vaultsListViewModel.searchQuery.collectAsStateWithLifecycle(lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current)
+    val state by vaultsListViewModel.state.collectAsStateWithLifecycle(lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current)
     val clipboardManager = LocalClipboardManager.current
     val savedStateHandle = savedStateHandleProvider()
 
@@ -79,7 +81,7 @@ fun VaultsListScreen(
     LaunchedEffect(updatedVaultKeyFlow?.value) {
         val updatedVaultKey = updatedVaultKeyFlow?.value ?: return@LaunchedEffect
         savedStateHandle.remove<String>(EDITED_VAULT_KEY)
-        viewModel.dispatch(
+        vaultsListViewModel.dispatch(
             VaultsListIntent.UpdateVault(
                 updatedVaultKey,
                 savedStateHandle.remove<String>(EDITED_VAULT_NEW_CATEGORY_KEY),
@@ -100,24 +102,25 @@ fun VaultsListScreen(
     state.vaultDetails?.let { vault ->
         VaultDetailsBottomSheet(
             vaultId = vault.id,
+            viewModelFactory = vaultDetailsViewModelFactory,
             onDismissRequest = {
-                viewModel.dispatch(VaultsListIntent.DismissVaultDetails)
+                vaultsListViewModel.dispatch(VaultsListIntent.DismissVaultDetails)
             },
             onEditClick = {
                 onEditClick(vault.id)
-                viewModel.dispatch(VaultsListIntent.DismissVaultDetails)
+                vaultsListViewModel.dispatch(VaultsListIntent.DismissVaultDetails)
             },
             onDeleteClick = {
-                viewModel.dispatch(VaultsListIntent.OpenDeleteDialog(vault))
-                viewModel.dispatch(VaultsListIntent.DismissVaultDetails)
+                vaultsListViewModel.dispatch(VaultsListIntent.OpenDeleteDialog(vault))
+                vaultsListViewModel.dispatch(VaultsListIntent.DismissVaultDetails)
             }
         )
     }
 
     state.deleteDialogOpenedForVault?.let {
         AppAlertDialog(
-            onDismissRequest = { viewModel.dispatch(VaultsListIntent.DismissDeleteDialog) },
-            onPositiveAction = { viewModel.dispatch(VaultsListIntent.DeleteVault) },
+            onDismissRequest = { vaultsListViewModel.dispatch(VaultsListIntent.DismissDeleteDialog) },
+            onPositiveAction = { vaultsListViewModel.dispatch(VaultsListIntent.DeleteVault) },
             title = stringResource(R.string.are_you_sure),
             message = stringResource(R.string.delete_vault_message),
             isLoading = state.isDeletingVault,
@@ -160,7 +163,7 @@ fun VaultsListScreen(
                             .height(52.dp)
                             .padding(start = 20.dp, end = 20.dp),
                         value = query,
-                        onValueChange = { viewModel.dispatch(VaultsListIntent.ChangeSearchQuery(it)) },
+                        onValueChange = { vaultsListViewModel.dispatch(VaultsListIntent.ChangeSearchQuery(it)) },
                         placeholder = stringResource(R.string.search_vaults),
                     )
                     Spacer(modifier = Modifier.height(20.dp))
@@ -174,7 +177,7 @@ fun VaultsListScreen(
                         items(UiFilterType.entries) { filterType ->
                             FilterChip(
                                 modifier = Modifier.noRippleClickable {
-                                    viewModel.dispatch(VaultsListIntent.ChangeFilterType(filterType))
+                                    vaultsListViewModel.dispatch(VaultsListIntent.ChangeFilterType(filterType))
                                 },
                                 text = stringResource(filterType.labelResId),
                                 isSelected = filterType == state.uiFilterType
@@ -187,7 +190,7 @@ fun VaultsListScreen(
                     key = { _, item -> item.id },
                     contentType = { _, _ -> VAULT }) { index, vault ->
                     if (index >= state.vaults.size - 1 && !state.endReached && state.vaultsPageLoadingState == LceState.CONTENT) {
-                        viewModel.dispatch(VaultsListIntent.LoadVaultsNextPage)
+                        vaultsListViewModel.dispatch(VaultsListIntent.LoadVaultsNextPage)
                     }
                     VaultShortItem(modifier = Modifier
                         .fillMaxWidth()
@@ -199,7 +202,7 @@ fun VaultsListScreen(
                         name = vault.name,
                         login = vault.login ?: "",
                         onClick = {
-                            viewModel.dispatch(VaultsListIntent.OpenVaultDetails(vault))
+                            vaultsListViewModel.dispatch(VaultsListIntent.OpenVaultDetails(vault))
                         },
                         onCopyClick = {
                             val clipData = if (!vault.password.isNullOrBlank()) vault.password
@@ -208,7 +211,7 @@ fun VaultsListScreen(
                             clipboardManager.setText(AnnotatedString(clipData))
                         },
                         onEditClick = { onEditClick(vault.id) },
-                        onDeleteClick = { viewModel.dispatch(VaultsListIntent.OpenDeleteDialog(vault)) })
+                        onDeleteClick = { vaultsListViewModel.dispatch(VaultsListIntent.OpenDeleteDialog(vault)) })
                     Spacer(modifier = Modifier.height(12.dp))
                 }
                 when (state.vaultsPageLoadingState) {
@@ -222,7 +225,7 @@ fun VaultsListScreen(
                         VaultErrorItem(modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 20.dp),
-                            onClick = { viewModel.dispatch(VaultsListIntent.LoadVaultsNextPage) })
+                            onClick = { vaultsListViewModel.dispatch(VaultsListIntent.LoadVaultsNextPage) })
                     }
                 }
             }

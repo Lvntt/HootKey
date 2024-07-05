@@ -40,7 +40,9 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.banger.hootkey.Constants.CREATED_CATEGORY_ID_KEY
 import dev.banger.hootkey.R
 import dev.banger.hootkey.presentation.entity.UiCategory
@@ -76,20 +78,17 @@ import dev.banger.hootkey.presentation.ui.utils.gradientTint
 import dev.banger.hootkey.presentation.ui.utils.noRippleClickable
 import dev.banger.hootkey.presentation.viewmodel.EditVaultViewModel
 import kotlinx.coroutines.launch
-import org.koin.androidx.compose.koinViewModel
-import org.koin.core.parameter.parametersOf
 
 @Composable
 fun EditVaultScreen(
-    vaultId: String,
+    editVaultViewModelFactory: ViewModelProvider.Factory,
+    passwordGeneratorViewModelFactory: ViewModelProvider.Factory,
     savedStateHandleProvider: () -> SavedStateHandle?,
     onNavigateBack: () -> Unit,
     onSuccess: (EditVaultSuccessInfo) -> Unit,
     onNavigateToCategories: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: EditVaultViewModel = koinViewModel(
-        parameters = { parametersOf(vaultId) }
-    )
+    viewModel: EditVaultViewModel = viewModel(factory = editVaultViewModelFactory)
 ) {
     val focusManager = LocalFocusManager.current
     val coroutineScope = rememberCoroutineScope()
@@ -157,6 +156,7 @@ fun EditVaultScreen(
 
     state.generatingPasswordForIndex?.let { index ->
         PasswordGeneratorDialog(
+            viewModelFactory = passwordGeneratorViewModelFactory,
             onDismissRequest = {
                 viewModel.dispatch(EditVaultIntent.DismissPasswordGenerator)
             },

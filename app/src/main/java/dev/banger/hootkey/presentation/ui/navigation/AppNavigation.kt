@@ -1,6 +1,7 @@
 package dev.banger.hootkey.presentation.ui.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -19,9 +20,11 @@ import dev.banger.hootkey.Constants.TEMPLATE_KEY
 import dev.banger.hootkey.Constants.UPDATED_VAULT_IDS_KEY
 import dev.banger.hootkey.Constants.VAULT_CATEGORY_KEY
 import dev.banger.hootkey.Constants.VAULT_KEY
+import dev.banger.hootkey.di.viewmodel.ViewModelFactoryContainer
 import dev.banger.hootkey.presentation.ui.navigation.NavigationDestinations.NULL_ARG_VALUE
-import dev.banger.hootkey.presentation.ui.screen.auth.AccountAuthScreen
 import dev.banger.hootkey.presentation.ui.screen.auth.AuthScreen
+import dev.banger.hootkey.presentation.ui.screen.auth.LoginScreen
+import dev.banger.hootkey.presentation.ui.screen.auth.RegisterScreen
 import dev.banger.hootkey.presentation.ui.screen.categories.CategoriesScreen
 import dev.banger.hootkey.presentation.ui.screen.dashboard.DashboardScreen
 import dev.banger.hootkey.presentation.ui.screen.edit_vault.EditVaultScreen
@@ -34,41 +37,67 @@ import dev.banger.hootkey.presentation.ui.screen.settings.SettingsScreen
 import dev.banger.hootkey.presentation.ui.screen.statistics.StatisticsScreen
 import dev.banger.hootkey.presentation.ui.screen.templates.TemplatesScreen
 import dev.banger.hootkey.presentation.ui.screen.vaults_list.VaultsListScreen
+import dev.banger.hootkey.presentation.viewmodel.EditTemplateFieldViewModel
+import dev.banger.hootkey.presentation.viewmodel.EditVaultViewModel
+import dev.banger.hootkey.presentation.viewmodel.PasswordGeneratorViewModel
+import dev.banger.hootkey.presentation.viewmodel.VaultDetailsViewModel
+import dev.banger.hootkey.presentation.viewmodel.VaultsListViewModel
 
 @Composable
-fun AppNavigation(navHostController: NavHostController) {
+fun AppNavigation(
+    viewModelFactory: ViewModelProvider.Factory,
+    viewModelFactoryContainer: ViewModelFactoryContainer,
+    navHostController: NavHostController
+) {
     NavHost(
         navController = navHostController,
         startDestination = NavigationDestinations.LAUNCH
     ) {
         composable(NavigationDestinations.LAUNCH) {
-            LaunchScreen(onNavigateToAccountLogin = {
-                navHostController.clearBackStackAndNavigate(NavigationDestinations.ACCOUNT_LOGIN)
-            }, onNavigateToLogin = {
-                navHostController.clearBackStackAndNavigate(NavigationDestinations.LOGIN)
-            })
+            LaunchScreen(
+                viewModelFactory = viewModelFactory,
+                onNavigateToAccountLogin = {
+                    navHostController.clearBackStackAndNavigate(NavigationDestinations.ACCOUNT_LOGIN)
+                },
+                onNavigateToLogin = {
+                    navHostController.clearBackStackAndNavigate(NavigationDestinations.LOGIN)
+                }
+            )
         }
         composable(NavigationDestinations.ACCOUNT_LOGIN) {
-            AccountAuthScreen(isLogin = true, onNavigateFromBottomHint = {
-                navHostController.navigate(NavigationDestinations.ACCOUNT_REGISTRATION)
-            }, onSuccess = {
-                navHostController.clearBackStackAndNavigate(NavigationDestinations.DASHBOARD)
-            })
+            LoginScreen(
+                viewModelFactory = viewModelFactory,
+                onNavigateFromBottomHint = {
+                    navHostController.navigate(NavigationDestinations.ACCOUNT_REGISTRATION)
+                },
+                onSuccess = {
+                    navHostController.clearBackStackAndNavigate(NavigationDestinations.DASHBOARD)
+                }
+            )
         }
         composable(NavigationDestinations.ACCOUNT_REGISTRATION) {
-            AccountAuthScreen(isLogin = false, onNavigateFromBottomHint = {
-                navHostController.navigate(NavigationDestinations.ACCOUNT_LOGIN)
-            }, onSuccess = {
-                navHostController.clearBackStackAndNavigate(NavigationDestinations.DASHBOARD)
-            })
+            RegisterScreen(
+                viewModelFactory = viewModelFactory,
+                onNavigateFromBottomHint = {
+                    navHostController.navigate(NavigationDestinations.ACCOUNT_LOGIN)
+                },
+                onSuccess = {
+                    navHostController.clearBackStackAndNavigate(NavigationDestinations.DASHBOARD)
+                }
+            )
         }
         composable(NavigationDestinations.LOGIN) {
-            AuthScreen(onSuccess = {
-                navHostController.clearBackStackAndNavigate(NavigationDestinations.DASHBOARD)
-            })
+            AuthScreen(
+                viewModelFactory = viewModelFactory,
+                onSuccess = {
+                    navHostController.clearBackStackAndNavigate(NavigationDestinations.DASHBOARD)
+                }
+            )
         }
         composable(NavigationDestinations.DASHBOARD) {
             DashboardScreen(
+                viewModelFactory = viewModelFactory,
+                vaultDetailsViewModelFactory = viewModelFactoryContainer.vaultDetailsViewModelFactory,
                 savedStateHandleProvider = {
                     navHostController.currentBackStackEntry?.savedStateHandle
                 }, onAddNewVault = {
@@ -98,36 +127,46 @@ fun AppNavigation(navHostController: NavHostController) {
             val categoryName =
                 backStackEntry.arguments?.getString(NavigationDestinations.VAULT_CATEGORY_NAME_ARG)
                     .takeIf { it != NULL_ARG_VALUE }
-            VaultsListScreen({
-                navHostController.currentBackStackEntry?.savedStateHandle
-            }, categoryName, categoryId, { id ->
-                navHostController.navigate("${NavigationDestinations.EDIT_VAULT}/$id")
-            }, { deletedVaultIds, updatedVaultIds, deletedVaultCategories, addedVaultCategories ->
-                navHostController.popBackStack()
-                if (deletedVaultIds.isNotEmpty()) {
-                    navHostController.currentBackStackEntry
-                        ?.savedStateHandle
-                        ?.set(DELETED_VAULT_IDS_KEY, deletedVaultIds)
+            VaultsListScreen(
+                vaultListViewModelFactory = VaultsListViewModel.factory(
+                    viewModelFactoryContainer.vaultsListViewModelFactory, categoryId ?: ""
+                ),
+                vaultDetailsViewModelFactory = viewModelFactoryContainer.vaultDetailsViewModelFactory,
+                savedStateHandleProvider = {
+                    navHostController.currentBackStackEntry?.savedStateHandle
+                },
+                categoryName = categoryName,
+                onEditClick = { id ->
+                    navHostController.navigate("${NavigationDestinations.EDIT_VAULT}/$id")
+                },
+                onNavigateBack = { deletedVaultIds, updatedVaultIds, deletedVaultCategories, addedVaultCategories ->
+                    navHostController.popBackStack()
+                    if (deletedVaultIds.isNotEmpty()) {
+                        navHostController.currentBackStackEntry
+                            ?.savedStateHandle
+                            ?.set(DELETED_VAULT_IDS_KEY, deletedVaultIds)
+                    }
+                    if (updatedVaultIds.isNotEmpty()) {
+                        navHostController.currentBackStackEntry
+                            ?.savedStateHandle
+                            ?.set(UPDATED_VAULT_IDS_KEY, updatedVaultIds)
+                    }
+                    if (deletedVaultCategories.isNotEmpty()) {
+                        navHostController.currentBackStackEntry
+                            ?.savedStateHandle
+                            ?.set(DELETED_VAULT_CATEGORIES_KEY, deletedVaultCategories)
+                    }
+                    if (addedVaultCategories.isNotEmpty()) {
+                        navHostController.currentBackStackEntry
+                            ?.savedStateHandle
+                            ?.set(ADDED_VAULT_CATEGORIES_KEY, addedVaultCategories)
+                    }
                 }
-                if (updatedVaultIds.isNotEmpty()) {
-                    navHostController.currentBackStackEntry
-                        ?.savedStateHandle
-                        ?.set(UPDATED_VAULT_IDS_KEY, updatedVaultIds)
-                }
-                if (deletedVaultCategories.isNotEmpty()) {
-                    navHostController.currentBackStackEntry
-                        ?.savedStateHandle
-                        ?.set(DELETED_VAULT_CATEGORIES_KEY, deletedVaultCategories)
-                }
-                if (addedVaultCategories.isNotEmpty()) {
-                    navHostController.currentBackStackEntry
-                        ?.savedStateHandle
-                        ?.set(ADDED_VAULT_CATEGORIES_KEY, addedVaultCategories)
-                }
-            })
+            )
         }
         composable(NavigationDestinations.NEW_VAULT) {
             NewVaultScreen(
+                viewModelFactory = viewModelFactory,
                 savedStateHandleProvider = {
                     navHostController.currentBackStackEntry?.savedStateHandle
                 },
@@ -150,6 +189,7 @@ fun AppNavigation(navHostController: NavHostController) {
 
         composable(NavigationDestinations.NEW_TEMPLATE) {
             NewTemplateScreen(
+                viewModelFactory = viewModelFactory,
                 onSuccess = {
                     navHostController.popBackStack()
                     navHostController.currentBackStackEntry
@@ -158,12 +198,14 @@ fun AppNavigation(navHostController: NavHostController) {
                 },
                 onNavigateBack = {
                     navHostController.popBackStack()
-                }
+                },
+                editTemplateFieldViewModelFactory = viewModelFactoryContainer.editTemplateFieldViewModelFactory
             )
         }
 
         composable(NavigationDestinations.NEW_CATEGORY) {
             NewCategoryScreen(
+                viewModelFactory = viewModelFactory,
                 savedStateHandleProvider = {
                     navHostController.currentBackStackEntry?.savedStateHandle
                 },
@@ -201,6 +243,7 @@ fun AppNavigation(navHostController: NavHostController) {
 
         composable(NavigationDestinations.CATEGORIES) {
             CategoriesScreen(
+                viewModelFactory = viewModelFactory,
                 savedStateHandleProvider = {
                     navHostController.currentBackStackEntry?.savedStateHandle
                 },
@@ -221,6 +264,7 @@ fun AppNavigation(navHostController: NavHostController) {
 
         composable(NavigationDestinations.TEMPLATES) {
             TemplatesScreen(
+                viewModelFactory = viewModelFactory,
                 savedStateHandleProvider = {
                     navHostController.currentBackStackEntry?.savedStateHandle
                 },
@@ -251,7 +295,10 @@ fun AppNavigation(navHostController: NavHostController) {
                 ?: throw IllegalStateException("could not get vaultId for EditVault")
 
             EditVaultScreen(
-                vaultId = vaultId,
+                editVaultViewModelFactory = EditVaultViewModel.factory(
+                    viewModelFactoryContainer.editVaultViewModelFactory, vaultId
+                ),
+                passwordGeneratorViewModelFactory = viewModelFactory,
                 savedStateHandleProvider = {
                     navHostController.currentBackStackEntry?.savedStateHandle
                 },
@@ -282,6 +329,7 @@ fun AppNavigation(navHostController: NavHostController) {
 
         composable(NavigationDestinations.SETTINGS) {
             SettingsScreen(
+                viewModelFactory = viewModelFactory,
                 onNavigateBack = {
                     navHostController.popBackStack()
                 },
@@ -292,9 +340,12 @@ fun AppNavigation(navHostController: NavHostController) {
         }
 
         composable(NavigationDestinations.STATISTICS) {
-            StatisticsScreen(onNavigateBack = {
-                navHostController.popBackStack()
-            })
+            StatisticsScreen(
+                viewModelFactory = viewModelFactory,
+                onNavigateBack = {
+                    navHostController.popBackStack()
+                }
+            )
         }
     }
 }

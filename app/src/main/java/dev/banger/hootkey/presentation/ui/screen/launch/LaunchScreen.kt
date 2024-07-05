@@ -13,17 +13,19 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.banger.hootkey.R
 import dev.banger.hootkey.presentation.state.auth.LaunchEvent
 import dev.banger.hootkey.presentation.ui.common.ObserveAsEvents
 import dev.banger.hootkey.presentation.viewmodel.LaunchViewModel
-import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun LaunchScreen(
+    viewModelFactory: ViewModelProvider.Factory,
     onNavigateToAccountLogin: () -> Unit,
     onNavigateToLogin: () -> Unit,
-    viewModel: LaunchViewModel = koinViewModel()
+    viewModel: LaunchViewModel = viewModel(factory = viewModelFactory)
 ) {
     ObserveAsEvents(viewModel.events) {
         when (it) {

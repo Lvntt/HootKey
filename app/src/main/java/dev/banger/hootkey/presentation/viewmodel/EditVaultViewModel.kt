@@ -2,7 +2,12 @@ package dev.banger.hootkey.presentation.viewmodel
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
+import dev.banger.hootkey.di.qualifiers.IoDispatcher
 import dev.banger.hootkey.domain.repository.CategoryRepository
 import dev.banger.hootkey.domain.repository.VaultRepository
 import dev.banger.hootkey.presentation.intent.EditVaultIntent
@@ -21,16 +26,12 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-class EditVaultViewModel(
-    private val vaultId: String,
+class EditVaultViewModel @AssistedInject constructor(
+    @Assisted private val vaultId: String,
     private val categoryRepository: CategoryRepository,
     private val vaultRepository: VaultRepository,
-    private val defaultDispatcher: CoroutineDispatcher
+    @IoDispatcher private val defaultDispatcher: CoroutineDispatcher
 ) : ViewModel() {
-
-    private companion object {
-        const val TAG = "EditVaultViewModel"
-    }
 
     private val stateFlow = MutableStateFlow(EditVaultState(vaultId = vaultId))
     val state = stateFlow.asStateFlow()
@@ -223,6 +224,27 @@ class EditVaultViewModel(
         val date = Date(millis)
         val dateFormat = SimpleDateFormat("dd.MM.yyyy", locale)
         return dateFormat.format(date)
+    }
+
+    @AssistedFactory
+    interface Factory {
+        fun create(vaultId: String): EditVaultViewModel
+    }
+
+    companion object {
+        fun factory(
+            factory: Factory,
+            vaultId: String
+        ) : ViewModelProvider.Factory {
+            return object : ViewModelProvider.Factory {
+                @Suppress("UNCHECKED_CAST")
+                override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                    return factory.create(vaultId) as T
+                }
+            }
+        }
+
+        const val TAG = "EditVaultViewModel"
     }
 
 }

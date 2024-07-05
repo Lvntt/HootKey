@@ -21,8 +21,11 @@ import dev.banger.hootkey.domain.entity.template.TemplateShort
 import dev.banger.hootkey.domain.repository.TemplateRepository
 import kotlinx.coroutines.tasks.await
 import java.util.UUID
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class TemplateRepositoryImpl(
+@Singleton
+class TemplateRepositoryImpl @Inject constructor(
     private val fireStore: FirebaseFirestore,
     private val auth: FirebaseAuth,
     private val crypto: CryptoManager,

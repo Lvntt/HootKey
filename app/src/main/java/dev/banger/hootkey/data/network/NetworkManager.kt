@@ -7,8 +7,14 @@ import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import androidx.core.content.ContextCompat.getSystemService
 import dev.banger.hootkey.data.datasource.SettingsManager
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class NetworkManager(context: Context, private val settingsManager: SettingsManager) {
+@Singleton
+class NetworkManager @Inject constructor(
+    context: Context,
+    private val settingsManager: SettingsManager
+) {
 
     private var _isNetworkAvailable = true
 

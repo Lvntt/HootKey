@@ -25,7 +25,9 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.banger.hootkey.R
 import dev.banger.hootkey.presentation.entity.UiGeneratedPassword
 import dev.banger.hootkey.presentation.intent.PasswordGeneratorIntent
@@ -48,14 +50,14 @@ import dev.banger.hootkey.presentation.ui.theme.TypeM14
 import dev.banger.hootkey.presentation.ui.theme.White
 import dev.banger.hootkey.presentation.ui.utils.noRippleClickable
 import dev.banger.hootkey.presentation.viewmodel.PasswordGeneratorViewModel
-import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun PasswordGeneratorDialog(
+    viewModelFactory: ViewModelProvider.Factory,
     onDismissRequest: () -> Unit,
     onContinue: (UiGeneratedPassword) -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: PasswordGeneratorViewModel = koinViewModel()
+    viewModel: PasswordGeneratorViewModel = viewModel(factory = viewModelFactory)
 ) {
     val context = LocalContext.current
 

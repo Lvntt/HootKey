@@ -31,7 +31,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.banger.hootkey.Constants.CREATED_CATEGORY_ID_KEY
 import dev.banger.hootkey.R
 import dev.banger.hootkey.presentation.entity.UiCategoryShort
@@ -53,16 +55,16 @@ import dev.banger.hootkey.presentation.ui.utils.gradientTint
 import dev.banger.hootkey.presentation.ui.utils.noRippleClickable
 import dev.banger.hootkey.presentation.viewmodel.CategoriesViewModel
 import kotlinx.coroutines.launch
-import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun CategoriesScreen(
+    viewModelFactory: ViewModelProvider.Factory,
     savedStateHandleProvider: () -> SavedStateHandle?,
     onNavigateBack: () -> Unit,
     onCreateCategoryClick: () -> Unit,
     onChooseCategory: (UiCategoryShort) -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: CategoriesViewModel = koinViewModel()
+    viewModel: CategoriesViewModel = viewModel(factory = viewModelFactory)
 ) {
     val coroutineScope = rememberCoroutineScope()
     val snackbarText = stringResource(id = R.string.fetching_categories_error)
