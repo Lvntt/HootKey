@@ -13,7 +13,7 @@ class ValidateEmailUseCaseTest {
 
         val actual = validateEmailUseCase(email)
 
-        assertEquals(false, actual)
+        assertFalse(actual)
     }
 
     @Test
@@ -24,7 +24,7 @@ class ValidateEmailUseCaseTest {
 
         val actual = validateEmailUseCase(email)
 
-        assertEquals(true, actual)
+        assertTrue(actual)
     }
 
     @Test
@@ -35,7 +35,7 @@ class ValidateEmailUseCaseTest {
 
         val actual = validateEmailUseCase(email)
 
-        assertEquals(false, actual)
+        assertFalse(actual)
     }
 
 }
