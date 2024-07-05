@@ -83,7 +83,7 @@ fun StatisticsScreen(
                         when (val score = healthScore) {
                             is PasswordHealthScore.Score -> score.totalPasswordCount.toString()
                             PasswordHealthScore.Calculating -> "..."
-                            PasswordHealthScore.Unknown -> "N/A"
+                            is PasswordHealthScore.Unknown -> "N/A"
                         }
                     }
                 )
@@ -95,7 +95,7 @@ fun StatisticsScreen(
                         when (val score = healthScore) {
                             is PasswordHealthScore.Score -> score.mediumPasswordCount.toString()
                             PasswordHealthScore.Calculating -> "..."
-                            PasswordHealthScore.Unknown -> "N/A"
+                            is PasswordHealthScore.Unknown -> "N/A"
                         }
                     }
                 )
@@ -107,7 +107,7 @@ fun StatisticsScreen(
                         when (val score = healthScore) {
                             is PasswordHealthScore.Score -> score.weakPasswordCount.toString()
                             PasswordHealthScore.Calculating -> "..."
-                            PasswordHealthScore.Unknown -> "N/A"
+                            is PasswordHealthScore.Unknown -> "N/A"
                         }
                     }
                 )

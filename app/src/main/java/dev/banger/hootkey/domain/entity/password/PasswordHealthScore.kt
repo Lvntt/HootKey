@@ -15,6 +15,6 @@ sealed interface PasswordHealthScore {
         val weakPasswordCount: Int
     ) : PasswordHealthScore
 
-    data object Unknown : PasswordHealthScore
+    data class Unknown(val throwable: Throwable? = null) : PasswordHealthScore
 
 }

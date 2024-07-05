@@ -1,5 +1,6 @@
 package dev.banger.hootkey.data.repository
 
+import dev.banger.hootkey.data.crypto.PasswordStrengthChecker
 import dev.banger.hootkey.domain.entity.password.GeneratedPassword
 import dev.banger.hootkey.domain.entity.password.PasswordHealthScore
 import dev.banger.hootkey.domain.entity.password.PasswordOptions
@@ -19,7 +20,8 @@ import javax.inject.Singleton
 
 @Singleton
 class PasswordRepositoryImpl @Inject constructor(
-    private val vaultRepository: VaultRepository
+    private val vaultRepository: VaultRepository,
+    private val passwordStrengthChecker: PasswordStrengthChecker
 ) : PasswordRepository {
 
     private val _passwordHealthScore =
@@ -45,7 +47,7 @@ class PasswordRepositoryImpl @Inject constructor(
                 vaults.vaults.forEach { vault ->
                     if (vault.password.isNullOrBlank()) return@forEach
                     totalPasswordCount++
-                    val strength = checkPasswordStrength(vault.password)
+                    val strength = passwordStrengthChecker.checkPasswordStrength(vault.password)
                     if (strength == PasswordStrength.STRONG || strength == PasswordStrength.VERY_STRONG)
                         strongPasswordCount++
                     if (strength == PasswordStrength.MEDIUM)
@@ -71,13 +73,13 @@ class PasswordRepositoryImpl @Inject constructor(
                 }
             } else {
                 _passwordHealthScore.update {
-                    PasswordHealthScore.Unknown
+                    PasswordHealthScore.Unknown()
                 }
             }
-        }.onFailure {
-            if (it is CancellationException) throw it
+        }.onFailure { e ->
+            if (e is CancellationException) throw e
             _passwordHealthScore.update {
-                PasswordHealthScore.Unknown
+                PasswordHealthScore.Unknown(e)
             }
         }
     }
@@ -100,22 +102,7 @@ class PasswordRepositoryImpl @Inject constructor(
         return GeneratedPassword(password, strength)
     }
 
-    override fun checkPasswordStrength(password: String): PasswordStrength {
-        val length = password.length
-        val hasNumbers = password.any { it.isDigit() }
-        val hasSymbols = password.any { it in PasswordSymbols.special }
-        val hasUppercase = password.any { it.isUpperCase() }
-        val hasLowercase = password.any { it.isLowerCase() }
-
-        val criteriaMet = listOf(hasNumbers, hasSymbols, hasUppercase, hasLowercase).count { it }
-
-        return when {
-            length >= 12 && criteriaMet >= 3 -> PasswordStrength.VERY_STRONG
-            length >= 10 && criteriaMet >= 3 -> PasswordStrength.STRONG
-            length >= 8 && criteriaMet >= 2 -> PasswordStrength.MEDIUM
-            length >= 6 && criteriaMet >= 2 -> PasswordStrength.WEAK
-            else -> PasswordStrength.VERY_WEAK
-        }
-    }
+    override fun checkPasswordStrength(password: String): PasswordStrength =
+        passwordStrengthChecker.checkPasswordStrength(password)
 
 }

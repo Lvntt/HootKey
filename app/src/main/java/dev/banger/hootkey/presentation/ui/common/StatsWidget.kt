@@ -59,7 +59,7 @@ fun StatsWidget(
                 when (val score = scoreProvider()) {
                     is PasswordHealthScore.Score -> score.value
                     PasswordHealthScore.Calculating -> null
-                    PasswordHealthScore.Unknown -> 0f
+                    is PasswordHealthScore.Unknown -> 0f
                 }
             }
         }
@@ -68,7 +68,7 @@ fun StatsWidget(
                 when (val score = scoreProvider()) {
                     is PasswordHealthScore.Score -> "${(score.value * 100).toInt()}%"
                     PasswordHealthScore.Calculating -> "..."
-                    PasswordHealthScore.Unknown -> "N/A"
+                    is PasswordHealthScore.Unknown -> "N/A"
                 }
             }
         }
