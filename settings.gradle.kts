@@ -21,4 +21,10 @@ dependencyResolutionManagement {
 
 rootProject.name = "HootKey"
 include(":app")
- 
+include(":feature-auth")
+include(":feature-auth:feature-auth-api")
+include(":feature-auth:feature-auth-impl")
+include(":core")
+include(":core:core-common-api")
+include(":core:core-common-impl")
+include(":core:core-utils")
