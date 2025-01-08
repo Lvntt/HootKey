@@ -88,4 +88,8 @@ dependencies {
     implementation(libs.landscapist.glide)
 
     implementation(libs.androidx.work.runtime.ktx)
+
+    testImplementation(libs.junit)
+    testImplementation(libs.mockk)
+    testImplementation(libs.kotlinx.coroutines.test)
 }

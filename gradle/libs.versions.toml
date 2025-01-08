@@ -2,13 +2,16 @@
 agp = "8.4.1"
 biometric = "1.1.0"
 firebaseBom = "33.0.0"
+junit = "4.13.2"
 kotlin = "1.9.0"
 coreKtx = "1.13.1"
+kotlinxCoroutinesTest = "1.6.4"
 landscapistGlide = "2.3.4"
 lifecycleRuntimeKtx = "2.8.2"
 activityCompose = "1.9.0"
 composeBom = "2024.06.00"
 composeNavigation = "2.7.7"
+mockk = "1.13.14"
 reorderableVersion = "2.1.1"
 securityCrypto = "1.1.0-alpha06"
 serialization = "1.6.3"
@@ -34,7 +37,10 @@ androidx-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
 androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
 androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
 firebase-firestore = { module = "com.google.firebase:firebase-firestore" }
+junit = { module = "junit:junit", version.ref = "junit" }
+kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinxCoroutinesTest" }
 landscapist-glide = { module = "com.github.skydoves:landscapist-glide", version.ref = "landscapistGlide" }
+mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "composeNavigation" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serialization"}
 sh-reorderable = { module = "sh.calvin.reorderable:reorderable", version.ref = "reorderableVersion" }
