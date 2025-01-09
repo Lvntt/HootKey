@@ -10,9 +10,8 @@ import dev.banger.hootkey.domain.repository.CategoryRepository
 import dev.banger.hootkey.domain.repository.PasswordRepository
 import dev.banger.hootkey.domain.repository.VaultRepository
 import dev.banger.hootkey.presentation.entity.LceState
-import dev.banger.hootkey.presentation.entity.UiCategoryShort
+import dev.banger.hootkey.presentation.helpers.DashboardStateHelper
 import dev.banger.hootkey.presentation.intent.DashboardIntent
-import dev.banger.hootkey.presentation.state.dashboard.DashboardState
 import dev.banger.hootkey.presentation.ui.utils.toUi
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
@@ -26,12 +25,13 @@ class DashboardViewModel @Inject constructor(
     private val categoryRepository: CategoryRepository,
     private val vaultRepository: VaultRepository,
     private val passwordRepository: PasswordRepository,
-    @IoDispatcher private val defaultDispatcher: CoroutineDispatcher
+    @IoDispatcher private val defaultDispatcher: CoroutineDispatcher,
+    private val stateHelper: DashboardStateHelper,
 ) : ViewModel() {
 
     val passwordHealthScore = passwordRepository.passwordHealthScore
 
-    private val _state = MutableStateFlow(DashboardState())
+    private val _state = MutableStateFlow(stateHelper.getInitialState())
     val state = _state.asStateFlow()
 
     init {
@@ -66,11 +66,11 @@ class DashboardViewModel @Inject constructor(
     }
 
     private fun dismissVaultDetails() {
-        _state.update { it.copy(vaultDetails = null) }
+        _state.update { stateHelper.updateStateByDismissingVaultDetails(it) }
     }
 
     private fun openVaultDetails(vault: VaultShort) {
-        _state.update { it.copy(vaultDetails = vault) }
+        _state.update { stateHelper.updateStateByOpeningVaultDetails(it, vault) }
     }
 
     private fun changeCategoriesVaultsCount(
@@ -82,32 +82,17 @@ class DashboardViewModel @Inject constructor(
             runCatching {
                 val newCategories =
                     addedCategoryIds.toSet().minus(_state.value.categories.map { it.id }.toSet())
-                _state.update {
-                    it.copy(
-                        categories = it.categories.mapNotNull { category ->
-                            val newCount =
-                                category.vaultsAmount - deletedCategoryIds.count { categoryId -> categoryId == category.id } + addedCategoryIds.count { categoryId -> categoryId == category.id }
-                            if (newCount <= 0) null
-                            else category.copy(
-                                vaultsAmount = newCount
-                            )
-                        }.sortedWith(
-                            compareByDescending<UiCategoryShort> { category -> category.vaultsAmount }
-                                .thenBy { category -> category.name }
-                        )
+                _state.update { state ->
+                    stateHelper.updateStateByChangingCategoriesVaultsCount(
+                        oldModel = state,
+                        deletedCategoryIds = deletedCategoryIds,
+                        addedCategoryIds = addedCategoryIds,
                     )
                 }
                 if (newCategories.isNotEmpty()) {
                     val newCategoryShorts =
                         newCategories.map { categoryRepository.getShortById(it)?.toUi() }
-                    _state.update {
-                        it.copy(
-                            categories = (it.categories + newCategoryShorts.mapNotNull { uiCategoryShort -> uiCategoryShort }).sortedWith(
-                                compareByDescending<UiCategoryShort> { category -> category.vaultsAmount }
-                                    .thenBy { category -> category.name }
-                            )
-                        )
-                    }
+                    _state.update { stateHelper.updateStateByAddingNewCategories(it, newCategoryShorts) }
                 }
             }.onFailure {
                 if (it is CancellationException) throw it
@@ -118,9 +103,7 @@ class DashboardViewModel @Inject constructor(
     private fun removeDeletedVaults(vaultIds: List<String>) {
         viewModelScope.launch {
             runCatching {
-                _state.update {
-                    it.copy(vaults = it.vaults.filter { vault -> vault.id !in vaultIds })
-                }
+                _state.update { stateHelper.updateStateByRemovingDeletedVaults(it, vaultIds) }
             }
         }
     }
@@ -130,11 +113,7 @@ class DashboardViewModel @Inject constructor(
             runCatching {
                 vaultRepository.getShortByIds(vaultIds)
             }.onSuccess { vaults ->
-                _state.update { state ->
-                    state.copy(vaults = state.vaults.map { vault ->
-                        vaults.firstOrNull { it.id == vault.id } ?: vault
-                    })
-                }
+                _state.update { stateHelper.updateStateByUpdatingVaults(it, vaults) }
             }.onFailure {
                 if (it is CancellationException) throw it
             }
@@ -147,7 +126,7 @@ class DashboardViewModel @Inject constructor(
             runCatching {
                 vaultRepository.getShortById(vaultId)
             }.onSuccess { vault ->
-                _state.update { it.copy(vaults = listOf(vault) + it.vaults) }
+                _state.update { stateHelper.updateStateByAddingNewVault(it, vault) }
             }.onFailure {
                 if (it is CancellationException) throw it
             }
@@ -159,12 +138,7 @@ class DashboardViewModel @Inject constructor(
             runCatching {
                 vaultRepository.getShortById(vaultId)
             }.onSuccess { vault ->
-                _state.update {
-                    it.copy(vaults = it.vaults.map { vaultShort ->
-                        if (vaultShort.id == vaultId) vault
-                        else vaultShort
-                    })
-                }
+                _state.update { stateHelper.updateStateByUpdatingVault(it, vault) }
             }.onFailure {
                 if (it is CancellationException) throw it
             }
@@ -176,18 +150,10 @@ class DashboardViewModel @Inject constructor(
             runCatching {
                 val categoryIndex = _state.value.categories.indexOfFirst { it.id == categoryId }
                 if (categoryIndex != -1) {
-                    val category = _state.value.categories[categoryIndex]
-                    val updatedCategory = category.copy(vaultsAmount = category.vaultsAmount - 1)
-                    _state.update {
-                        it.copy(categories = it.categories.toMutableList()
-                            .apply {
-                                if (updatedCategory.vaultsAmount == 0) removeAt(categoryIndex)
-                                else set(categoryIndex, updatedCategory)
-                            }
-                            .sortedWith(
-                                compareByDescending<UiCategoryShort> { category -> category.vaultsAmount }
-                                    .thenBy { category -> category.name }
-                            )
+                    _state.update { state ->
+                        stateHelper.updateStateByDecrementingCategoryVaultsCount(
+                            oldModel = state,
+                            categoryIndex = categoryIndex,
                         )
                     }
                 }
@@ -202,26 +168,18 @@ class DashboardViewModel @Inject constructor(
             runCatching {
                 val categoryIndex = _state.value.categories.indexOfFirst { it.id == categoryId }
                 if (categoryIndex != -1) {
-                    val category = _state.value.categories[categoryIndex]
-                    val updatedCategory = category.copy(vaultsAmount = category.vaultsAmount + 1)
-                    _state.update {
-                        it.copy(categories = it.categories.toMutableList()
-                            .apply { set(categoryIndex, updatedCategory) }
-                            .sortedWith(
-                                compareByDescending<UiCategoryShort> { category -> category.vaultsAmount }
-                                    .thenBy { category -> category.name }
-                            )
+                    _state.update { state ->
+                        stateHelper.updateStateByIncrementingCategoryVaultsCount(
+                            oldModel = state,
+                            categoryIndex = categoryIndex,
                         )
                     }
                 } else {
-                    val category =
-                        categoryRepository.getShortById(id = categoryId) ?: return@runCatching
-                    _state.update {
-                        it.copy(
-                            categories = (it.categories + category.toUi()).sortedWith(
-                                compareByDescending<UiCategoryShort> { category -> category.vaultsAmount }
-                                    .thenBy { category -> category.name }
-                            )
+                    val category = categoryRepository.getShortById(id = categoryId) ?: return@runCatching
+                    _state.update { state ->
+                        stateHelper.updateStateByCreatingNewCategoryVault(
+                            oldModel = state,
+                            newCategory = category,
                         )
                     }
                 }
@@ -239,64 +197,50 @@ class DashboardViewModel @Inject constructor(
             runCatching {
                 vaultRepository.delete(vaultToDelete.id)
             }.onSuccess {
-                _state.update {
-                    it.copy(isDeletingVault = false,
-                        vaults = it.vaults.filter { vault -> vault.id != vaultToDelete.id },
-                        categories = it.categories
-                            .mapNotNull { category ->
-                                if (category.id != vaultToDelete.categoryId) category
-                                else if (category.vaultsAmount == 1) null
-                                else category.copy(vaultsAmount = category.vaultsAmount - 1)
-                            }
-                            .sortedWith(
-                                compareByDescending<UiCategoryShort> { category -> category.vaultsAmount }
-                                    .thenBy { category -> category.name }
-                            )
-                    )
-                }
+                _state.update { stateHelper.updateStateByVaultDeleted(it, vaultToDelete) }
                 dismissDeleteDialog()
             }.onFailure { throwable ->
                 if (throwable is CancellationException) throw throwable
-                _state.update { it.copy(isDeletingVault = false) }
+                _state.update { stateHelper.updateStateByDeletingVaultError(it) }
             }
         }
     }
 
     private fun dismissDeleteDialog() {
         if (_state.value.isDeletingVault) return
-        _state.update { it.copy(deleteDialogOpenedForVault = null) }
+        _state.update { stateHelper.updateStateByDismissingDeleteDialog(it) }
     }
 
     private fun openDeleteDialog(vault: VaultShort) {
         if (_state.value.deleteDialogOpenedForVault != null || _state.value.isDeletingVault) return
-        _state.update { it.copy(deleteDialogOpenedForVault = vault) }
+        _state.update { stateHelper.updateStateByOpeningDeleteDialog(it, vault) }
     }
 
     private fun loadNextVaultsPage() {
         if (_state.value.vaultsPageLoadingState == LceState.LOADING) return
-        _state.value = _state.value.copy(vaultsPageLoadingState = LceState.LOADING)
+        _state.update { stateHelper.updateStateByVaultPageLoading(it) }
         viewModelScope.launch(defaultDispatcher) {
             runCatching {
                 vaultRepository.getAll(FilterType.RECENT, null, _state.value.nextPageKey)
             }.onSuccess { (vaults, nextPageKey, endReached) ->
                 _state.update { state ->
-                    state.copy(
-                        vaults = state.vaults + vaults,
+                    stateHelper.updateStateVaultsPage(
+                        oldModel = state,
+                        vaults = vaults,
                         nextPageKey = nextPageKey,
                         isEndReached = endReached,
-                        vaultsPageLoadingState = LceState.CONTENT
                     )
                 }
             }.onFailure {
                 if (it is CancellationException) throw it
-                _state.update { state -> state.copy(vaultsPageLoadingState = LceState.ERROR) }
+                _state.update { state -> stateHelper.updateStateByVaultPageError(state) }
             }
         }
     }
 
     private fun loadCategories() {
         if (_state.value.categoriesLoadingState == LceState.LOADING) return
-        _state.update { it.copy(categoriesLoadingState = LceState.LOADING) }
+        _state.update { stateHelper.updateStateByCategoriesLoading(it) }
         viewModelScope.launch(defaultDispatcher) {
             runCatching {
                 categoryRepository.getAllShort().filter { it.vaultsAmount > 0 }
@@ -306,14 +250,10 @@ class DashboardViewModel @Inject constructor(
                     )
             }.onSuccess { categories ->
                 val uiCategories = categories.map { it.toUi() }
-                _state.update { state ->
-                    state.copy(
-                        categories = uiCategories, categoriesLoadingState = LceState.CONTENT
-                    )
-                }
+                _state.update { stateHelper.updateStateCategories(it, uiCategories) }
             }.onFailure {
                 if (it is CancellationException) throw it
-                _state.update { state -> state.copy(categoriesLoadingState = LceState.ERROR) }
+                _state.update { state -> stateHelper.updateStateByCategoriesError(state) }
             }
         }
     }
