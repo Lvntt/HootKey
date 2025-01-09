@@ -4,6 +4,7 @@ import dev.banger.hootkey.domain.repository.CategoryRepository
 import dev.banger.hootkey.domain.repository.PasswordRepository
 import dev.banger.hootkey.domain.repository.VaultRepository
 import dev.banger.hootkey.mock_data.DashboardMockData
+import dev.banger.hootkey.presentation.helpers.DashboardStateHelper
 import dev.banger.hootkey.presentation.intent.DashboardIntent
 import io.mockk.clearAllMocks
 import io.mockk.coEvery
@@ -25,6 +26,7 @@ class DashboardViewModelTest {
     private val vaultRepository: VaultRepository = mockk(relaxed = true)
     private val passwordRepository: PasswordRepository = mockk(relaxed = true)
     private val defaultDispatcher = UnconfinedTestDispatcher()
+    private val stateHelper = DashboardStateHelper()
 
     private lateinit var viewModel: DashboardViewModel
 
@@ -36,6 +38,7 @@ class DashboardViewModelTest {
             vaultRepository = vaultRepository,
             passwordRepository = passwordRepository,
             defaultDispatcher = defaultDispatcher,
+            stateHelper = stateHelper,
         )
     }
 
