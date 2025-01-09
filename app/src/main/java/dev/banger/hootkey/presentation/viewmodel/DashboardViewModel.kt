@@ -192,7 +192,7 @@ class DashboardViewModel @Inject constructor(
     private fun deleteVault() {
         val vaultToDelete = _state.value.deleteDialogOpenedForVault ?: return
         if (_state.value.isDeletingVault) return
-        _state.update { it.copy(isDeletingVault = true) }
+        _state.update { stateHelper.updateStateByDeletingVault(it) }
         viewModelScope.launch(defaultDispatcher) {
             runCatching {
                 vaultRepository.delete(vaultToDelete.id)
